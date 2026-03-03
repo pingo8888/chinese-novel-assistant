@@ -4,7 +4,6 @@ import {
 	type ContextHost,
 	type PluginContext,
 } from "./core/context";
-import { registerPrototypeCommand } from "./features/prototype/commands";
 import { normalizeLocale } from "./lang";
 import {
 	createDefaultSettings,
@@ -21,14 +20,12 @@ export default class ChineseNovelAssistantPlugin extends Plugin {
 		await this.loadSettings();
 
 		this.ctx = createPluginContext(this.createContextHost());
-		registerPrototypeCommand(this.ctx);
 		this.ctx.addSettingTab(new ChineseNovelAssistantSettingTab(this.app, this, this.ctx));
 	}
 
 	private createContextHost(): ContextHost {
 		return {
 			app: this.app,
-			addCommand: (command) => this.addCommand(command),
 			addSettingTab: (tab) => this.addSettingTab(tab),
 			getSettings: () => this.settings,
 			saveSettings: async (nextSettings) => {
@@ -45,9 +42,6 @@ export default class ChineseNovelAssistantPlugin extends Plugin {
 		const defaults = createDefaultSettings(appLocale);
 		this.settings = Object.assign({}, defaults, loaded ?? {});
 		this.settings.locale = normalizeLocale(this.settings.locale);
-		if (!this.settings.defaultNoteText) {
-			this.settings.defaultNoteText = defaults.defaultNoteText;
-		}
 	}
 
 	private getRuntimeLocale(): string | null {
