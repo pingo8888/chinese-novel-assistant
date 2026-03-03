@@ -249,3 +249,15 @@ this.registerInterval(window.setInterval(() => { /* ... */ }, 1000));
 - Developer policies: https://docs.obsidian.md/Developer+policies
 - Plugin guidelines: https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines
 - Style guide: https://help.obsidian.md/style-guide
+
+## Default workflow: compile after code edits (except CSS-only)
+
+Whenever you (Codex) modify any files:
+1) Determine which files changed since the last command run, using:
+  - git diff --name-only
+  - if git is unavailable, use: git status --porcelain and parse paths
+
+2) If the ONLY changed file is exactly `styles.css`, DO NOT compile. Just report "Skipped compile (styles.css only)".
+
+3) Otherwise, always run the compile/build command:
+  - npm run build
