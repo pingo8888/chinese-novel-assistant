@@ -1,0 +1,29 @@
+export const UI={
+  class:{
+  },
+  icon:{
+    plugin:"book-type",
+    stickyNote:"sparkles",
+    file:"file-text",
+    h1:"heading-1",
+    h2:"heading-2",
+    h3:"heading-3",
+    h4:"heading-4",
+    h5:"heading-5",
+    h6:"heading-6",
+    expand:"list-chevrons-up-down",
+    collapse:"list-chevrons-down-up",
+    addToGuidebook:"book-plus",
+    removeFromGuidebook:"book-minus",
+    chevronUp:"chevron-up",
+    chevronDown:"chevron-down",
+    chevronRight:"chevron-right",
+    chevronLeft:"chevron-left",
+    setting:"gear",
+    send:"send-horizontal",
+    clean:"brush-cleaning",
+    delete:"trash-2",
+    pin:"pin",
+    ellipsis:"ellipsis",
+  }
+} as const;

@@ -1,0 +1,15 @@
+{
+	"command.show_prototype_notice": "显示原型提示",
+	"notice.plugin_disabled": "Chinese Novel Assistant 已禁用。",
+	"notice.prototype_loaded": "原型插件已加载。",
+	"settings.title": "Chinese Novel Assistant",
+	"settings.enable.name": "启用插件",
+	"settings.enable.desc": "开启或关闭原型功能。",
+	"settings.notice_text.name": "原型提示文本",
+	"settings.notice_text.desc": "执行命令时显示的提示文本。",
+	"settings.notice_text.placeholder": "原型插件已加载。",
+	"settings.language.name": "界面语言",
+	"settings.language.desc": "选择插件使用的语言。",
+	"settings.language.option.zh_cn": "简体中文",
+	"settings.language.option.zh_tw": "繁體中文"
+}

@@ -1,0 +1,15 @@
+{
+	"command.show_prototype_notice": "顯示原型提示",
+	"notice.plugin_disabled": "Chinese Novel Assistant 已停用。",
+	"notice.prototype_loaded": "原型外掛已載入。",
+	"settings.title": "Chinese Novel Assistant",
+	"settings.enable.name": "啟用外掛",
+	"settings.enable.desc": "開啟或關閉原型功能。",
+	"settings.notice_text.name": "原型提示文字",
+	"settings.notice_text.desc": "執行命令時顯示的提示文字。",
+	"settings.notice_text.placeholder": "原型外掛已載入。",
+	"settings.language.name": "介面語言",
+	"settings.language.desc": "選擇外掛使用的語言。",
+	"settings.language.option.zh_cn": "簡體中文",
+	"settings.language.option.zh_tw": "繁體中文"
+}
