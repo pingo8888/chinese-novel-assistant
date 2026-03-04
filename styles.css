@@ -190,3 +190,23 @@
 	text-align: justify;
 	hyphens: auto;
 }
+
+.markdown-source-view.mod-cm6 .cm-line .cna-typeset-heading-icon {
+	display: none;
+}
+
+.cna-typeset-heading-icons .markdown-source-view.mod-cm6 .cm-line .cna-typeset-heading-icon {
+	display: inline-flex;
+	width: 1em;
+	height: 1em;
+	margin-right: 0.35em;
+	color: var(--text-muted);
+	opacity: 0.9;
+	pointer-events: none;
+	vertical-align: -0.12em;
+}
+
+.cna-typeset-heading-icons .markdown-source-view.mod-cm6 .cm-line .cna-typeset-heading-icon svg {
+	width: 1em;
+	height: 1em;
+}

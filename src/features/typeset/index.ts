@@ -1,5 +1,7 @@
+import { EditorView, type ViewUpdate } from "@codemirror/view";
 import { Plugin } from "obsidian";
 import type { PluginContext } from "../../core/context";
+import { createHeadingIconExtension } from "./heading-icons";
 
 const TYPESET_ENABLED_CLASS = "cna-typeset-enabled";
 const TYPESET_HEADING_ICONS_CLASS = "cna-typeset-heading-icons";
@@ -26,9 +28,32 @@ class TypesetFeature {
 	}
 
 	onload(): void {
+		this.plugin.registerEditorExtension(createHeadingIconExtension());
 		this.plugin.registerEvent(
 			this.plugin.app.workspace.on("layout-change", () => {
 				this.scheduleApply();
+			}),
+		);
+		this.plugin.registerEvent(
+			this.plugin.app.workspace.on("editor-change", () => {
+				this.scheduleApply();
+			}),
+		);
+		this.plugin.registerEvent(
+			this.plugin.app.workspace.on("file-open", () => {
+				this.scheduleApply();
+			}),
+		);
+		this.plugin.registerEvent(
+			this.plugin.app.workspace.on("active-leaf-change", () => {
+				this.scheduleApply();
+			}),
+		);
+		this.plugin.registerEditorExtension(
+			EditorView.updateListener.of((update: ViewUpdate) => {
+				if (update.docChanged || update.viewportChanged || update.geometryChanged || update.focusChanged || update.selectionSet) {
+					this.scheduleApply();
+				}
 			}),
 		);
 
@@ -69,7 +94,7 @@ class TypesetFeature {
 		const rootEl = this.getRootEl();
 
 		rootEl.classList.toggle(TYPESET_ENABLED_CLASS, settings.typesetEnabled);
-		rootEl.classList.remove(TYPESET_HEADING_ICONS_CLASS);
+		rootEl.classList.toggle(TYPESET_HEADING_ICONS_CLASS, settings.typesetShowHeadingIcons);
 		rootEl.classList.toggle(TYPESET_JUSTIFY_CLASS, settings.typesetJustifyText);
 
 		rootEl.style.setProperty(INDENT_CHARS_VAR, String(Math.max(0, settings.typesetIndentChars)));
