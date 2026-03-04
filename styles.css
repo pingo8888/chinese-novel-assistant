@@ -210,3 +210,10 @@
 	width: 1em;
 	height: 1em;
 }
+
+.markdown-source-view.mod-cm6 .cm-content .cna-text-detection-hit {
+	text-decoration-line: underline;
+	text-decoration-style: wavy;
+	text-decoration-color: var(--text-error);
+	text-underline-offset: 2px;
+}

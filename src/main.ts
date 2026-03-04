@@ -12,6 +12,7 @@ import {
 } from "./settings/settings";
 import { registerCharacterCountFeature } from "./features/character-count";
 import { registerNovelSubdirVisibilityFeature } from "./features/novel-subdir-visibility";
+import { registerTextDetectionFeature } from "./features/text-detection";
 import { registerTypesetFeature } from "./features/typeset";
 import { ChineseNovelAssistantSettingTab } from "./ui/views/settings-tab";
 import type { SettingsChangeListener } from "./core/context";
@@ -28,6 +29,7 @@ export default class ChineseNovelAssistantPlugin extends Plugin {
 		this.ctx.addSettingTab(new ChineseNovelAssistantSettingTab(this.app, this, this.ctx));
 		registerNovelSubdirVisibilityFeature(this, this.ctx);
 		registerCharacterCountFeature(this, this.ctx);
+		registerTextDetectionFeature(this, this.ctx);
 		registerTypesetFeature(this, this.ctx);
 	}
 
