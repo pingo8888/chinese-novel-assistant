@@ -11,7 +11,7 @@ import {
 	DEFAULT_SETTINGS,
 } from "./settings/settings";
 import { registerCharacterCountFeature } from "./features/character-count";
-import { registerFunctionalSubdirVisibilityFeature } from "./features/functional-subdir-visibility";
+import { registerNovelSubdirVisibilityFeature } from "./features/novel-subdir-visibility";
 import { ChineseNovelAssistantSettingTab } from "./ui/views/settings-tab";
 import type { SettingsChangeListener } from "./core/context";
 
@@ -25,7 +25,7 @@ export default class ChineseNovelAssistantPlugin extends Plugin {
 
 		this.ctx = createPluginContext(this.createContextHost());
 		this.ctx.addSettingTab(new ChineseNovelAssistantSettingTab(this.app, this, this.ctx));
-		registerFunctionalSubdirVisibilityFeature(this, this.ctx);
+		registerNovelSubdirVisibilityFeature(this, this.ctx);
 		registerCharacterCountFeature(this, this.ctx);
 	}
 

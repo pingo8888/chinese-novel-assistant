@@ -3,14 +3,14 @@ import type { PluginContext } from "../../core/context";
 import type { ChineseNovelAssistantSettings } from "../../settings/settings";
 import { NovelLibraryService } from "../../services/novel-library-service";
 
-const HIDDEN_TREE_ITEM_CLASS = "cna-functional-subdir-hidden";
+const HIDDEN_TREE_ITEM_CLASS = "cna-novel-subdir-hidden";
 
-export function registerFunctionalSubdirVisibilityFeature(plugin: Plugin, ctx: PluginContext): void {
-	const feature = new FunctionalSubdirVisibilityFeature(plugin, ctx);
+export function registerNovelSubdirVisibilityFeature(plugin: Plugin, ctx: PluginContext): void {
+	const feature = new NovelSubdirVisibilityFeature(plugin, ctx);
 	feature.onload();
 }
 
-class FunctionalSubdirVisibilityFeature {
+class NovelSubdirVisibilityFeature {
 	private plugin: Plugin;
 	private ctx: PluginContext;
 	private novelLibraryService: NovelLibraryService;
@@ -99,7 +99,7 @@ class FunctionalSubdirVisibilityFeature {
 
 	private applyVisibility(): void {
 		const hiddenRoots = this.buildHiddenRoots(this.ctx.settings);
-		const shouldHide = this.ctx.settings.hideFunctionalSubdirsInFileExplorer;
+		const shouldHide = this.ctx.settings.hideNovelSubdirsInFileExplorer;
 		const explorerContainers = this.getFileExplorerContainers();
 		for (const containerEl of explorerContainers) {
 			const titleEls = Array.from(containerEl.querySelectorAll<HTMLElement>(".nav-folder-title[data-path], .nav-file-title[data-path]"));

@@ -21,7 +21,7 @@ export interface ChineseNovelAssistantSettings {
 	noteTagHintTextEnabled: boolean;
 	notePath: string;
 	novelLibraries: string[];
-	hideFunctionalSubdirsInFileExplorer: boolean;
+	hideNovelSubdirsInFileExplorer: boolean;
 	customDirNamesEnabled: boolean;
 	guidebookDirName: string;
 	noteDirName: string;
@@ -75,7 +75,7 @@ export function createDefaultSettings(locale: SupportedLocale): ChineseNovelAssi
 		noteTagHintTextEnabled: true,
 		notePath: "",
 		novelLibraries: [],
-		hideFunctionalSubdirsInFileExplorer: false,
+		hideNovelSubdirsInFileExplorer: false,
 		customDirNamesEnabled: false,
 		guidebookDirName: "设定库",
 		noteDirName: "便签库",

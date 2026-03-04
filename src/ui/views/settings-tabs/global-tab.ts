@@ -95,7 +95,7 @@ export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTab
 
 	panelEl.createEl("h4", {
 		cls: "cna-settings-section-title",
-		text: ctx.t("settings.global.section.custom_subdir"),
+		text: ctx.t("settings.global.section.novel_subdir"),
 	});
 
 	new Setting(panelEl)
@@ -103,8 +103,8 @@ export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTab
 		.setDesc(ctx.t("settings.global.subdir.hide_in_file_explorer.desc"))
 		.setClass("cna-settings-item")
 		.addToggle((toggle) =>
-			toggle.setValue(ctx.settings.hideFunctionalSubdirsInFileExplorer).onChange(async (value) => {
-				await ctx.setSettings({ hideFunctionalSubdirsInFileExplorer: value });
+			toggle.setValue(ctx.settings.hideNovelSubdirsInFileExplorer).onChange(async (value) => {
+				await ctx.setSettings({ hideNovelSubdirsInFileExplorer: value });
 			}),
 		);
 
