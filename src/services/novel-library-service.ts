@@ -9,7 +9,7 @@ export class NovelLibraryService {
 		this.app = app;
 	}
 
-	normalizeNovelLibrary(value: string): string {
+	private normalizeNovelLibrary(value: string): string {
 		return value.trim().toLowerCase();
 	}
 
@@ -38,8 +38,7 @@ export class NovelLibraryService {
 		return Array.from(new Set(names));
 	}
 
-	private getNovelLibraryFeatureRootPath(libraryPath: string, locale: SupportedLocale): string {
-		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
+	private getNovelLibraryFeatureRootPath(normalizedLibraryPath: string, locale: SupportedLocale): string {
 		if (!normalizedLibraryPath) {
 			return "";
 		}
@@ -51,7 +50,11 @@ export class NovelLibraryService {
 	}
 
 	resolveNovelLibrarySubdirPaths(settings: ChineseNovelAssistantSettings, libraryPath: string): string[] {
-		const featureRootPath = this.getNovelLibraryFeatureRootPath(libraryPath, settings.locale);
+		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
+		if (!normalizedLibraryPath) {
+			return [];
+		}
+		const featureRootPath = this.getNovelLibraryFeatureRootPath(normalizedLibraryPath, settings.locale);
 		if (!featureRootPath) {
 			return [];
 		}
