@@ -130,7 +130,7 @@
 	"settings.proofread.common.single_quote.name": "检测单引号",
 	"settings.proofread.common.single_quote.desc": "检测英文单引号 (') 与中文单引号（‘’）配对错误",
 	"settings.proofread.common.pair_punctuation.name": "检测其他常见成对中文标点",
-	"settings.proofread.common.pair_punctuation.desc": "检测《》 () [] 【】 <> 〈〉 「」 『』 【】 的配对错误",
+	"settings.proofread.common.pair_punctuation.desc": "检测（）() 「」 『』 【】 〖〗 {} ｛｝ <> 〔〕 〈〉 《》 的配对错误",
 	"settings.proofread.common.auto_complete_pair.name": "中文标点成对补齐",
 	"settings.proofread.common.auto_complete_pair.desc": "输入前半中文标点时自动补齐后半标点，光标保持在中间",
 	"settings.proofread.section.custom": "自定义错别字与敏感词检测",

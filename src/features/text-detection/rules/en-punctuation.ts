@@ -43,7 +43,7 @@ const PUNCTUATION_RULE_CONFIGS: EnPunctuationRuleConfig[] = [
 	{
 		char: "'",
 		enabled: (settings) => settings.proofreadSingleQuoteEnabled,
-		// 'letter OR letter'
+		// 'a OR a'
 		allowContextRegex: /^(?:[A-Za-z]'..|.'[A-Za-z].)$/,
 	},
 ];

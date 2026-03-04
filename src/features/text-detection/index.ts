@@ -3,6 +3,7 @@ import { MarkdownView, Plugin } from "obsidian";
 import type { PluginContext } from "../../core/context";
 import { createTextDetectionExtension } from "./engine";
 import { createEnPunctuationRules } from "./rules/en-punctuation";
+import { createPairPunctuationRules } from "./rules/pair-punctuation";
 
 export function registerTextDetectionFeature(plugin: Plugin, ctx: PluginContext): void {
 	const feature = new TextDetectionFeature(plugin, ctx);
@@ -20,7 +21,10 @@ class TextDetectionFeature {
 
 	onload(): void {
 		this.plugin.registerEditorExtension(
-			createTextDetectionExtension(createEnPunctuationRules(() => this.ctx.settings)),
+			createTextDetectionExtension([
+				...createEnPunctuationRules(() => this.ctx.settings),
+				...createPairPunctuationRules(() => this.ctx.settings),
+			]),
 		);
 
 		const unsubscribeSettingsChange = this.ctx.onSettingsChange(() => {

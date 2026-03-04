@@ -215,5 +215,7 @@
 	text-decoration-line: underline;
 	text-decoration-style: wavy;
 	text-decoration-color: var(--text-error);
+	text-decoration-thickness: 1.5px;
+	text-decoration-skip-ink: none;
 	text-underline-offset: 2px;
 }
