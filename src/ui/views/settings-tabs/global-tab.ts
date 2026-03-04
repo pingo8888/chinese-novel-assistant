@@ -1,5 +1,6 @@
 import { Notice, Setting, TFolder } from "obsidian";
 import { attachFolderSuggest } from "../../componets/folder-suggest";
+import { askForConfirmation } from "../../modals/confirm-modal";
 import type { SettingsTabRenderContext } from "./types";
 
 interface SubdirSyncSettingOptions {
@@ -23,6 +24,17 @@ export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTab
 			.setClass("cna-settings-item")
 			.addButton((button) => {
 				button.setButtonText(ctx.t("settings.common.delete")).onClick(async () => {
+					const shouldDelete = await askForConfirmation(app, {
+						title: ctx.t("settings.global.novel_library.delete_confirm.title"),
+						message: ctx.t("settings.global.novel_library.delete_confirm.message"),
+						confirmText: ctx.t("settings.common.delete"),
+						cancelText: ctx.t("settings.common.cancel"),
+						confirmIsDanger: true,
+					});
+					if (!shouldDelete) {
+						return;
+					}
+
 					await ctx.setSettings({
 						novelLibraries: ctx.settings.novelLibraries.filter((value) => value !== libraryPath),
 					});
@@ -290,6 +302,16 @@ function renderSubdirSyncSetting(
 					const normalizedCurrentName = normalizeVaultPath(options.currentName);
 					const normalizedNextName = normalizeVaultPath(nextName);
 					if (!normalizedNextName || normalizedNextName === normalizedCurrentName) {
+						return;
+					}
+
+					const shouldSync = await askForConfirmation(deps.app, {
+						title: ctx.t("settings.global.subdir.sync_confirm.title"),
+						message: ctx.t("settings.global.subdir.sync_confirm.message"),
+						confirmText: ctx.t("settings.common.sync"),
+						cancelText: ctx.t("settings.common.cancel"),
+					});
+					if (!shouldSync) {
 						return;
 					}
 
