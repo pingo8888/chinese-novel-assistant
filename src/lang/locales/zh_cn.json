@@ -136,6 +136,10 @@
 	"settings.proofread.section.custom": "自定义错别字与敏感词检测",
 	"settings.proofread.custom.enable.name": "启用自定义错别字与敏感词词典",
 	"settings.proofread.custom.enable.desc": "开启后，在正文中标记错别字与敏感词并支持批量修正",
+	"command.proofread.fix_punctuation_errors.name": "修复全部已检测标点错误",
+	"command.proofread.fix_punctuation_errors.no_active_editor": "当前没有可编辑的 Markdown 文档",
+	"command.proofread.fix_punctuation_errors.no_changes": "未发现可自动修复的标点错误",
+	"command.proofread.fix_punctuation_errors.done": "已修复标点错误数量：",
 	"feature.character_count.unit.char": "字",
 	"feature.character_count.unit.chapter": "章",
 	"feature.character_count.unit.ten_thousand": "万"

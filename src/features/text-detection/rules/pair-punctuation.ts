@@ -17,6 +17,11 @@ interface PairRuleConfig {
 	isSubEnabled: (settings: ChineseNovelAssistantSettings) => boolean;
 }
 
+export interface PairPunctuationFixResult {
+	text: string;
+	replacedCount: number;
+}
+
 const COMMON_PAIR_TOKENS: PairToken[] = [
 	{ open: "‘", close: "’", group: "single-quote" },
 	{ open: "“", close: "”", group: "double-quote" },
@@ -133,6 +138,87 @@ function createPairErrorFinder(pairTokens: PairToken[]): (docText: string) => nu
 
 		return Array.from(errorIndices).sort((a, b) => a - b);
 	};
+}
+
+function getEnabledPairTokens(settings: ChineseNovelAssistantSettings): PairToken[] {
+	if (!settings.proofreadCommonPunctuationEnabled) {
+		return [];
+	}
+
+	const enabledGroups = new Set<PairToken["group"]>();
+	for (const config of PAIR_RULE_CONFIGS) {
+		if (config.isSubEnabled(settings)) {
+			enabledGroups.add(config.group);
+		}
+	}
+
+	return COMMON_PAIR_TOKENS.filter((token) => enabledGroups.has(token.group));
+}
+
+function collectPairPunctuationErrorIndices(docText: string, settings: ChineseNovelAssistantSettings): number[] {
+	if (!settings.proofreadCommonPunctuationEnabled) {
+		return [];
+	}
+
+	const errorIndices = new Set<number>();
+	for (const config of PAIR_RULE_CONFIGS) {
+		if (!config.isSubEnabled(settings)) {
+			continue;
+		}
+		const tokens = COMMON_PAIR_TOKENS.filter((token) => token.group === config.group);
+		const findPairErrors = createPairErrorFinder(tokens);
+		const indices = findPairErrors(docText);
+		for (const index of indices) {
+			errorIndices.add(index);
+		}
+	}
+
+	return Array.from(errorIndices).sort((a, b) => a - b);
+}
+
+export function fixPairPunctuationErrors(
+	docText: string,
+	settings: ChineseNovelAssistantSettings,
+): PairPunctuationFixResult {
+	const errorIndices = new Set<number>(collectPairPunctuationErrorIndices(docText, settings));
+	if (errorIndices.size === 0) {
+		return { text: docText, replacedCount: 0 };
+	}
+
+	const enabledTokens = getEnabledPairTokens(settings);
+	const charToToken = new Map<string, PairToken>();
+	for (const token of enabledTokens) {
+		charToToken.set(token.open, token);
+		charToToken.set(token.close, token);
+	}
+
+	const outputChars = Array.from(docText);
+	const nextShouldOpenByToken = new Map<string, boolean>();
+	let replacedCount = 0;
+
+	for (let i = 0; i < outputChars.length; i += 1) {
+		if (!errorIndices.has(i)) {
+			continue;
+		}
+
+		const sourceChar = docText.charAt(i);
+		const token = charToToken.get(sourceChar);
+		if (!token) {
+			continue;
+		}
+
+		const tokenKey = `${token.open}|${token.close}`;
+		const nextShouldOpen = nextShouldOpenByToken.get(tokenKey) ?? true;
+		const replacementChar = nextShouldOpen ? token.open : token.close;
+		nextShouldOpenByToken.set(tokenKey, !nextShouldOpen);
+
+		if (outputChars[i] !== replacementChar) {
+			outputChars[i] = replacementChar;
+			replacedCount += 1;
+		}
+	}
+
+	return { text: outputChars.join(""), replacedCount };
 }
 
 export function createPairPunctuationRules(getSettings: () => ChineseNovelAssistantSettings): TextDetectionRule[] {
