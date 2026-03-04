@@ -11,44 +11,34 @@ const PUNCTUATION_RULE_CONFIGS: EnPunctuationRuleConfig[] = [
 	{
 		char: ",",
 		enabled: (settings) => settings.proofreadEnglishCommaEnabled,
-		// ,letter OR letter,
-		allowContextRegex: /^(?:[A-Za-z],..|.,[A-Za-z].)$/,
 	},
 	{
 		char: ".",
 		enabled: (settings) => settings.proofreadEnglishPeriodEnabled,
-		// digit.digit OR letter. OR .letter OR letter.letter
-		allowContextRegex: /^(?:[0-9]\.[0-9].|[A-Za-z]\...|.\.[A-Za-z].)$/,
+		// 1.2
+		allowContextRegex: /^\d\.\d.$/,
 	},
 	{
 		char: ":",
 		enabled: (settings) => settings.proofreadEnglishColonEnabled,
-		// digit:digit OR :// OR letter:digit
-		allowContextRegex: /^(?:[0-9]:[0-9].|.:\/\/|[A-Za-z]:[0-9].)$/,
+		// 12:34
+		allowContextRegex: /^[0-9]{1,2}:[0-9]{2}$/,
 	},
 	{
 		char: ";",
 		enabled: (settings) => settings.proofreadEnglishSemicolonEnabled,
-		// digit; OR letter;
-		allowContextRegex: /^[A-Za-z0-9];..$/,
 	},
 	{
 		char: "!",
 		enabled: (settings) => settings.proofreadEnglishExclamationEnabled,
-		// digit! OR letter!
-		allowContextRegex: /^[A-Za-z0-9]!..$/,
 	},
 	{
 		char: "?",
 		enabled: (settings) => settings.proofreadEnglishQuestionEnabled,
-		// digit? OR letter?
-		allowContextRegex: /^[A-Za-z0-9]\?..$/,
 	},
 	{
 		char: "\"",
 		enabled: (settings) => settings.proofreadQuoteEnabled,
-		// "letter OR letter"
-		allowContextRegex: /^(?:[A-Za-z]"..|."[A-Za-z].)$/,
 	},
 	{
 		char: "'",
