@@ -107,6 +107,11 @@
 	margin: 0 !important;
 }
 
+.cna-settings-panel > .cna-settings-section-title,
+.cna-settings-panel > .setting-item {
+	margin: 0 !important;
+}
+
 .cna-settings-item.setting-item {
 	background: var(--background-secondary);
 	border: 1px solid var(--background-modifier-border);
@@ -136,4 +141,20 @@
 	color: var(--text-faint);
 	opacity: 1;
 	-webkit-text-fill-color: var(--text-faint);
+}
+
+.cna-settings-item--novel-library .setting-item-name {
+	word-break: break-all;
+}
+
+.cna-settings-item .cna-danger-button {
+	background-color: var(--background-modifier-error);
+	border-color: var(--background-modifier-error);
+	color: var(--text-on-accent);
+}
+
+.cna-settings-current-name {
+	color: var(--text-error);
+	font-size: var(--font-ui-smaller);
+	margin-left: 6px;
 }

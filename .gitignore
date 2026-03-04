@@ -20,4 +20,4 @@ data.json
 
 # Exclude macOS Finder (System Explorer) View States
 .DS_Store
-obsidian-plugin-dev-guidelines.md
+dev-guidelines.md

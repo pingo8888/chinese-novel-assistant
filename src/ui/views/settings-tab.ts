@@ -1,6 +1,8 @@
-import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
+import { App, Notice, Plugin, PluginSettingTab, Setting, TFolder } from "obsidian";
 import type { SupportedLocale } from "../../lang";
 import type { PluginContext } from "../../core/context";
+import { ClearableInputComponent } from "../componets/clearable-input";
+import { attachFolderSuggest } from "../componets/folder-suggest";
 import { TabsComponent, type TabDefinition } from "../componets/tabs";
 
 export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
@@ -18,23 +20,6 @@ export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		const searchWrapEl = containerEl.createDiv({ cls: "cna-settings-search-wrap" });
-		const searchInputContainerEl = searchWrapEl.createDiv({
-			cls: "search-input-container cna-settings-search-input-container",
-		});
-		const searchInputEl = searchInputContainerEl.createEl("input", {
-			type: "search",
-			attr: {
-				placeholder: this.ctx.t("settings.search.placeholder"),
-			},
-		});
-		const clearButtonEl = searchInputContainerEl.createDiv({
-			cls: "search-input-clear-button",
-			attr: {
-				"aria-label": this.ctx.t("settings.search.clear"),
-			},
-		});
-		searchInputEl.value = this.searchKeyword;
-		this.syncSearchClearButton(clearButtonEl, this.searchKeyword);
 
 		const tabs = this.createTabDefinitions();
 		const tabsContainer = containerEl.createDiv();
@@ -57,47 +42,25 @@ export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
 		};
 		renderContent();
 
-		const handleSearchInput = () => {
-			const wasSearchMode = isSearchMode;
-			this.searchKeyword = searchInputEl.value;
-			this.syncSearchClearButton(clearButtonEl, this.searchKeyword);
-			isSearchMode = this.searchKeyword.trim().length > 0;
-			if (wasSearchMode !== isSearchMode) {
-				renderContent();
-			}
+		new ClearableInputComponent({
+			containerEl: searchWrapEl,
+			containerClassName: "cna-settings-search-input-container",
+			placeholder: this.ctx.t("settings.search.placeholder"),
+			clearAriaLabel: this.ctx.t("settings.search.clear"),
+			initialValue: this.searchKeyword,
+			onChange: (value) => {
+				const wasSearchMode = isSearchMode;
+				this.searchKeyword = value;
+				isSearchMode = this.searchKeyword.trim().length > 0;
+				if (wasSearchMode !== isSearchMode) {
+					renderContent();
+				}
 
-			this.applySettingsSearch(tabsContainer, this.searchKeyword, isSearchMode);
-		};
-
-		let isComposing = false;
-		searchInputEl.addEventListener("compositionstart", () => {
-			isComposing = true;
-		});
-		searchInputEl.addEventListener("compositionend", () => {
-			isComposing = false;
-			handleSearchInput();
-		});
-		searchInputEl.addEventListener("input", () => {
-			if (isComposing) {
-				return;
-			}
-			handleSearchInput();
-		});
-		clearButtonEl.addEventListener("click", () => {
-			if (searchInputEl.value.length === 0) {
-				return;
-			}
-
-			searchInputEl.value = "";
-			searchInputEl.dispatchEvent(new Event("input"));
-			searchInputEl.focus();
+				this.applySettingsSearch(tabsContainer, this.searchKeyword, isSearchMode);
+			},
 		});
 
 		this.applySettingsSearch(tabsContainer, this.searchKeyword, isSearchMode);
-	}
-
-	private syncSearchClearButton(clearButtonEl: HTMLElement, value: string): void {
-		clearButtonEl.toggleClass("is-visible", value.length > 0);
 	}
 
 	private createTabDefinitions(): TabDefinition[] {
@@ -287,12 +250,33 @@ export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
 			text: this.ctx.t("settings.global.section.novel_library"),
 		});
 
+		for (const libraryPath of this.ctx.settings.novelLibraries) {
+			const librarySetting = new Setting(panelEl)
+				.setName(libraryPath)
+				.setClass("cna-settings-item")
+				.addButton((button) => {
+					button
+						.setButtonText(this.ctx.t("settings.common.delete"))
+						.onClick(async () => {
+							await this.ctx.setSettings({
+								novelLibraries: this.ctx.settings.novelLibraries.filter((value) => value !== libraryPath),
+							});
+							this.display();
+						});
+					button.buttonEl.addClass("cna-danger-button");
+				});
+			librarySetting.settingEl.addClass("cna-settings-item--novel-library");
+		}
+
 		let pendingValue = "";
+		let pendingInputEl: HTMLInputElement | null = null;
 		new Setting(panelEl)
 			.setName(this.ctx.t("settings.global.novel_library.add.name"))
+			.setDesc(this.ctx.t("settings.global.novel_library.add.desc"))
 			.setClass("cna-settings-item")
 			.addText((text) => {
 				text.setPlaceholder(this.ctx.t("settings.global.novel_library.add.placeholder"));
+				pendingInputEl = text.inputEl;
 				text.onChange((value) => {
 					pendingValue = value;
 				});
@@ -307,7 +291,16 @@ export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
 							return;
 						}
 
-						if (this.ctx.settings.novelLibraries.includes(next)) {
+						if (this.hasNovelLibrary(next)) {
+							new Notice(this.ctx.t("settings.global.novel_library.exists"));
+							return;
+						}
+
+						try {
+							await this.ensureNovelLibraryStructure(next);
+						} catch (error) {
+							console.error("[Chinese Novel Assistant] Failed to create novel library structure.", error);
+							new Notice(this.ctx.t("settings.global.novel_library.create_subdirs_failed"));
 							return;
 						}
 
@@ -317,6 +310,9 @@ export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
 						this.display();
 					}),
 			);
+		if (pendingInputEl) {
+			attachFolderSuggest(this.app, pendingInputEl);
+		}
 
 		panelEl.createEl("h4", {
 			cls: "cna-settings-section-title",
@@ -325,6 +321,7 @@ export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
 
 		new Setting(panelEl)
 			.setName(this.ctx.t("settings.global.subdir.enable.name"))
+			.setDesc(this.ctx.t("settings.global.subdir.enable.desc"))
 			.setClass("cna-settings-item")
 			.addToggle((toggle) =>
 				toggle.setValue(this.ctx.settings.customDirNamesEnabled).onChange(async (value) => {
@@ -333,57 +330,215 @@ export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
 				}),
 			);
 
-		new Setting(panelEl)
-			.setName(this.ctx.t("settings.global.subdir.guidebook.name"))
-			.setClass("cna-settings-item")
-			.setDisabled(!this.ctx.settings.customDirNamesEnabled)
-			.addText((text) =>
-				text
-					.setValue(this.ctx.settings.guidebookDirName)
-					.setDisabled(!this.ctx.settings.customDirNamesEnabled)
-					.onChange(async (value) => {
-						await this.ctx.setSettings({ guidebookDirName: value.trim() });
-					}),
-			);
+		this.renderSubdirSyncSetting(panelEl, {
+			name: this.ctx.t("settings.global.subdir.guidebook.name"),
+			currentName: this.ctx.settings.guidebookDirName,
+			isEnabled: this.ctx.settings.customDirNamesEnabled,
+			onSave: async (nextName) => {
+				await this.ctx.setSettings({ guidebookDirName: nextName });
+			},
+		});
 
-		new Setting(panelEl)
-			.setName(this.ctx.t("settings.global.subdir.note.name"))
-			.setClass("cna-settings-item")
-			.setDisabled(!this.ctx.settings.customDirNamesEnabled)
-			.addText((text) =>
-				text
-					.setValue(this.ctx.settings.noteDirName)
-					.setDisabled(!this.ctx.settings.customDirNamesEnabled)
-					.onChange(async (value) => {
-						await this.ctx.setSettings({ noteDirName: value.trim() });
-					}),
-			);
+		this.renderSubdirSyncSetting(panelEl, {
+			name: this.ctx.t("settings.global.subdir.note.name"),
+			currentName: this.ctx.settings.noteDirName,
+			isEnabled: this.ctx.settings.customDirNamesEnabled,
+			onSave: async (nextName) => {
+				await this.ctx.setSettings({ noteDirName: nextName });
+			},
+		});
 
-		new Setting(panelEl)
-			.setName(this.ctx.t("settings.global.subdir.snippet.name"))
-			.setClass("cna-settings-item")
-			.setDisabled(!this.ctx.settings.customDirNamesEnabled)
-			.addText((text) =>
-				text
-					.setValue(this.ctx.settings.snippetDirName)
-					.setDisabled(!this.ctx.settings.customDirNamesEnabled)
-					.onChange(async (value) => {
-						await this.ctx.setSettings({ snippetDirName: value.trim() });
-					}),
-			);
+		this.renderSubdirSyncSetting(panelEl, {
+			name: this.ctx.t("settings.global.subdir.snippet.name"),
+			currentName: this.ctx.settings.snippetDirName,
+			isEnabled: this.ctx.settings.customDirNamesEnabled,
+			onSave: async (nextName) => {
+				await this.ctx.setSettings({ snippetDirName: nextName });
+			},
+		});
 
-		new Setting(panelEl)
-			.setName(this.ctx.t("settings.global.subdir.proofread.name"))
+		this.renderSubdirSyncSetting(panelEl, {
+			name: this.ctx.t("settings.global.subdir.proofread.name"),
+			currentName: this.ctx.settings.proofreadDictionaryDirName,
+			isEnabled: this.ctx.settings.customDirNamesEnabled,
+			onSave: async (nextName) => {
+				await this.ctx.setSettings({ proofreadDictionaryDirName: nextName });
+			},
+		});
+	}
+
+	private normalizeNovelLibrary(value: string): string {
+		return value.trim().toLowerCase();
+	}
+
+	private normalizeVaultPath(value: string): string {
+		return value
+			.trim()
+			.replace(/\\/g, "/")
+			.replace(/^\/+/, "")
+			.replace(/\/+$/, "");
+	}
+
+	private resolveNovelLibrarySubdirNames(): string[] {
+		const names = [
+			this.ctx.settings.guidebookDirName,
+			this.ctx.settings.noteDirName,
+			this.ctx.settings.snippetDirName,
+			this.ctx.settings.proofreadDictionaryDirName,
+		]
+			.map((name) => this.normalizeVaultPath(name))
+			.filter((name) => name.length > 0);
+		return Array.from(new Set(names));
+	}
+
+	private async ensureFolderPath(path: string): Promise<void> {
+		const normalizedPath = this.normalizeVaultPath(path);
+		if (!normalizedPath) {
+			return;
+		}
+
+		const segments = normalizedPath.split("/").filter((segment) => segment.length > 0);
+		let currentPath = "";
+		for (const segment of segments) {
+			currentPath = currentPath ? `${currentPath}/${segment}` : segment;
+			const existing = this.app.vault.getAbstractFileByPath(currentPath);
+			if (!existing) {
+				await this.app.vault.createFolder(currentPath);
+				continue;
+			}
+
+			if (!(existing instanceof TFolder)) {
+				throw new Error(`Path already exists as file: ${currentPath}`);
+			}
+		}
+	}
+
+	private async ensureNovelLibraryStructure(libraryPath: string): Promise<void> {
+		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
+		if (!normalizedLibraryPath) {
+			return;
+		}
+
+		await this.ensureFolderPath(normalizedLibraryPath);
+		for (const subdirName of this.resolveNovelLibrarySubdirNames()) {
+			await this.ensureFolderPath(`${normalizedLibraryPath}/${subdirName}`);
+		}
+	}
+
+	private async syncSubdirNameAcrossLibraries(previousName: string, nextName: string): Promise<void> {
+		const normalizedPreviousName = this.normalizeVaultPath(previousName);
+		const normalizedNextName = this.normalizeVaultPath(nextName);
+		if (!normalizedPreviousName || !normalizedNextName || normalizedPreviousName === normalizedNextName) {
+			return;
+		}
+
+		for (const libraryPath of this.ctx.settings.novelLibraries) {
+			const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
+			if (!normalizedLibraryPath) {
+				continue;
+			}
+
+			const oldSubdirPath = `${normalizedLibraryPath}/${normalizedPreviousName}`;
+			const newSubdirPath = `${normalizedLibraryPath}/${normalizedNextName}`;
+			const oldEntry = this.app.vault.getAbstractFileByPath(oldSubdirPath);
+			const newEntry = this.app.vault.getAbstractFileByPath(newSubdirPath);
+
+			if (oldEntry && !(oldEntry instanceof TFolder)) {
+				throw new Error(`Old subdir path exists as file: ${oldSubdirPath}`);
+			}
+			if (newEntry && !(newEntry instanceof TFolder)) {
+				throw new Error(`New subdir path exists as file: ${newSubdirPath}`);
+			}
+
+			if (oldEntry instanceof TFolder) {
+				if (newEntry instanceof TFolder) {
+					continue;
+				}
+
+				const parentPath = newSubdirPath.split("/").slice(0, -1).join("/");
+				if (parentPath) {
+					await this.ensureFolderPath(parentPath);
+				}
+				await this.app.fileManager.renameFile(oldEntry, newSubdirPath);
+				continue;
+			}
+
+			if (!newEntry) {
+				await this.ensureFolderPath(newSubdirPath);
+			}
+		}
+	}
+
+	private formatCurrentSubdirName(name: string): string {
+		return `（${this.ctx.t("settings.global.subdir.current_name_label")}：${name}）`;
+	}
+
+	private appendCurrentSubdirNameTag(setting: Setting, currentName: string): void {
+		const nameEl = setting.settingEl.querySelector<HTMLElement>(".setting-item-name");
+		if (!nameEl) {
+			return;
+		}
+
+		nameEl.createSpan({
+			cls: "cna-settings-current-name",
+			text: this.formatCurrentSubdirName(currentName),
+		});
+	}
+
+	private renderSubdirSyncSetting(
+		panelEl: HTMLElement,
+		options: {
+			name: string;
+			currentName: string;
+			isEnabled: boolean;
+			onSave: (nextName: string) => Promise<void>;
+		},
+	): void {
+		let draftName = options.currentName;
+		const setting = new Setting(panelEl)
+			.setName(options.name)
 			.setClass("cna-settings-item")
-			.setDisabled(!this.ctx.settings.customDirNamesEnabled)
+			.setDisabled(!options.isEnabled)
 			.addText((text) =>
 				text
-					.setValue(this.ctx.settings.proofreadDictionaryDirName)
-					.setDisabled(!this.ctx.settings.customDirNamesEnabled)
-					.onChange(async (value) => {
-						await this.ctx.setSettings({ proofreadDictionaryDirName: value.trim() });
+					.setValue(options.currentName)
+					.setDisabled(!options.isEnabled)
+					.onChange((value) => {
+						draftName = value;
+					}),
+			)
+			.addButton((button) =>
+				button
+					.setButtonText(this.ctx.t("settings.common.sync"))
+					.setCta()
+					.setDisabled(!options.isEnabled)
+					.onClick(async () => {
+						const nextName = draftName.trim();
+						const normalizedCurrentName = this.normalizeVaultPath(options.currentName);
+						const normalizedNextName = this.normalizeVaultPath(nextName);
+						if (!normalizedNextName || normalizedNextName === normalizedCurrentName) {
+							return;
+						}
+
+						try {
+							await this.syncSubdirNameAcrossLibraries(options.currentName, nextName);
+							await options.onSave(nextName);
+							this.display();
+						} catch (error) {
+							console.error("[Chinese Novel Assistant] Failed to sync subdir name.", error);
+							new Notice(this.ctx.t("settings.global.subdir.rename_failed"));
+						}
 					}),
 			);
+		this.appendCurrentSubdirNameTag(setting, options.currentName);
+	}
+
+	private hasNovelLibrary(value: string): boolean {
+		const normalizedValue = this.normalizeNovelLibrary(value);
+		return this.ctx.settings.novelLibraries.some((item) => {
+			const normalizedItem = this.normalizeNovelLibrary(item);
+			return normalizedItem === normalizedValue;
+		});
 	}
 
 	private renderOtherSettings(containerEl: HTMLElement): void {
