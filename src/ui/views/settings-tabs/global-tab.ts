@@ -1,4 +1,5 @@
-import { Notice, Setting, TFolder } from "obsidian";
+import { Notice, Setting } from "obsidian";
+import { NovelLibraryService } from "../../../services/novel-library-service";
 import { attachFolderSuggest } from "../../componets/folder-suggest";
 import { askForConfirmation } from "../../modals/confirm-modal";
 import type { SettingsTabRenderContext } from "./types";
@@ -12,6 +13,7 @@ interface SubdirSyncSettingOptions {
 
 export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTabRenderContext): void {
 	const { app, ctx, refresh } = deps;
+	const novelLibraryService = new NovelLibraryService(app);
 	const panelEl = containerEl.createDiv({ cls: "cna-settings-panel" });
 	panelEl.createEl("h4", {
 		cls: "cna-settings-section-title",
@@ -68,13 +70,13 @@ export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTab
 						return;
 					}
 
-					if (hasNovelLibrary(ctx.settings.novelLibraries, next)) {
+					if (novelLibraryService.hasNovelLibrary(ctx.settings.novelLibraries, next)) {
 						new Notice(ctx.t("settings.global.novel_library.exists"));
 						return;
 					}
 
 					try {
-						await ensureNovelLibraryStructure(deps, next);
+						await novelLibraryService.ensureNovelLibraryStructure(ctx.settings, next);
 					} catch (error) {
 						console.error("[Chinese Novel Assistant] Failed to create novel library structure.", error);
 						new Notice(ctx.t("settings.global.novel_library.create_subdirs_failed"));
@@ -114,7 +116,7 @@ export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTab
 		onSave: async (nextName) => {
 			await ctx.setSettings({ guidebookDirName: nextName });
 		},
-	}, deps);
+	}, deps, novelLibraryService);
 
 	renderSubdirSyncSetting(panelEl, {
 		name: ctx.t("settings.global.subdir.note.name"),
@@ -123,7 +125,7 @@ export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTab
 		onSave: async (nextName) => {
 			await ctx.setSettings({ noteDirName: nextName });
 		},
-	}, deps);
+	}, deps, novelLibraryService);
 
 	renderSubdirSyncSetting(panelEl, {
 		name: ctx.t("settings.global.subdir.snippet.name"),
@@ -132,7 +134,7 @@ export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTab
 		onSave: async (nextName) => {
 			await ctx.setSettings({ snippetDirName: nextName });
 		},
-	}, deps);
+	}, deps, novelLibraryService);
 
 	renderSubdirSyncSetting(panelEl, {
 		name: ctx.t("settings.global.subdir.proofread.name"),
@@ -141,121 +143,7 @@ export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTab
 		onSave: async (nextName) => {
 			await ctx.setSettings({ proofreadDictionaryDirName: nextName });
 		},
-	}, deps);
-}
-
-function normalizeNovelLibrary(value: string): string {
-	return value.trim().toLowerCase();
-}
-
-function hasNovelLibrary(novelLibraries: string[], value: string): boolean {
-	const normalizedValue = normalizeNovelLibrary(value);
-	return novelLibraries.some((item) => normalizeNovelLibrary(item) === normalizedValue);
-}
-
-function normalizeVaultPath(value: string): string {
-	return value
-		.trim()
-		.replace(/\\/g, "/")
-		.replace(/^\/+/, "")
-		.replace(/\/+$/, "");
-}
-
-function resolveNovelLibrarySubdirNames(deps: SettingsTabRenderContext): string[] {
-	const { ctx } = deps;
-	const names = [
-		ctx.settings.guidebookDirName,
-		ctx.settings.noteDirName,
-		ctx.settings.snippetDirName,
-		ctx.settings.proofreadDictionaryDirName,
-	]
-		.map((name) => normalizeVaultPath(name))
-		.filter((name) => name.length > 0);
-	return Array.from(new Set(names));
-}
-
-async function ensureFolderPath(deps: SettingsTabRenderContext, path: string): Promise<void> {
-	const { app } = deps;
-	const normalizedPath = normalizeVaultPath(path);
-	if (!normalizedPath) {
-		return;
-	}
-
-	const segments = normalizedPath.split("/").filter((segment) => segment.length > 0);
-	let currentPath = "";
-	for (const segment of segments) {
-		currentPath = currentPath ? `${currentPath}/${segment}` : segment;
-		const existing = app.vault.getAbstractFileByPath(currentPath);
-		if (!existing) {
-			await app.vault.createFolder(currentPath);
-			continue;
-		}
-
-		if (!(existing instanceof TFolder)) {
-			throw new Error(`Path already exists as file: ${currentPath}`);
-		}
-	}
-}
-
-async function ensureNovelLibraryStructure(deps: SettingsTabRenderContext, libraryPath: string): Promise<void> {
-	const normalizedLibraryPath = normalizeVaultPath(libraryPath);
-	if (!normalizedLibraryPath) {
-		return;
-	}
-
-	await ensureFolderPath(deps, normalizedLibraryPath);
-	for (const subdirName of resolveNovelLibrarySubdirNames(deps)) {
-		await ensureFolderPath(deps, `${normalizedLibraryPath}/${subdirName}`);
-	}
-}
-
-async function syncSubdirNameAcrossLibraries(
-	deps: SettingsTabRenderContext,
-	previousName: string,
-	nextName: string,
-): Promise<void> {
-	const { app, ctx } = deps;
-	const normalizedPreviousName = normalizeVaultPath(previousName);
-	const normalizedNextName = normalizeVaultPath(nextName);
-	if (!normalizedPreviousName || !normalizedNextName || normalizedPreviousName === normalizedNextName) {
-		return;
-	}
-
-	for (const libraryPath of ctx.settings.novelLibraries) {
-		const normalizedLibraryPath = normalizeVaultPath(libraryPath);
-		if (!normalizedLibraryPath) {
-			continue;
-		}
-
-		const oldSubdirPath = `${normalizedLibraryPath}/${normalizedPreviousName}`;
-		const newSubdirPath = `${normalizedLibraryPath}/${normalizedNextName}`;
-		const oldEntry = app.vault.getAbstractFileByPath(oldSubdirPath);
-		const newEntry = app.vault.getAbstractFileByPath(newSubdirPath);
-
-		if (oldEntry && !(oldEntry instanceof TFolder)) {
-			throw new Error(`Old subdir path exists as file: ${oldSubdirPath}`);
-		}
-		if (newEntry && !(newEntry instanceof TFolder)) {
-			throw new Error(`New subdir path exists as file: ${newSubdirPath}`);
-		}
-
-		if (oldEntry instanceof TFolder) {
-			if (newEntry instanceof TFolder) {
-				continue;
-			}
-
-			const parentPath = newSubdirPath.split("/").slice(0, -1).join("/");
-			if (parentPath) {
-				await ensureFolderPath(deps, parentPath);
-			}
-			await app.fileManager.renameFile(oldEntry, newSubdirPath);
-			continue;
-		}
-
-		if (!newEntry) {
-			await ensureFolderPath(deps, newSubdirPath);
-		}
-	}
+	}, deps, novelLibraryService);
 }
 
 function formatCurrentSubdirName(currentNameLabel: string, name: string): string {
@@ -278,6 +166,7 @@ function renderSubdirSyncSetting(
 	panelEl: HTMLElement,
 	options: SubdirSyncSettingOptions,
 	deps: SettingsTabRenderContext,
+	novelLibraryService: NovelLibraryService,
 ): void {
 	const { ctx, refresh } = deps;
 	let draftName = options.currentName;
@@ -299,8 +188,8 @@ function renderSubdirSyncSetting(
 				.setDisabled(!options.isEnabled)
 				.onClick(async () => {
 					const nextName = draftName.trim();
-					const normalizedCurrentName = normalizeVaultPath(options.currentName);
-					const normalizedNextName = normalizeVaultPath(nextName);
+					const normalizedCurrentName = novelLibraryService.normalizeVaultPath(options.currentName);
+					const normalizedNextName = novelLibraryService.normalizeVaultPath(nextName);
 					if (!normalizedNextName || normalizedNextName === normalizedCurrentName) {
 						return;
 					}
@@ -316,7 +205,7 @@ function renderSubdirSyncSetting(
 					}
 
 					try {
-						await syncSubdirNameAcrossLibraries(deps, options.currentName, nextName);
+						await novelLibraryService.syncSubdirNameAcrossLibraries(ctx.settings, options.currentName, nextName);
 						await options.onSave(nextName);
 						refresh();
 					} catch (error) {
