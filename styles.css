@@ -174,10 +174,6 @@
 	color: var(--text-on-accent);
 }
 
-.tree-item.cna-novel-subdir-hidden {
-	display: none !important;
-}
-
 .cna-typeset-enabled .markdown-source-view.mod-cm6 .cm-line:not(.HyperMD-codeblock):not(.HyperMD-header):not(.HyperMD-list-line):not(.HyperMD-quote) {
 	text-indent: calc(var(--cna-typeset-indent-chars, 0) * 1em);
 	line-height: calc(var(--cna-typeset-line-spacing, 1) + 1);

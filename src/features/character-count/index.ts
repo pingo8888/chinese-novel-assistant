@@ -261,12 +261,9 @@ class CharacterCountFeature {
 			),
 		).sort((a, b) => b.length - a.length);
 
-		const subdirNames = this.novelLibraryService.resolveNovelLibrarySubdirNames(settings);
 		const excludedRootsByLibrary = new Map<string, string[]>();
 		for (const libraryRoot of libraryRoots) {
-			const excludedRoots = subdirNames
-				.map((subdirName) => this.novelLibraryService.normalizeVaultPath(`${libraryRoot}/${subdirName}`))
-				.filter((path) => path.length > 0);
+			const excludedRoots = this.novelLibraryService.resolveNovelLibrarySubdirPaths(settings, libraryRoot);
 			excludedRootsByLibrary.set(libraryRoot, excludedRoots);
 		}
 

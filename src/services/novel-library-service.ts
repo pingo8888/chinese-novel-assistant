@@ -1,4 +1,5 @@
 import { App, TFolder } from "obsidian";
+import { translate, type SupportedLocale } from "../lang";
 import type { ChineseNovelAssistantSettings } from "../settings/settings";
 
 export class NovelLibraryService {
@@ -25,7 +26,7 @@ export class NovelLibraryService {
 			.replace(/\/+$/, "");
 	}
 
-	resolveNovelLibrarySubdirNames(settings: ChineseNovelAssistantSettings): string[] {
+	private resolveNovelLibrarySubdirNames(settings: ChineseNovelAssistantSettings): string[] {
 		const names = [
 			settings.guidebookDirName,
 			settings.noteDirName,
@@ -37,6 +38,29 @@ export class NovelLibraryService {
 		return Array.from(new Set(names));
 	}
 
+	private getNovelLibraryFeatureRootPath(libraryPath: string, locale: SupportedLocale): string {
+		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
+		if (!normalizedLibraryPath) {
+			return "";
+		}
+		const featureDirName = this.resolveFeatureLibraryDirName(locale);
+		if (!featureDirName) {
+			return "";
+		}
+		return this.normalizeVaultPath(`${normalizedLibraryPath}/${featureDirName}`);
+	}
+
+	resolveNovelLibrarySubdirPaths(settings: ChineseNovelAssistantSettings, libraryPath: string): string[] {
+		const featureRootPath = this.getNovelLibraryFeatureRootPath(libraryPath, settings.locale);
+		if (!featureRootPath) {
+			return [];
+		}
+
+		return this.resolveNovelLibrarySubdirNames(settings)
+			.map((subdirName) => this.normalizeVaultPath(`${featureRootPath}/${subdirName}`))
+			.filter((path) => path.length > 0);
+	}
+
 	async ensureNovelLibraryStructure(settings: ChineseNovelAssistantSettings, libraryPath: string): Promise<void> {
 		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
 		if (!normalizedLibraryPath) {
@@ -44,8 +68,13 @@ export class NovelLibraryService {
 		}
 
 		await this.ensureFolderPath(normalizedLibraryPath);
+		const featureRootPath = this.getNovelLibraryFeatureRootPath(normalizedLibraryPath, settings.locale);
+		if (!featureRootPath) {
+			return;
+		}
+		await this.ensureFolderPath(featureRootPath);
 		for (const subdirName of this.resolveNovelLibrarySubdirNames(settings)) {
-			await this.ensureFolderPath(`${normalizedLibraryPath}/${subdirName}`);
+			await this.ensureFolderPath(`${featureRootPath}/${subdirName}`);
 		}
 	}
 
@@ -66,8 +95,12 @@ export class NovelLibraryService {
 				continue;
 			}
 
-			const oldSubdirPath = `${normalizedLibraryPath}/${normalizedPreviousName}`;
-			const newSubdirPath = `${normalizedLibraryPath}/${normalizedNextName}`;
+			const featureRootPath = this.getNovelLibraryFeatureRootPath(normalizedLibraryPath, settings.locale);
+			if (!featureRootPath) {
+				continue;
+			}
+			const oldSubdirPath = `${featureRootPath}/${normalizedPreviousName}`;
+			const newSubdirPath = `${featureRootPath}/${normalizedNextName}`;
 			const oldEntry = this.app.vault.getAbstractFileByPath(oldSubdirPath);
 			const newEntry = this.app.vault.getAbstractFileByPath(newSubdirPath);
 
@@ -118,5 +151,12 @@ export class NovelLibraryService {
 			}
 		}
 	}
-}
 
+	private resolveFeatureLibraryDirName(locale: SupportedLocale): string {
+		const localized = this.normalizeVaultPath(translate(locale, "novel_library.feature_dir_name"));
+		if (localized) {
+			return localized;
+		}
+		return this.normalizeVaultPath(translate("zh_cn", "novel_library.feature_dir_name"));
+	}
+}
