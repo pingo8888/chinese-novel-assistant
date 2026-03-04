@@ -22,8 +22,10 @@
 	"settings.global.novel_library.create_subdirs_failed": "建立小說庫目錄失敗，請檢查路徑是否有效",
 	"settings.global.novel_library.delete_confirm.title": "確認刪除小說庫",
 	"settings.global.novel_library.delete_confirm.message": "確定刪除這個小說庫設定嗎？僅移除設定，不會刪除實際資料夾。",
-	"settings.global.section.custom_subdir": "自訂子目錄名稱",
-	"settings.global.subdir.enable.name": "修改自訂子目錄名稱",
+	"settings.global.section.custom_subdir": "功能子目錄",
+	"settings.global.subdir.hide_in_file_explorer.name": "是否在檔案管理器隱藏",
+	"settings.global.subdir.hide_in_file_explorer.desc": "開啟後，在檔案管理器中隱藏小說庫裡的功能子目錄（設定庫、便箋庫、片段庫、糾錯詞庫）",
+	"settings.global.subdir.enable.name": "自訂子目錄名稱",
 	"settings.global.subdir.enable.desc": "自訂子目錄都位於相應小說庫的根目錄下，這裡僅僅是修改它們的名字",
 	"settings.global.subdir.rename_failed": "同步修改既有小說庫子目錄名稱失敗，請檢查目錄衝突或權限",
 	"settings.global.subdir.sync_confirm.title": "確認同步子目錄名稱",
@@ -133,5 +135,8 @@
 	"settings.proofread.common.auto_complete_pair.desc": "輸入前半中文標點時自動補齊後半標點，游標保持在中間",
 	"settings.proofread.section.custom": "自訂錯別字與敏感詞檢測",
 	"settings.proofread.custom.enable.name": "啟用自訂錯別字與敏感詞詞典",
-	"settings.proofread.custom.enable.desc": "開啟後，在正文中標記錯別字與敏感詞並支援批次修正"
+	"settings.proofread.custom.enable.desc": "開啟後，在正文中標記錯別字與敏感詞並支援批次修正",
+	"feature.character_count.unit.char": "字",
+	"feature.character_count.unit.chapter": "章",
+	"feature.character_count.unit.ten_thousand": "萬"
 }

@@ -10,17 +10,23 @@ import {
 	type ChineseNovelAssistantSettings,
 	DEFAULT_SETTINGS,
 } from "./settings/settings";
+import { registerCharacterCountFeature } from "./features/character-count";
+import { registerFunctionalSubdirVisibilityFeature } from "./features/functional-subdir-visibility";
 import { ChineseNovelAssistantSettingTab } from "./ui/views/settings-tab";
+import type { SettingsChangeListener } from "./core/context";
 
 export default class ChineseNovelAssistantPlugin extends Plugin {
 	private settings: ChineseNovelAssistantSettings = DEFAULT_SETTINGS;
 	private ctx: PluginContext | null = null;
+	private settingsChangeListeners = new Set<SettingsChangeListener>();
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
 
 		this.ctx = createPluginContext(this.createContextHost());
 		this.ctx.addSettingTab(new ChineseNovelAssistantSettingTab(this.app, this, this.ctx));
+		registerFunctionalSubdirVisibilityFeature(this, this.ctx);
+		registerCharacterCountFeature(this, this.ctx);
 	}
 
 	private createContextHost(): ContextHost {
@@ -31,6 +37,15 @@ export default class ChineseNovelAssistantPlugin extends Plugin {
 			saveSettings: async (nextSettings) => {
 				this.settings = nextSettings;
 				await this.saveData(this.settings);
+				for (const listener of this.settingsChangeListeners) {
+					listener(this.settings);
+				}
+			},
+			onSettingsChange: (listener) => {
+				this.settingsChangeListeners.add(listener);
+				return () => {
+					this.settingsChangeListeners.delete(listener);
+				};
 			},
 		};
 	}

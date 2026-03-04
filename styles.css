@@ -158,3 +158,22 @@
 	font-size: var(--font-ui-smaller);
 	margin-left: 6px;
 }
+
+.cna-character-count-status {
+	font-variant-numeric: tabular-nums;
+}
+
+.cna-character-count-badge {
+	color: var(--text-muted);
+	font-variant-numeric: tabular-nums;
+}
+
+.tree-item-self.is-active .cna-character-count-badge,
+.nav-file-title.is-active .cna-character-count-badge,
+.nav-folder-title.is-active .cna-character-count-badge {
+	color: var(--text-on-accent);
+}
+
+.tree-item.cna-functional-subdir-hidden {
+	display: none !important;
+}

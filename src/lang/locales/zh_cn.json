@@ -22,8 +22,10 @@
 	"settings.global.novel_library.create_subdirs_failed": "创建小说库目录失败，请检查路径是否有效",
 	"settings.global.novel_library.delete_confirm.title": "确认删除小说库",
 	"settings.global.novel_library.delete_confirm.message": "确定删除这个小说库配置吗？仅移除配置，不会删除实际文件夹。",
-	"settings.global.section.custom_subdir": "自定义子目录名",
-	"settings.global.subdir.enable.name": "修改自定义子目录名",
+	"settings.global.section.custom_subdir": "功能子目录",
+	"settings.global.subdir.hide_in_file_explorer.name": "是否在文件管理器隐藏",
+	"settings.global.subdir.hide_in_file_explorer.desc": "开启后，在文件管理器中隐藏小说库里的功能子目录（设定库、便签库、片段库、纠错词库）",
+	"settings.global.subdir.enable.name": "自定义子目录名",
 	"settings.global.subdir.enable.desc": "自定义子目录都位于相应小说库的根目录下，这里仅仅是修改它们的名字",
 	"settings.global.subdir.rename_failed": "同步修改已有小说库子目录名失败，请检查目录冲突或权限",
 	"settings.global.subdir.sync_confirm.title": "确认同步子目录名",
@@ -133,5 +135,8 @@
 	"settings.proofread.common.auto_complete_pair.desc": "输入前半中文标点时自动补齐后半标点，光标保持在中间",
 	"settings.proofread.section.custom": "自定义错别字与敏感词检测",
 	"settings.proofread.custom.enable.name": "启用自定义错别字与敏感词词典",
-	"settings.proofread.custom.enable.desc": "开启后，在正文中标记错别字与敏感词并支持批量修正"
+	"settings.proofread.custom.enable.desc": "开启后，在正文中标记错别字与敏感词并支持批量修正",
+	"feature.character_count.unit.char": "字",
+	"feature.character_count.unit.chapter": "章",
+	"feature.character_count.unit.ten_thousand": "万"
 }

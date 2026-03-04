@@ -2,11 +2,14 @@ import { type App, type PluginSettingTab } from "obsidian";
 import { translate, type SupportedLocale, type TranslationKey } from "../lang";
 import type { ChineseNovelAssistantSettings } from "../settings/settings";
 
+export type SettingsChangeListener = (settings: ChineseNovelAssistantSettings) => void;
+
 export interface ContextHost {
 	app: App;
 	addSettingTab(tab: PluginSettingTab): void;
 	getSettings(): ChineseNovelAssistantSettings;
 	saveSettings(nextSettings: ChineseNovelAssistantSettings): Promise<void>;
+	onSettingsChange?(listener: SettingsChangeListener): () => void;
 }
 
 export interface PluginContext {
@@ -15,6 +18,7 @@ export interface PluginContext {
 	readonly locale: SupportedLocale;
 	addSettingTab(tab: PluginSettingTab): void;
 	setSettings(patch: Partial<ChineseNovelAssistantSettings>): Promise<void>;
+	onSettingsChange(listener: SettingsChangeListener): () => void;
 	t(key: TranslationKey): string;
 }
 
@@ -32,6 +36,7 @@ export function createPluginContext(host: ContextHost): PluginContext {
 			const nextSettings = { ...host.getSettings(), ...patch };
 			await host.saveSettings(nextSettings);
 		},
+		onSettingsChange: (listener) => host.onSettingsChange?.(listener) ?? (() => {}),
 		t: (key) => translate(host.getSettings().locale, key),
 	};
 }

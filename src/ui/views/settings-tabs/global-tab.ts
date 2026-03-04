@@ -99,6 +99,16 @@ export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTab
 	});
 
 	new Setting(panelEl)
+		.setName(ctx.t("settings.global.subdir.hide_in_file_explorer.name"))
+		.setDesc(ctx.t("settings.global.subdir.hide_in_file_explorer.desc"))
+		.setClass("cna-settings-item")
+		.addToggle((toggle) =>
+			toggle.setValue(ctx.settings.hideFunctionalSubdirsInFileExplorer).onChange(async (value) => {
+				await ctx.setSettings({ hideFunctionalSubdirsInFileExplorer: value });
+			}),
+		);
+
+	new Setting(panelEl)
 		.setName(ctx.t("settings.global.subdir.enable.name"))
 		.setDesc(ctx.t("settings.global.subdir.enable.desc"))
 		.setClass("cna-settings-item")
