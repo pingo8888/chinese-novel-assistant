@@ -224,3 +224,71 @@
 	text-decoration-skip-ink: none;
 	text-underline-offset: 2px;
 }
+
+.cna-candidate-panel {
+	position: fixed;
+	z-index: 1000;
+	min-width: 280px;
+	max-width: 320px;
+	max-height: 320px;
+	overflow: hidden;
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 10px;
+	box-shadow: var(--shadow-l);
+}
+
+.cna-candidate-panel.is-hidden {
+	display: none;
+}
+
+.cna-candidate-panel__list {
+	max-height: 280px;
+	overflow: hidden;
+	padding: 6px;
+}
+
+.cna-candidate-panel__item {
+	display: block;
+	width: 100%;
+	padding: 6px 8px;
+	border: 0 !important;
+	border-radius: 6px;
+	background: transparent;
+	color: var(--text-normal);
+	text-align: left;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	outline: none !important;
+	box-shadow: none !important;
+	appearance: none;
+	cursor: pointer;
+}
+
+.cna-candidate-panel__item:focus,
+.cna-candidate-panel__item:focus-visible,
+.cna-candidate-panel__item:active {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+.cna-candidate-panel__item:hover,
+.cna-candidate-panel__item.is-selected {
+	background: var(--interactive-accent) !important;
+	color: var(--text-on-accent) !important;
+}
+
+.cna-candidate-panel__empty {
+	padding: 8px;
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+}
+
+.cna-candidate-panel__footer {
+	padding: 6px 10px;
+	border-top: 1px solid var(--background-modifier-border);
+	color: var(--text-faint);
+	font-size: var(--font-ui-smaller);
+	white-space: nowrap;
+}

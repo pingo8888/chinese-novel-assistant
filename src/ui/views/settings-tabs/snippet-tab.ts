@@ -36,22 +36,6 @@ export function renderSnippetSettings(containerEl: HTMLElement, deps: SettingsTa
 		);
 
 	new Setting(panelEl)
-		.setName(ctx.t("settings.snippet.quick_insert.page_size.name"))
-		.setDesc(ctx.t("settings.snippet.quick_insert.page_size.desc"))
-		.setClass("cna-settings-item")
-		.setDisabled(!ctx.settings.snippetQuickInsertEnabled)
-		.addSlider((slider) =>
-			slider
-				.setLimits(1, 20, 1)
-				.setValue(ctx.settings.snippetQuickInsertPageSize)
-				.setDynamicTooltip()
-				.setDisabled(!ctx.settings.snippetQuickInsertEnabled)
-				.onChange(async (value) => {
-					await ctx.setSettings({ snippetQuickInsertPageSize: Math.round(value) });
-				}),
-		);
-
-	new Setting(panelEl)
 		.setName(ctx.t("settings.snippet.text_fragment.enable.name"))
 		.setDesc(ctx.t("settings.snippet.text_fragment.enable.desc"))
 		.setClass("cna-settings-item")
@@ -59,5 +43,19 @@ export function renderSnippetSettings(containerEl: HTMLElement, deps: SettingsTa
 			toggle.setValue(ctx.settings.snippetTextFragmentEnabled).onChange(async (value) => {
 				await ctx.setSettings({ snippetTextFragmentEnabled: value });
 			}),
+		);
+
+	new Setting(panelEl)
+		.setName(ctx.t("settings.snippet.quick_insert.page_size.name"))
+		.setDesc(ctx.t("settings.snippet.quick_insert.page_size.desc"))
+		.setClass("cna-settings-item")
+		.addSlider((slider) =>
+			slider
+				.setLimits(1, 20, 1)
+				.setValue(ctx.settings.snippetQuickInsertPageSize)
+				.setDynamicTooltip()
+				.onChange(async (value) => {
+					await ctx.setSettings({ snippetQuickInsertPageSize: Math.round(value) });
+				}),
 		);
 }

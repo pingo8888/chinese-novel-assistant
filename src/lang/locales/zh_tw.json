@@ -52,7 +52,7 @@
 	"settings.snippet.quick_insert.enable.name": "啟用 // 快速輸入現有設定",
 	"settings.snippet.quick_insert.enable.desc": "輸入 // + 中文關鍵字時，從設定庫中匹配設定候選詞",
 	"settings.snippet.quick_insert.page_size.name": "每頁最多顯示項數",
-	"settings.snippet.quick_insert.page_size.desc": "設定候選框分頁顯示，每頁最多顯示的候選詞數量",
+	"settings.snippet.quick_insert.page_size.desc": "候選框分頁顯示，每頁最多顯示的候選詞數量",
 	"settings.snippet.text_fragment.enable.name": "啟用 // 文本片段",
 	"settings.snippet.text_fragment.enable.desc": "輸入 // + 英文關鍵字時，從片段庫的文本片段中匹配",
 	"settings.snippet.punctuation.auto_complete_pair.name": "中文標點成對補齊",
@@ -147,6 +147,8 @@
 	"command.proofread.fix_proofread_dict_errors.no_changes": "未發現可自動修復的錯誤詞",
 	"command.proofread.fix_proofread_dict_errors.done": "已修復錯誤詞數量：",
 	"command.proofread.fix_proofread_dict_errors.failed": "讀取糾錯詞典失敗，請檢查詞典檔案",
+	"feature.snippet.candidate.empty": "沒有匹配片段",
+	"feature.snippet.candidate.footer": "第 {current}/{total} 頁（←/→ 翻頁，↑/↓ 選擇，Enter 確認）",
 	"feature.character_count.unit.char": "字",
 	"feature.character_count.unit.chapter": "章",
 	"feature.character_count.unit.ten_thousand": "萬"

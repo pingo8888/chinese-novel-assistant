@@ -7,6 +7,10 @@ import { createProofreadDictRules } from "./rules/proofread-dict";
 import { createEnPunctuationRules } from "./rules/en-punctuation";
 import { createPairPunctuationRules } from "./rules/pair-punctuation";
 import { ProofreadDictService } from "../../services/proofread-dict-service";
+import {
+	resolveEditorViewFromMarkdownView,
+	resolveMarkdownViewByEditorView,
+} from "../../utils/markdown-editor-view";
 
 export function registerTextDetectionFeature(plugin: Plugin, ctx: PluginContext): void {
 	const feature = new TextDetectionFeature(plugin, ctx);
@@ -68,35 +72,13 @@ class TextDetectionFeature {
 				continue;
 			}
 
-			const editorView = this.resolveEditorView(view);
+			const editorView = resolveEditorViewFromMarkdownView(view);
 			editorView?.dispatch({});
 		}
 	}
 
-	private resolveEditorView(view: MarkdownView): EditorView | null {
-		const cmHost = view as unknown as {
-			editor?: {
-				cm?: EditorView;
-				editor?: { cm?: EditorView };
-			};
-			sourceMode?: {
-				cmEditor?: {
-					cm?: EditorView;
-					editor?: { cm?: EditorView };
-				};
-			};
-		};
-		return (
-			cmHost.editor?.cm ??
-			cmHost.editor?.editor?.cm ??
-			cmHost.sourceMode?.cmEditor?.cm ??
-			cmHost.sourceMode?.cmEditor?.editor?.cm ??
-			null
-		);
-	}
-
 	private shouldDetectForEditor(editorView: EditorView): boolean {
-		const markdownView = this.resolveMarkdownViewByEditor(editorView);
+		const markdownView = resolveMarkdownViewByEditorView(this.plugin.app, editorView);
 		const filePath = markdownView?.file?.path;
 		if (!filePath) {
 			return true;
@@ -116,20 +98,6 @@ class TextDetectionFeature {
 			)
 			.filter((path) => path.length > 0);
 		return !featureRoots.some((root) => this.isSameOrChildPath(normalizedFilePath, root));
-	}
-
-	private resolveMarkdownViewByEditor(editorView: EditorView): MarkdownView | null {
-		const leaves = this.plugin.app.workspace.getLeavesOfType("markdown");
-		for (const leaf of leaves) {
-			const view = leaf.view;
-			if (!(view instanceof MarkdownView)) {
-				continue;
-			}
-			if (this.resolveEditorView(view) === editorView) {
-				return view;
-			}
-		}
-		return null;
 	}
 
 	private isSameOrChildPath(path: string, root: string): boolean {

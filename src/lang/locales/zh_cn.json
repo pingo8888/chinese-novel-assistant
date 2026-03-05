@@ -52,7 +52,7 @@
 	"settings.snippet.quick_insert.enable.name": "启用 // 快速输入现有设定",
 	"settings.snippet.quick_insert.enable.desc": "输入 // + 中文关键字时，从设定库中匹配设定候选词",
 	"settings.snippet.quick_insert.page_size.name": "每页最多显示项数",
-	"settings.snippet.quick_insert.page_size.desc": "设定候选框分页显示，每页最多显示的候选词数量",
+	"settings.snippet.quick_insert.page_size.desc": "候选框分页显示，每页最多显示的候选词数量",
 	"settings.snippet.text_fragment.enable.name": "启用 // 文本片段",
 	"settings.snippet.text_fragment.enable.desc": "输入 // + 英文关键字时，从片段库的文本片段中匹配",
 	"settings.snippet.punctuation.auto_complete_pair.name": "中文标点成对补齐",
@@ -147,6 +147,8 @@
 	"command.proofread.fix_proofread_dict_errors.no_changes": "未发现可自动修复的错误词",
 	"command.proofread.fix_proofread_dict_errors.done": "已修复错误词数量：",
 	"command.proofread.fix_proofread_dict_errors.failed": "读取纠错词典失败，请检查词典文件",
+	"feature.snippet.candidate.empty": "没有匹配片段",
+	"feature.snippet.candidate.footer": "第 {current}/{total} 页（←/→ 翻页，↑/↓ 选择，Enter 确认）",
 	"feature.character_count.unit.char": "字",
 	"feature.character_count.unit.chapter": "章",
 	"feature.character_count.unit.ten_thousand": "万"
