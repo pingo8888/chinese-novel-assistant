@@ -2,6 +2,11 @@ import { ItemView, WorkspaceLeaf } from "obsidian";
 import { IDS, UI } from "../../constants";
 import type { TranslationKey } from "../../lang";
 import { TabsComponent, type TabDefinition } from "../componets/tabs";
+import {
+	renderRightSidebarGuidebookView,
+	renderRightSidebarStickyNoteView,
+	type RightSidebarViewRenderContext,
+} from "./right-sidebar-views";
 
 export class ChineseNovelAssistantRightSidebarView extends ItemView {
 	constructor(
@@ -28,25 +33,22 @@ export class ChineseNovelAssistantRightSidebarView extends ItemView {
 		const { contentEl } = this;
 		contentEl.empty();
 		const rootEl = contentEl.createDiv({ cls: "cna-right-sidebar" });
+		const renderContext: RightSidebarViewRenderContext = {
+			t: (key) => this.t(key),
+		};
 		const tabs: TabDefinition[] = [
 			{
 				id: "guidebook",
 				label: this.t("settings.tab.guidebook"),
 				render: (panelEl) => {
-					panelEl.createDiv({
-						cls: "cna-right-sidebar-panel-placeholder",
-						text: this.t("settings.tab.coming_soon"),
-					});
+					renderRightSidebarGuidebookView(panelEl, renderContext);
 				},
 			},
 			{
 				id: "sticky_note",
 				label: this.t("settings.tab.sticky_note"),
 				render: (panelEl) => {
-					panelEl.createDiv({
-						cls: "cna-right-sidebar-panel-placeholder",
-						text: this.t("settings.tab.coming_soon"),
-					});
+					renderRightSidebarStickyNoteView(panelEl, renderContext);
 				},
 			},
 		];
