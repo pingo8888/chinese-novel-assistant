@@ -15,15 +15,15 @@ export interface ChineseNovelAssistantSettings {
 	previewWidth: number;
 	previewHeight: number;
 	previewMaxLines: number;
-	noteEnabled: boolean;
-	noteDefaultRows: number;
-	noteImageAutoExpand: boolean;
-	noteTagHintTextEnabled: boolean;
-	notePath: string;
+	stickyNoteEnabled: boolean;
+	stickyNoteDefaultRows: number;
+	stickyNoteImageAutoExpand: boolean;
+	stickyNoteTagHintTextEnabled: boolean;
+	stickyNotePath: string;
 	novelLibraries: string[];
 	customDirNamesEnabled: boolean;
 	guidebookDirName: string;
-	noteDirName: string;
+	stickyNoteDirName: string;
 	snippetDirName: string;
 	proofreadDictionaryDirName: string;
 	snippetQuickInsertEnabled: boolean;
@@ -68,15 +68,15 @@ export function createDefaultSettings(locale: SupportedLocale): ChineseNovelAssi
 		previewWidth: 320,
 		previewHeight: 260,
 		previewMaxLines: 8,
-		noteEnabled: true,
-		noteDefaultRows: 6,
-		noteImageAutoExpand: true,
-		noteTagHintTextEnabled: true,
-		notePath: "",
+		stickyNoteEnabled: true,
+		stickyNoteDefaultRows: 6,
+		stickyNoteImageAutoExpand: true,
+		stickyNoteTagHintTextEnabled: true,
+		stickyNotePath: "",
 		novelLibraries: [],
 		customDirNamesEnabled: false,
 		guidebookDirName: "设定库",
-		noteDirName: "便签库",
+		stickyNoteDirName: "便签库",
 		snippetDirName: "片段库",
 		proofreadDictionaryDirName: "纠错词库",
 		snippetQuickInsertEnabled: true,

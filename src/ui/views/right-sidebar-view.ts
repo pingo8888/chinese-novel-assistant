@@ -30,8 +30,8 @@ export class ChineseNovelAssistantRightSidebarView extends ItemView {
 		const rootEl = contentEl.createDiv({ cls: "cna-right-sidebar" });
 		const tabs: TabDefinition[] = [
 			{
-				id: "setting",
-				label: this.t("settings.tab.setting"),
+				id: "guidebook",
+				label: this.t("settings.tab.guidebook"),
 				render: (panelEl) => {
 					panelEl.createDiv({
 						cls: "cna-right-sidebar-panel-placeholder",
@@ -54,7 +54,7 @@ export class ChineseNovelAssistantRightSidebarView extends ItemView {
 		new TabsComponent({
 			containerEl: rootEl,
 			tabs,
-			defaultTabId: "setting",
+			defaultTabId: "guidebook",
 		});
 	}
 

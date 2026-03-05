@@ -6,7 +6,7 @@ import {
 	type SettingsTabRenderContext,
 	renderGlobalSettings,
 	renderGuidebookSettings,
-	renderNoteSettings,
+	renderStickyNoteSettings,
 	renderOtherSettings,
 	renderProofreadSettings,
 	renderSnippetSettings,
@@ -86,13 +86,13 @@ export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
 			},
 			{
 				id: "guidebook",
-				label: this.ctx.t("settings.tab.setting"),
+				label: this.ctx.t("settings.tab.guidebook"),
 				render: (panelEl) => renderGuidebookSettings(panelEl, renderContext),
 			},
 			{
-				id: "note",
+				id: "sticky_note",
 				label: this.ctx.t("settings.tab.sticky_note"),
-				render: (panelEl) => renderNoteSettings(panelEl, renderContext),
+				render: (panelEl) => renderStickyNoteSettings(panelEl, renderContext),
 			},
 			{
 				id: "proofread",
@@ -257,4 +257,3 @@ export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
 		});
 	}
 }
-

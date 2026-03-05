@@ -29,7 +29,7 @@ export class NovelLibraryService {
 	private resolveNovelLibrarySubdirNames(settings: ChineseNovelAssistantSettings): string[] {
 		const names = [
 			settings.guidebookDirName,
-			settings.noteDirName,
+			settings.stickyNoteDirName,
 			settings.snippetDirName,
 			settings.proofreadDictionaryDirName,
 		]

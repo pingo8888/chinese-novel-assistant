@@ -119,11 +119,11 @@ export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTab
 	}, deps, novelLibraryService);
 
 	renderSubdirSyncSetting(panelEl, {
-		name: ctx.t("settings.global.subdir.note.name"),
-		currentName: ctx.settings.noteDirName,
+		name: ctx.t("settings.global.subdir.sticky_note.name"),
+		currentName: ctx.settings.stickyNoteDirName,
 		isEnabled: ctx.settings.customDirNamesEnabled,
 		onSave: async (nextName) => {
-			await ctx.setSettings({ noteDirName: nextName });
+			await ctx.setSettings({ stickyNoteDirName: nextName });
 		},
 	}, deps, novelLibraryService);
 
