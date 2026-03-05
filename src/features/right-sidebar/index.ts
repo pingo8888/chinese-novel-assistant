@@ -2,11 +2,14 @@ import type { Plugin } from "obsidian";
 import { IDS, UI } from "../../constants";
 import type { PluginContext } from "../../core/context";
 import { buildGuidebookTreeData } from "./guidebook-tree-builder";
-import { ChineseNovelAssistantRightSidebarView } from "../../ui/views/right-sidebar-view";
+import {
+	ChineseNovelAssistantGuidebookSidebarView,
+	ChineseNovelAssistantStickyNoteSidebarView,
+} from "../../ui/views/right-sidebar-view";
 import type { RightSidebarViewRenderContext } from "../../ui/views/right-sidebar-views";
 
-export function registerRightSidebarFeature(plugin: Plugin, ctx: PluginContext): void {
-	const getTooltipText = () => ctx.t("feature.right_sidebar.tooltip");
+export function registerRightSidebarViewsFeature(plugin: Plugin, ctx: PluginContext): void {
+	const getTooltipText = () => ctx.t("feature.right_sidebar.guidebook.tooltip");
 	const renderContext: RightSidebarViewRenderContext = {
 		app: plugin.app,
 		t: (key) => ctx.t(key),
@@ -20,24 +23,49 @@ export function registerRightSidebarFeature(plugin: Plugin, ctx: PluginContext):
 			}, activeFilePath),
 	};
 	plugin.registerView(
-		IDS.view.rightSidebar,
-		(leaf) => new ChineseNovelAssistantRightSidebarView(leaf, getTooltipText, renderContext),
+		IDS.view.guidebookSidebar,
+		(leaf) => new ChineseNovelAssistantGuidebookSidebarView(leaf, getTooltipText, renderContext),
+	);
+	plugin.registerView(
+		IDS.view.stickyNoteSidebar,
+		(leaf) => new ChineseNovelAssistantStickyNoteSidebarView(leaf, renderContext),
 	);
 	plugin.addRibbonIcon(UI.icon.plugin, getTooltipText(), () => {
-		void openRightSidebar(plugin);
+		void openGuidebookSidebarWithStickyNote(plugin, ctx);
 	});
 
 	plugin.register(() => {
-		for (const leaf of plugin.app.workspace.getLeavesOfType(IDS.view.rightSidebar)) {
+		for (const leaf of plugin.app.workspace.getLeavesOfType(IDS.view.guidebookSidebar)) {
+			void leaf.setViewState({ type: "empty" });
+		}
+		for (const leaf of plugin.app.workspace.getLeavesOfType(IDS.view.stickyNoteSidebar)) {
 			void leaf.setViewState({ type: "empty" });
 		}
 	});
 }
 
-async function openRightSidebar(plugin: Plugin): Promise<void> {
-	await plugin.app.workspace.ensureSideLeaf(IDS.view.rightSidebar, "right", {
+async function openGuidebookSidebarWithStickyNote(plugin: Plugin, ctx: PluginContext): Promise<void> {
+	const guidebookLeaf = await plugin.app.workspace.ensureSideLeaf(IDS.view.guidebookSidebar, "right", {
 		active: true,
 		reveal: true,
 		split: false,
 	});
+
+	if (ctx.settings.stickyNoteEnabled) {
+		const stickyLeaves = plugin.app.workspace.getLeavesOfType(IDS.view.stickyNoteSidebar);
+		const hasStickySibling = stickyLeaves.some((leaf) => leaf.parent === guidebookLeaf.parent);
+		if (!hasStickySibling) {
+			for (const leaf of stickyLeaves) {
+				leaf.detach();
+			}
+		}
+
+		await plugin.app.workspace.ensureSideLeaf(IDS.view.stickyNoteSidebar, "right", {
+			active: false,
+			reveal: false,
+			split: false,
+		});
+	}
+
+	plugin.app.workspace.setActiveLeaf(guidebookLeaf, false, true);
 }

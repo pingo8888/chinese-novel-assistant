@@ -1,13 +1,12 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import { IDS, UI } from "../../constants";
-import { TabsComponent, type TabDefinition } from "../componets/tabs";
 import {
 	renderRightSidebarGuidebookView,
 	renderRightSidebarStickyNoteView,
 	type RightSidebarViewRenderContext,
 } from "./right-sidebar-views";
 
-export class ChineseNovelAssistantRightSidebarView extends ItemView {
+export class ChineseNovelAssistantGuidebookSidebarView extends ItemView {
 	private activeTabDispose: (() => void) | null = null;
 
 	constructor(
@@ -19,7 +18,7 @@ export class ChineseNovelAssistantRightSidebarView extends ItemView {
 	}
 
 	getViewType(): string {
-		return IDS.view.rightSidebar;
+		return IDS.view.guidebookSidebar;
 	}
 
 	getDisplayText(): string {
@@ -34,30 +33,44 @@ export class ChineseNovelAssistantRightSidebarView extends ItemView {
 		const { contentEl } = this;
 		contentEl.empty();
 		const rootEl = contentEl.createDiv({ cls: "cna-right-sidebar" });
-		const tabs: TabDefinition[] = [
-			{
-				id: "guidebook",
-				label: this.ctx.t("settings.tab.guidebook"),
-				render: (panelEl) => {
-					this.activeTabDispose?.();
-					this.activeTabDispose = renderRightSidebarGuidebookView(panelEl, this.ctx);
-				},
-			},
-			{
-				id: "sticky_note",
-				label: this.ctx.t("settings.tab.sticky_note"),
-				render: (panelEl) => {
-					this.activeTabDispose?.();
-					this.activeTabDispose = renderRightSidebarStickyNoteView(panelEl, this.ctx) ?? null;
-				},
-			},
-		];
+		this.activeTabDispose?.();
+		this.activeTabDispose = renderRightSidebarGuidebookView(rootEl, this.ctx) ?? null;
+	}
 
-		new TabsComponent({
-			containerEl: rootEl,
-			tabs,
-			defaultTabId: "guidebook",
-		});
+	async onClose(): Promise<void> {
+		this.activeTabDispose?.();
+		this.activeTabDispose = null;
+	}
+}
+
+export class ChineseNovelAssistantStickyNoteSidebarView extends ItemView {
+	private activeTabDispose: (() => void) | null = null;
+
+	constructor(
+		leaf: WorkspaceLeaf,
+		private readonly ctx: RightSidebarViewRenderContext,
+	) {
+		super(leaf);
+	}
+
+	getViewType(): string {
+		return IDS.view.stickyNoteSidebar;
+	}
+
+	getDisplayText(): string {
+		return this.ctx.t("settings.tab.sticky_note");
+	}
+
+	getIcon(): string {
+		return UI.icon.stickyNote;
+	}
+
+	async onOpen(): Promise<void> {
+		const { contentEl } = this;
+		contentEl.empty();
+		const rootEl = contentEl.createDiv({ cls: "cna-right-sidebar" });
+		this.activeTabDispose?.();
+		this.activeTabDispose = renderRightSidebarStickyNoteView(rootEl, this.ctx) ?? null;
 	}
 
 	async onClose(): Promise<void> {

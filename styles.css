@@ -90,64 +90,14 @@
 	padding-top: 0;
 }
 
-.workspace-leaf-content[data-type="chinese-novel-assistant-right-sidebar"] .view-content {
-	padding-right: 4px;
+.workspace-leaf-content[data-type="chinese-novel-assistant-guidebook-sidebar"] .view-content {
+	padding-right: 12px;
 }
 
 .cna-right-sidebar {
 	height: 100%;
-}
-
-.cna-right-sidebar .cna-tabs {
-	display: flex;
-	flex-direction: row-reverse;
-	gap: 5px;
-	height: 100%;
-	margin-top: 0;
-}
-
-.cna-right-sidebar .cna-tab-list {
-	border-bottom: 0;
-	border-left: 1px solid var(--background-modifier-border);
-	border-right: 0;
-	flex-direction: column;
-	flex-wrap: nowrap;
-	gap: 4px;
-	margin-bottom: 0;
-	min-width: 30px;
-	padding-left: 0;
-	padding-right: 0;
-	align-items: flex-start;
-}
-
-.cna-right-sidebar .cna-tab-button {
-	border-bottom: 0;
-	border-left: 2px solid transparent;
-	border-right: 0;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	height: auto;
-	min-height: fit-content;
-	padding: 10px 6px;
-	text-align: center;
-	white-space: nowrap;
-	writing-mode: vertical-rl;
-	text-orientation: upright;
-	line-height: 1.1;
-}
-
-.cna-right-sidebar .cna-tab-button.is-active {
-	border-bottom-color: transparent;
-	border-left-color: var(--interactive-accent);
-}
-
-.cna-right-sidebar .cna-tab-panel {
-	flex: 1;
-	min-width: 0;
 	display: flex;
 	flex-direction: column;
-	min-height: 0;
 }
 
 .cna-right-sidebar-panel-placeholder {
