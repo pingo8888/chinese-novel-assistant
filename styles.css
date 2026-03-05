@@ -97,7 +97,7 @@
 .cna-right-sidebar .cna-tabs {
 	display: flex;
 	flex-direction: row-reverse;
-	gap: 10px;
+	gap: 5px;
 	height: 100%;
 	margin-top: 0;
 }
@@ -219,11 +219,125 @@
 .cna-right-sidebar-guidebook__content {
 	flex: 1;
 	min-height: 0;
-	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
 }
 
-.cna-right-sidebar-guidebook.is-collapsed .cna-right-sidebar-guidebook__content {
+.cna-right-sidebar-guidebook__scroll {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	margin: 6px 0;
+}
+
+.cna-guidebook-tree {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 0 0 10px;
+}
+
+.cna-guidebook-tree__empty {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	padding: 2px 0;
+}
+
+.cna-guidebook-tree__branch.is-collapsed > .cna-guidebook-tree__children {
 	display: none;
+}
+
+.cna-guidebook-tree__children {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	border-left: 1px solid var(--background-modifier-border);
+	margin-left: 10px;
+	padding-left: 8px;
+}
+
+.cna-guidebook-tree__row {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	min-height: 28px;
+	border-radius: 6px;
+	padding: 2px 6px 2px 0;
+}
+
+.cna-guidebook-tree__row--file {
+	background: var(--background-secondary);
+}
+
+.cna-guidebook-tree__row:hover {
+	background: var(--background-modifier-hover);
+}
+
+.cna-guidebook-tree__row-toggle {
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	border-radius: 4px;
+	color: var(--text-muted);
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 18px;
+	width: 18px;
+	padding: 0;
+	appearance: none;
+}
+
+.cna-guidebook-tree__row-toggle--placeholder {
+	cursor: default;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.cna-guidebook-tree__row-toggle-icon,
+.cna-guidebook-tree__row-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 14px;
+	width: 14px;
+}
+
+.cna-guidebook-tree__row-icon {
+	color: var(--text-muted);
+}
+
+.cna-guidebook-tree__row--file .cna-guidebook-tree__row-icon {
+	transform: translateY(-2px);
+}
+
+.cna-guidebook-tree__row--h1 .cna-guidebook-tree__row-icon {
+	transform: translateY(-2px);
+}
+
+.cna-guidebook-tree__row-label {
+	flex: 1;
+	font-size: var(--font-ui-medium);
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.cna-guidebook-tree__row--h2 .cna-guidebook-tree__row-label {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+}
+
+.cna-guidebook-tree__row-count {
+	color: var(--text-muted);
+	font-variant-numeric: tabular-nums;
+	font-size: var(--font-ui-small);
+	min-width: 2.5em;
+	text-align: right;
+	flex: 0 0 auto;
 }
 
 .cna-settings-panel {

@@ -1,6 +1,7 @@
 import type { Plugin } from "obsidian";
 import { IDS, UI } from "../../constants";
 import type { PluginContext } from "../../core/context";
+import { buildGuidebookTreeData } from "./guidebook-tree-builder";
 import { ChineseNovelAssistantRightSidebarView } from "../../ui/views/right-sidebar-view";
 import type { RightSidebarViewRenderContext } from "../../ui/views/right-sidebar-views";
 
@@ -11,6 +12,12 @@ export function registerRightSidebarFeature(plugin: Plugin, ctx: PluginContext):
 		t: (key) => ctx.t(key),
 		getSettings: () => ctx.settings,
 		onSettingsChange: (listener) => ctx.onSettingsChange(listener),
+		loadGuidebookTreeData: (activeFilePath) =>
+			buildGuidebookTreeData(plugin.app, {
+				locale: ctx.settings.locale,
+				novelLibraries: ctx.settings.novelLibraries,
+				guidebookDirName: ctx.settings.guidebookDirName,
+			}, activeFilePath),
 	};
 	plugin.registerView(
 		IDS.view.rightSidebar,
