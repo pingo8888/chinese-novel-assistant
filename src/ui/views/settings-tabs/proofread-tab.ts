@@ -146,9 +146,9 @@ export function renderProofreadSettings(containerEl: HTMLElement, deps: Settings
 		.setClass("cna-settings-item")
 		.addToggle((toggle) =>
 			toggle
-				.setValue(ctx.settings.proofreadAutoCompletePairPunctuationEnabled)
+				.setValue(ctx.settings.autocompletePairPunctuationEnabled)
 				.onChange(async (value) => {
-					await ctx.setSettings({ proofreadAutoCompletePairPunctuationEnabled: value });
+					await ctx.setSettings({ autocompletePairPunctuationEnabled: value });
 				}),
 		);
 

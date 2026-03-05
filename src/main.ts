@@ -13,6 +13,7 @@ import {
 import { registerCharacterCountFeature } from "./features/character-count";
 import { registerCommandsFeature } from "./features/commands";
 import { registerTextDetectionFeature } from "./features/text-detection";
+import { registerTextAutocompleteFeature } from "./features/text-autocomplete";
 import { registerTypesetFeature } from "./features/typeset";
 import { ChineseNovelAssistantSettingTab } from "./ui/views/settings-tab";
 import type { SettingsChangeListener } from "./core/context";
@@ -30,6 +31,7 @@ export default class ChineseNovelAssistantPlugin extends Plugin {
 		registerCommandsFeature(this, this.ctx);
 		registerCharacterCountFeature(this, this.ctx);
 		registerTextDetectionFeature(this, this.ctx);
+		registerTextAutocompleteFeature(this, this.ctx);
 		registerTypesetFeature(this, this.ctx);
 	}
 

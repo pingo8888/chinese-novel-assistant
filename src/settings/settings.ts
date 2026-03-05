@@ -48,7 +48,7 @@ export interface ChineseNovelAssistantSettings {
 	proofreadQuoteEnabled: boolean;
 	proofreadSingleQuoteEnabled: boolean;
 	proofreadPairPunctuationEnabled: boolean;
-	proofreadAutoCompletePairPunctuationEnabled: boolean;
+	autocompletePairPunctuationEnabled: boolean;
 	proofreadCustomDictionaryEnabled: boolean;
 }
 
@@ -101,7 +101,7 @@ export function createDefaultSettings(locale: SupportedLocale): ChineseNovelAssi
 		proofreadQuoteEnabled: true,
 		proofreadSingleQuoteEnabled: true,
 		proofreadPairPunctuationEnabled: true,
-		proofreadAutoCompletePairPunctuationEnabled: false,
+		autocompletePairPunctuationEnabled: false,
 		proofreadCustomDictionaryEnabled: false,
 	};
 }
