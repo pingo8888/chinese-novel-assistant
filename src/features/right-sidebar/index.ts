@@ -7,7 +7,7 @@ export function registerRightSidebarFeature(plugin: Plugin, ctx: PluginContext):
 	const getTooltipText = () => ctx.t("feature.right_sidebar.tooltip");
 	plugin.registerView(
 		IDS.view.rightSidebar,
-		(leaf) => new ChineseNovelAssistantRightSidebarView(leaf, getTooltipText),
+		(leaf) => new ChineseNovelAssistantRightSidebarView(leaf, getTooltipText, (key) => ctx.t(key)),
 	);
 	plugin.addRibbonIcon(UI.icon.plugin, getTooltipText(), () => {
 		void openRightSidebar(plugin);
