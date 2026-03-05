@@ -496,3 +496,55 @@
 	font-size: var(--font-ui-smaller);
 	white-space: nowrap;
 }
+
+.cna-text-input-modal {
+	padding-top: 4px;
+}
+
+.modal.cna-text-input-modal-shell {
+	width: min(440px, calc(100vw - 32px));
+	max-width: min(440px, calc(100vw - 32px));
+}
+
+.cna-text-input-modal__body {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.cna-text-input-modal__input-wrap {
+	width: 100%;
+}
+
+.cna-text-input-modal__input {
+	width: 100%;
+	height: 36px;
+	padding: 0 12px;
+	border: 2px solid var(--background-modifier-border);
+	border-radius: 8px;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	font-size: var(--font-ui-medium);
+}
+
+.cna-text-input-modal__input:focus {
+	border-color: var(--interactive-accent);
+	outline: none;
+	box-shadow: 0 0 0 1px var(--interactive-accent);
+}
+
+.cna-text-input-modal__input.is-invalid {
+	border-color: var(--text-error);
+	box-shadow: none;
+}
+
+.cna-text-input-modal__footer {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 2px;
+}
+
+.cna-text-input-modal__button {
+	min-width: 56px;
+}

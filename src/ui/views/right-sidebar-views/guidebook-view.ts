@@ -1,10 +1,17 @@
 import type { RightSidebarViewRenderContext } from "./types";
-import { MarkdownView, Notice, setIcon, TFile } from "obsidian";
+import { MarkdownView, setIcon, TFile } from "obsidian";
 import { UI } from "../../../constants";
 import { NovelLibraryService } from "../../../services/novel-library-service";
 import { watchVaultChanges } from "../../../services/vault-change-watcher";
 import { ToggleButtonComponent } from "../../componets/toggle-button";
 import { createGuidebookTreeViewComponent } from "./guidebook-tree";
+import type { GuidebookTreeData } from "../../../features/right-sidebar/guidebook-tree-builder";
+import {
+	handleGuidebookBlankCreateCollection,
+	handleGuidebookFileContextAction,
+	handleGuidebookH1ContextAction,
+	handleGuidebookH2ContextAction,
+} from "../../../features/right-sidebar/guidebook-menu-actions";
 
 let cachedMarkdownFilePath: string | null = null;
 
@@ -21,6 +28,7 @@ export function renderRightSidebarGuidebookView(containerEl: HTMLElement, ctx: R
 	rootEl.createDiv({ cls: "cna-right-sidebar-guidebook__divider" });
 	const contentEl = rootEl.createDiv({ cls: "cna-right-sidebar-guidebook__content" });
 	const scrollEl = contentEl.createDiv({ cls: "cna-right-sidebar-guidebook__scroll" });
+	let latestTreeData: GuidebookTreeData | null = null;
 	const treeView = createGuidebookTreeViewComponent(scrollEl, {
 		menuLabels: {
 			createCollection: ctx.t("feature.right_sidebar.guidebook.menu.create_collection"),
@@ -34,17 +42,56 @@ export function renderRightSidebarGuidebookView(containerEl: HTMLElement, ctx: R
 			deleteSetting: ctx.t("feature.right_sidebar.guidebook.menu.delete_setting"),
 			editSetting: ctx.t("feature.right_sidebar.guidebook.menu.edit_setting"),
 		},
-		onFileContextAction: () => {
-			new Notice(ctx.t("settings.tab.coming_soon"));
+		onFileContextAction: (action, fileNode) => {
+			void (async () => {
+				const changed = await handleGuidebookFileContextAction(
+					{ app: ctx.app, t: (key) => ctx.t(key), treeData: latestTreeData },
+					action,
+					fileNode,
+				);
+				if (changed) {
+					void refreshGuidebook();
+				}
+			})();
 		},
-		onH1ContextAction: () => {
-			new Notice(ctx.t("settings.tab.coming_soon"));
+		onH1ContextAction: (action, fileNode, h1Node) => {
+			void (async () => {
+				const changed = await handleGuidebookH1ContextAction(
+					{ app: ctx.app, t: (key) => ctx.t(key), treeData: latestTreeData },
+					action,
+					fileNode,
+					h1Node,
+				);
+				if (changed) {
+					void refreshGuidebook();
+				}
+			})();
 		},
-		onH2ContextAction: () => {
-			new Notice(ctx.t("settings.tab.coming_soon"));
+		onH2ContextAction: (action, fileNode, h1Node, h2Node) => {
+			void (async () => {
+				const changed = await handleGuidebookH2ContextAction(
+					{ app: ctx.app, t: (key) => ctx.t(key), treeData: latestTreeData },
+					action,
+					fileNode,
+					h1Node,
+					h2Node,
+				);
+				if (changed) {
+					void refreshGuidebook();
+				}
+			})();
 		},
 		onBlankContextCreateCollection: () => {
-			new Notice(ctx.t("settings.tab.coming_soon"));
+			void (async () => {
+				const changed = await handleGuidebookBlankCreateCollection({
+					app: ctx.app,
+					t: (key) => ctx.t(key),
+					treeData: latestTreeData,
+				});
+				if (changed) {
+					void refreshGuidebook();
+				}
+			})();
 		},
 	});
 	const toggleButton = new ToggleButtonComponent({
@@ -81,9 +128,9 @@ export function renderRightSidebarGuidebookView(containerEl: HTMLElement, ctx: R
 		if (isDisposed || currentSeq !== refreshSeq) {
 			return;
 		}
+		latestTreeData = treeData;
 
 		treeView.renderData(treeData, ctx.t("feature.right_sidebar.guidebook.tree.empty"));
-		treeView.setAllExpanded(toggleButton.getState());
 	};
 	const scheduleRefresh = (preferredFilePath?: string | null): void => {
 		if (refreshTimer !== null) {

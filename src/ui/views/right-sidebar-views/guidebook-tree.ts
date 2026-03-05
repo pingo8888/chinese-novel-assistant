@@ -125,8 +125,8 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 			return;
 		}
 
-		data.files.forEach((fileNode, fileIndex) => {
-			const fileKey = `file:${fileNode.fileName}:${fileIndex}`;
+		data.files.forEach((fileNode) => {
+			const fileKey = `file:${fileNode.stableKey}`;
 			const fileBranchEl = this.rootEl.createDiv({ cls: "cna-guidebook-tree__branch cna-guidebook-tree__branch--file" });
 			const fileChildrenEl = this.renderCollapsibleRow(
 				fileBranchEl,
@@ -142,8 +142,8 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 				fileKey,
 			);
 
-			fileNode.h1List.forEach((h1Node, h1Index) => {
-				this.renderH1Node(fileChildrenEl, fileNode, h1Node, fileIndex, h1Index);
+			fileNode.h1List.forEach((h1Node) => {
+				this.renderH1Node(fileChildrenEl, fileNode, h1Node);
 			});
 		});
 	}
@@ -158,10 +158,8 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 		containerEl: HTMLElement,
 		fileNode: GuidebookTreeFileNode,
 		h1Node: GuidebookTreeH1Node,
-		fileIndex: number,
-		h1Index: number,
 	): void {
-		const h1Key = `h1:${fileNode.fileName}:${fileIndex}:${h1Node.title}:${h1Index}`;
+		const h1Key = `h1:${h1Node.sourceFileCtime}:${h1Node.h1IndexInSource}`;
 		const h1BranchEl = containerEl.createDiv({ cls: "cna-guidebook-tree__branch cna-guidebook-tree__branch--h1" });
 		const h1ChildrenEl = this.renderCollapsibleRow(
 			h1BranchEl,

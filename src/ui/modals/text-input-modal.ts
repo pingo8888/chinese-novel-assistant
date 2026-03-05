@@ -1,4 +1,4 @@
-import { App, Modal, Setting } from "obsidian";
+import { App, Modal } from "obsidian";
 
 export interface TextInputModalOptions {
 	title: string;
@@ -15,7 +15,6 @@ export class TextInputModal extends Modal {
 	private readonly onResult: (value: string | null) => void;
 	private resolved = false;
 	private rawValue: string;
-	private errorEl: HTMLElement | null = null;
 	private confirmButtonEl: HTMLButtonElement | null = null;
 	private inputEl: HTMLInputElement | null = null;
 
@@ -30,41 +29,45 @@ export class TextInputModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 		this.setTitle(this.options.title);
+		this.modalEl.classList.add("cna-text-input-modal-shell");
+		contentEl.classList.add("cna-text-input-modal");
 
-		new Setting(contentEl).addText((text) => {
-			text
-				.setPlaceholder(this.options.placeholder ?? "")
-				.setValue(this.rawValue)
-				.onChange((value) => {
-					this.rawValue = value;
-					this.syncValidationState();
-				});
-			this.inputEl = text.inputEl;
-			this.inputEl.addEventListener("keydown", (event) => {
-				if (event.key !== "Enter") {
-					return;
-				}
-				event.preventDefault();
-				this.tryConfirm();
-			});
+		const bodyEl = contentEl.createDiv({ cls: "cna-text-input-modal__body" });
+		const inputWrapEl = bodyEl.createDiv({ cls: "cna-text-input-modal__input-wrap" });
+		this.inputEl = inputWrapEl.createEl("input", {
+			type: "text",
+			cls: "cna-text-input-modal__input",
+		});
+		this.inputEl.value = this.rawValue;
+		this.inputEl.placeholder = this.options.placeholder ?? "";
+		this.inputEl.addEventListener("input", () => {
+			this.rawValue = this.inputEl?.value ?? "";
+			this.syncValidationState();
+		});
+		this.inputEl.addEventListener("keydown", (event) => {
+			if (event.key !== "Enter") {
+				return;
+			}
+			event.preventDefault();
+			this.tryConfirm();
 		});
 
-		this.errorEl = contentEl.createDiv({ cls: "setting-item-description" });
-		this.errorEl.style.minHeight = "1.2em";
+		const footerEl = bodyEl.createDiv({ cls: "cna-text-input-modal__footer" });
+		const cancelButtonEl = footerEl.createEl("button", { cls: "cna-text-input-modal__button" });
+		cancelButtonEl.type = "button";
+		cancelButtonEl.setText(this.options.cancelText);
+		cancelButtonEl.addEventListener("click", () => {
+			this.finish(null);
+		});
 
-		new Setting(contentEl)
-			.addButton((button) =>
-				button.setButtonText(this.options.cancelText).onClick(() => {
-					this.finish(null);
-				}),
-			)
-			.addButton((button) => {
-				button.setButtonText(this.options.confirmText);
-				this.confirmButtonEl = button.buttonEl;
-				button.onClick(() => {
-					this.tryConfirm();
-				});
-			});
+		this.confirmButtonEl = footerEl.createEl("button", {
+			cls: "mod-cta cna-text-input-modal__button",
+		});
+		this.confirmButtonEl.type = "button";
+		this.confirmButtonEl.setText(this.options.confirmText);
+		this.confirmButtonEl.addEventListener("click", () => {
+			this.tryConfirm();
+		});
 
 		this.syncValidationState();
 
@@ -75,6 +78,8 @@ export class TextInputModal extends Modal {
 	}
 
 	onClose(): void {
+		this.modalEl.classList.remove("cna-text-input-modal-shell");
+		this.contentEl.classList.remove("cna-text-input-modal");
 		this.contentEl.empty();
 		if (!this.resolved) {
 			this.onResult(null);
@@ -94,8 +99,8 @@ export class TextInputModal extends Modal {
 	private syncValidationState(): void {
 		const value = this.resolveValue();
 		const validationError = this.resolveValidationError(value);
-		if (this.errorEl) {
-			this.errorEl.setText(validationError ?? "");
+		if (this.inputEl) {
+			this.inputEl.classList.toggle("is-invalid", Boolean(validationError));
 		}
 		if (this.confirmButtonEl) {
 			this.confirmButtonEl.disabled = Boolean(validationError);

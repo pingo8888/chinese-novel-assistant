@@ -5,15 +5,23 @@ import type { ChineseNovelAssistantSettings } from "../../settings/settings";
 export interface GuidebookTreeH2Node {
 	title: string;
 	content: string;
+	sourcePath: string;
+	sourceFileCtime: number;
+	h1IndexInSource: number;
+	h2IndexInH1: number;
 }
 
 export interface GuidebookTreeH1Node {
 	title: string;
 	h2List: GuidebookTreeH2Node[];
+	sourcePath: string;
+	sourceFileCtime: number;
+	h1IndexInSource: number;
 }
 
 export interface GuidebookTreeFileNode {
 	fileName: string;
+	stableKey: string;
 	sourcePaths: string[];
 	h1List: GuidebookTreeH1Node[];
 	h2Count: number;
@@ -66,16 +74,14 @@ export async function buildGuidebookTreeData(
 	const fileBucketByName = new Map<string, GuidebookTreeFileBucket>();
 	for (const file of guidebookMarkdownFiles) {
 		const markdown = await app.vault.cachedRead(file);
-		const h1List = parseGuidebookMarkdown(markdown);
-		if (h1List.length === 0) {
-			continue;
-		}
+		const h1List = parseGuidebookMarkdown(markdown, file.path, file.stat.ctime);
 
 		const fileNameKey = file.basename;
 		let fileBucket = fileBucketByName.get(fileNameKey);
 		if (!fileBucket) {
 			fileBucket = {
 				fileName: file.basename,
+				stableKey: String(file.stat.ctime),
 				sourcePaths: [],
 				h1List: [],
 				h2Count: 0,
@@ -83,12 +89,14 @@ export async function buildGuidebookTreeData(
 			};
 			fileBucketByName.set(fileNameKey, fileBucket);
 		}
+		const targetBucket = fileBucket;
 
-		fileBucket.sourcePaths.push(file.path);
-		fileBucket.h1List.push(...h1List);
-		fileBucket.h2Count += h1List.reduce((total, h1Node) => total + h1Node.h2List.length, 0);
-		if (file.stat.ctime < fileBucket.firstFileCtime) {
-			fileBucket.firstFileCtime = file.stat.ctime;
+		targetBucket.sourcePaths.push(file.path);
+		targetBucket.h1List.push(...h1List);
+		targetBucket.h2Count += h1List.reduce((total, h1Node) => total + h1Node.h2List.length, 0);
+		if (file.stat.ctime < targetBucket.firstFileCtime) {
+			targetBucket.firstFileCtime = file.stat.ctime;
+			targetBucket.stableKey = String(file.stat.ctime);
 		}
 	}
 
@@ -96,6 +104,7 @@ export async function buildGuidebookTreeData(
 		.sort((left, right) => left.firstFileCtime - right.firstFileCtime || left.fileName.localeCompare(right.fileName))
 		.map((bucket) => ({
 			fileName: bucket.fileName,
+			stableKey: String(bucket.firstFileCtime),
 			sourcePaths: bucket.sourcePaths,
 			h1List: bucket.h1List,
 			h2Count: bucket.h2Count,
@@ -116,13 +125,15 @@ function compareByFileCreationTime(left: TFile, right: TFile): number {
 	return left.path.localeCompare(right.path);
 }
 
-function parseGuidebookMarkdown(content: string): GuidebookTreeH1Node[] {
+function parseGuidebookMarkdown(content: string, sourcePath: string, sourceFileCtime: number): GuidebookTreeH1Node[] {
 	const h1List: GuidebookTreeH1Node[] = [];
 	const lines = content.split(/\r?\n/);
 	let currentH1: GuidebookTreeH1Node | null = null;
 	let currentH2: GuidebookTreeH2Node | null = null;
 	let currentH2ContentLines: string[] = [];
 	let codeFence: { marker: "`" | "~"; length: number } | null = null;
+	let currentH1Index = -1;
+	let currentH2Index = -1;
 
 	const finalizeCurrentH2 = (): void => {
 		if (!currentH2) {
@@ -167,9 +178,14 @@ function parseGuidebookMarkdown(content: string): GuidebookTreeH1Node[] {
 
 		if (heading.level === 1) {
 			finalizeCurrentH2();
+			currentH1Index += 1;
+			currentH2Index = -1;
 			currentH1 = {
 				title: heading.title,
 				h2List: [],
+				sourcePath,
+				sourceFileCtime,
+				h1IndexInSource: currentH1Index,
 			};
 			h1List.push(currentH1);
 			continue;
@@ -180,9 +196,14 @@ function parseGuidebookMarkdown(content: string): GuidebookTreeH1Node[] {
 			if (!currentH1) {
 				continue;
 			}
+			currentH2Index += 1;
 			currentH2 = {
 				title: heading.title,
 				content: "",
+				sourcePath,
+				sourceFileCtime,
+				h1IndexInSource: currentH1.h1IndexInSource,
+				h2IndexInH1: currentH2Index,
 			};
 			currentH1.h2List.push(currentH2);
 			continue;
