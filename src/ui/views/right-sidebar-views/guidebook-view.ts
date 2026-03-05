@@ -2,6 +2,7 @@ import type { RightSidebarViewRenderContext } from "./types";
 import { MarkdownView, setIcon, TFile } from "obsidian";
 import { UI } from "../../../constants";
 import { NovelLibraryService } from "../../../services/novel-library-service";
+import { watchVaultChanges } from "../../../services/vault-change-watcher";
 import { ToggleButtonComponent } from "../../componets/toggle-button";
 import { createGuidebookTreeViewComponent } from "./guidebook-tree";
 
@@ -83,28 +84,11 @@ export function renderRightSidebarGuidebookView(containerEl: HTMLElement, ctx: R
 		}),
 	];
 
-	const vaultEventRefs = [
-		ctx.app.vault.on("modify", (file) => {
-			if (isMarkdownFile(file)) {
-				scheduleRefresh();
-			}
-		}),
-		ctx.app.vault.on("create", (file) => {
-			if (isMarkdownFile(file)) {
-				scheduleRefresh();
-			}
-		}),
-		ctx.app.vault.on("delete", (file) => {
-			if (isMarkdownFile(file)) {
-				scheduleRefresh();
-			}
-		}),
-		ctx.app.vault.on("rename", (file) => {
-			if (isMarkdownFile(file)) {
-				scheduleRefresh();
-			}
-		}),
-	];
+	const disposeVaultWatcher = watchVaultChanges(ctx.app, (event) => {
+		if (isMarkdownFile(event.file)) {
+			scheduleRefresh();
+		}
+	});
 
 	const disposeSettingsChange = ctx.onSettingsChange?.(() => {
 		void refreshGuidebook();
@@ -122,9 +106,7 @@ export function renderRightSidebarGuidebookView(containerEl: HTMLElement, ctx: R
 		for (const eventRef of workspaceEventRefs) {
 			ctx.app.workspace.offref(eventRef);
 		}
-		for (const eventRef of vaultEventRefs) {
-			ctx.app.vault.offref(eventRef);
-		}
+		disposeVaultWatcher();
 		disposeSettingsChange?.();
 	};
 }

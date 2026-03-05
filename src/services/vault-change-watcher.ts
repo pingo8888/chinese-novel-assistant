@@ -9,12 +9,11 @@ export interface VaultChangeEvent {
 	oldPath?: string;
 }
 
-export function bindVaultChangeWatcher(
-	plugin: Plugin,
+export function watchVaultChanges(
 	app: App,
 	onChange: (event: VaultChangeEvent) => void,
-): void {
-	plugin.registerEvent(
+): () => void {
+	const eventRefs = [
 		app.vault.on("create", (file) => {
 			onChange({
 				type: "create",
@@ -22,9 +21,6 @@ export function bindVaultChangeWatcher(
 				path: file.path,
 			});
 		}),
-	);
-
-	plugin.registerEvent(
 		app.vault.on("modify", (file) => {
 			onChange({
 				type: "modify",
@@ -32,9 +28,6 @@ export function bindVaultChangeWatcher(
 				path: file.path,
 			});
 		}),
-	);
-
-	plugin.registerEvent(
 		app.vault.on("delete", (file) => {
 			onChange({
 				type: "delete",
@@ -42,9 +35,6 @@ export function bindVaultChangeWatcher(
 				path: file.path,
 			});
 		}),
-	);
-
-	plugin.registerEvent(
 		app.vault.on("rename", (file, oldPath) => {
 			onChange({
 				type: "rename",
@@ -53,5 +43,19 @@ export function bindVaultChangeWatcher(
 				oldPath,
 			});
 		}),
-	);
+	];
+
+	return () => {
+		for (const eventRef of eventRefs) {
+			app.vault.offref(eventRef);
+		}
+	};
+}
+
+export function bindVaultChangeWatcher(
+	plugin: Plugin,
+	app: App,
+	onChange: (event: VaultChangeEvent) => void,
+): void {
+	plugin.register(watchVaultChanges(app, onChange));
 }

@@ -1,8 +1,9 @@
 import { EditorView, type ViewUpdate } from "@codemirror/view";
-import { MarkdownView, Plugin, TAbstractFile, TFile } from "obsidian";
+import { MarkdownView, Plugin, TFile } from "obsidian";
 import type { PluginContext } from "../../core/context";
 import type { ChineseNovelAssistantSettings } from "../../settings/settings";
 import { NovelLibraryService } from "../../services/novel-library-service";
+import { bindVaultChangeWatcher } from "../../services/vault-change-watcher";
 import { countMarkdownCharacters, hasExcalidrawFrontmatter } from "./count-engine";
 
 const FOLDER_BADGE_CLASS = "cna-character-count-folder-badge";
@@ -53,18 +54,9 @@ class CharacterCountFeature {
 	}
 
 	onload(): void {
-		const onFileChanged = (_file: TAbstractFile) => {
+		bindVaultChangeWatcher(this.plugin, this.plugin.app, () => {
 			this.scheduleRebuild();
-		};
-
-		this.plugin.registerEvent(this.plugin.app.vault.on("create", onFileChanged));
-		this.plugin.registerEvent(this.plugin.app.vault.on("modify", onFileChanged));
-		this.plugin.registerEvent(this.plugin.app.vault.on("delete", onFileChanged));
-		this.plugin.registerEvent(
-			this.plugin.app.vault.on("rename", (_file) => {
-				this.scheduleRebuild();
-			}),
-		);
+		});
 
 		this.plugin.registerEvent(
 			this.plugin.app.workspace.on("editor-change", () => {
