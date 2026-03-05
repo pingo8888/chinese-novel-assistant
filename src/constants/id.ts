@@ -1,4 +1,6 @@
 export const IDS = {
-	view: {},
+	view: {
+		rightSidebar: "chinese-novel-assistant-right-sidebar",
+	},
 	command: {},
 } as const;

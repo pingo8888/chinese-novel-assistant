@@ -149,6 +149,7 @@
 	"command.proofread.fix_proofread_dict_errors.failed": "读取纠错词典失败，请检查词典文件",
 	"feature.snippet.candidate.empty": "没有匹配片段",
 	"feature.snippet.candidate.footer": "第 {current}/{total} 页（←/→ 翻页，↑/↓ 选择，Enter 确认）",
+	"feature.right_sidebar.tooltip": "中文小说写作助手",
 	"feature.character_count.unit.char": "字",
 	"feature.character_count.unit.chapter": "章",
 	"feature.character_count.unit.ten_thousand": "万"
