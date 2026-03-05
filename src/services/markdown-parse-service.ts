@@ -81,10 +81,8 @@ export class MarkdownParseService {
 			throw new Error("File path cannot be empty.");
 		}
 
-		const normalizedLibraryRoots = request.settings.novelLibraries
-			.map((path) => this.libraryService.normalizeVaultPath(path))
-			.filter((path) => path.length > 0);
-		if (!this.isPathInLibraries(normalizedFilePath, normalizedLibraryRoots)) {
+		const normalizedLibraryRoots = this.libraryService.normalizeLibraryRoots(request.settings.novelLibraries);
+		if (!this.libraryService.isPathInLibraries(normalizedFilePath, normalizedLibraryRoots)) {
 			throw new Error(`File is not inside configured novel libraries: ${normalizedFilePath}`);
 		}
 
@@ -124,9 +122,5 @@ export class MarkdownParseService {
 			id: MarkdownParseService.DEFAULT_PARSER_ID,
 			parse: ({ content }): DefaultRawParseResult => ({ content }),
 		});
-	}
-
-	private isPathInLibraries(path: string, libraryRoots: string[]): boolean {
-		return libraryRoots.some((root) => path === root || path.startsWith(`${root}/`));
 	}
 }

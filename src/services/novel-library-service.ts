@@ -26,6 +26,44 @@ export class NovelLibraryService {
 			.replace(/\/+$/, "");
 	}
 
+	normalizeLibraryRoots(libraryPaths: string[]): string[] {
+		return Array.from(
+			new Set(
+				libraryPaths
+					.map((path) => this.normalizeVaultPath(path))
+					.filter((path) => path.length > 0),
+			),
+		).sort((left, right) => right.length - left.length);
+	}
+
+	isSameOrChildPath(path: string, root: string): boolean {
+		const normalizedPath = this.normalizeVaultPath(path);
+		const normalizedRoot = this.normalizeVaultPath(root);
+		if (!normalizedPath || !normalizedRoot) {
+			return false;
+		}
+		return normalizedPath === normalizedRoot || normalizedPath.startsWith(`${normalizedRoot}/`);
+	}
+
+	resolveContainingLibraryRoot(path: string, libraryRoots: string[]): string | null {
+		const normalizedPath = this.normalizeVaultPath(path);
+		if (!normalizedPath) {
+			return null;
+		}
+
+		const normalizedRoots = this.normalizeLibraryRoots(libraryRoots);
+		for (const root of normalizedRoots) {
+			if (this.isSameOrChildPath(normalizedPath, root)) {
+				return root;
+			}
+		}
+		return null;
+	}
+
+	isPathInLibraries(path: string, libraryRoots: string[]): boolean {
+		return this.resolveContainingLibraryRoot(path, libraryRoots) !== null;
+	}
+
 	private resolveNovelLibrarySubdirNames(settings: ChineseNovelAssistantSettings): string[] {
 		const names = [
 			settings.guidebookDirName,

@@ -150,6 +150,9 @@
 	"feature.snippet.candidate.empty": "没有匹配片段",
 	"feature.snippet.candidate.footer": "第 {current}/{total} 页（←/→ 翻页，↑/↓ 选择，Enter 确认）",
 	"feature.right_sidebar.tooltip": "中文小说写作助手",
+	"feature.right_sidebar.guidebook.current_library.none": "未匹配小说库",
+	"feature.right_sidebar.guidebook.action.expand_all": "全部展开",
+	"feature.right_sidebar.guidebook.action.collapse_all": "全部折叠",
 	"feature.character_count.unit.char": "字",
 	"feature.character_count.unit.chapter": "章",
 	"feature.character_count.unit.ten_thousand": "万"

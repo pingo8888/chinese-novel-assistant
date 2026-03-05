@@ -253,13 +253,7 @@ class CharacterCountFeature {
 	}
 
 	private buildScope(settings: ChineseNovelAssistantSettings): CountScope {
-		const libraryRoots = Array.from(
-			new Set(
-				settings.novelLibraries
-					.map((path) => this.novelLibraryService.normalizeVaultPath(path))
-					.filter((path) => path.length > 0),
-			),
-		).sort((a, b) => b.length - a.length);
+		const libraryRoots = this.novelLibraryService.normalizeLibraryRoots(settings.novelLibraries);
 
 		const excludedRootsByLibrary = new Map<string, string[]>();
 		for (const libraryRoot of libraryRoots) {
@@ -275,21 +269,12 @@ class CharacterCountFeature {
 	}
 
 	private findLibraryRoot(path: string, libraryRoots: string[]): string | null {
-		for (const libraryRoot of libraryRoots) {
-			if (this.isSameOrChildPath(path, libraryRoot)) {
-				return libraryRoot;
-			}
-		}
-		return null;
+		return this.novelLibraryService.resolveContainingLibraryRoot(path, libraryRoots);
 	}
 
 	private isExcludedPath(path: string, libraryRoot: string, excludedRootsByLibrary: Map<string, string[]>): boolean {
 		const excludedRoots = excludedRootsByLibrary.get(libraryRoot) ?? [];
-		return excludedRoots.some((excludedRoot) => this.isSameOrChildPath(path, excludedRoot));
-	}
-
-	private isSameOrChildPath(path: string, root: string): boolean {
-		return path === root || path.startsWith(`${root}/`);
+		return excludedRoots.some((excludedRoot) => this.novelLibraryService.isSameOrChildPath(path, excludedRoot));
 	}
 
 	private accumulateFileToFolderStats(
@@ -300,7 +285,7 @@ class CharacterCountFeature {
 	): void {
 		let currentFolderPath = this.novelLibraryService.normalizeVaultPath(file.parent?.path ?? "");
 		while (currentFolderPath.length > 0) {
-			if (boundaryRoot && !this.isSameOrChildPath(currentFolderPath, boundaryRoot)) {
+			if (boundaryRoot && !this.novelLibraryService.isSameOrChildPath(currentFolderPath, boundaryRoot)) {
 				break;
 			}
 

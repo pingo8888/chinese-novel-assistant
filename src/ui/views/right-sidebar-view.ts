@@ -1,6 +1,5 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import { IDS, UI } from "../../constants";
-import type { TranslationKey } from "../../lang";
 import { TabsComponent, type TabDefinition } from "../componets/tabs";
 import {
 	renderRightSidebarGuidebookView,
@@ -9,10 +8,12 @@ import {
 } from "./right-sidebar-views";
 
 export class ChineseNovelAssistantRightSidebarView extends ItemView {
+	private activeTabDispose: (() => void) | null = null;
+
 	constructor(
 		leaf: WorkspaceLeaf,
 		private readonly getTooltipText: () => string,
-		private readonly t: (key: TranslationKey) => string,
+		private readonly ctx: RightSidebarViewRenderContext,
 	) {
 		super(leaf);
 	}
@@ -33,22 +34,21 @@ export class ChineseNovelAssistantRightSidebarView extends ItemView {
 		const { contentEl } = this;
 		contentEl.empty();
 		const rootEl = contentEl.createDiv({ cls: "cna-right-sidebar" });
-		const renderContext: RightSidebarViewRenderContext = {
-			t: (key) => this.t(key),
-		};
 		const tabs: TabDefinition[] = [
 			{
 				id: "guidebook",
-				label: this.t("settings.tab.guidebook"),
+				label: this.ctx.t("settings.tab.guidebook"),
 				render: (panelEl) => {
-					renderRightSidebarGuidebookView(panelEl, renderContext);
+					this.activeTabDispose?.();
+					this.activeTabDispose = renderRightSidebarGuidebookView(panelEl, this.ctx);
 				},
 			},
 			{
 				id: "sticky_note",
-				label: this.t("settings.tab.sticky_note"),
+				label: this.ctx.t("settings.tab.sticky_note"),
 				render: (panelEl) => {
-					renderRightSidebarStickyNoteView(panelEl, renderContext);
+					this.activeTabDispose?.();
+					this.activeTabDispose = renderRightSidebarStickyNoteView(panelEl, this.ctx) ?? null;
 				},
 			},
 		];
@@ -60,5 +60,8 @@ export class ChineseNovelAssistantRightSidebarView extends ItemView {
 		});
 	}
 
-	async onClose(): Promise<void> {}
+	async onClose(): Promise<void> {
+		this.activeTabDispose?.();
+		this.activeTabDispose = null;
+	}
 }

@@ -150,6 +150,9 @@
 	"feature.snippet.candidate.empty": "沒有匹配片段",
 	"feature.snippet.candidate.footer": "第 {current}/{total} 頁（←/→ 翻頁，↑/↓ 選擇，Enter 確認）",
 	"feature.right_sidebar.tooltip": "中文小說寫作助手",
+	"feature.right_sidebar.guidebook.current_library.none": "未匹配小說庫",
+	"feature.right_sidebar.guidebook.action.expand_all": "全部展開",
+	"feature.right_sidebar.guidebook.action.collapse_all": "全部折疊",
 	"feature.character_count.unit.char": "字",
 	"feature.character_count.unit.chapter": "章",
 	"feature.character_count.unit.ten_thousand": "萬"
