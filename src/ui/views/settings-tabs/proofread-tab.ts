@@ -144,11 +144,9 @@ export function renderProofreadSettings(containerEl: HTMLElement, deps: Settings
 		.setName(ctx.t("settings.proofread.common.auto_complete_pair.name"))
 		.setDesc(ctx.t("settings.proofread.common.auto_complete_pair.desc"))
 		.setClass("cna-settings-item")
-		.setDisabled(!ctx.settings.proofreadCommonPunctuationEnabled)
 		.addToggle((toggle) =>
 			toggle
 				.setValue(ctx.settings.proofreadAutoCompletePairPunctuationEnabled)
-				.setDisabled(!ctx.settings.proofreadCommonPunctuationEnabled)
 				.onChange(async (value) => {
 					await ctx.setSettings({ proofreadAutoCompletePairPunctuationEnabled: value });
 				}),
@@ -169,4 +167,3 @@ export function renderProofreadSettings(containerEl: HTMLElement, deps: Settings
 			}),
 		);
 }
-

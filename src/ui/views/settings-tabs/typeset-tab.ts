@@ -24,6 +24,7 @@ export function renderTypesetSettings(containerEl: HTMLElement, deps: SettingsTa
 		.setName(ctx.t("settings.typeset.indent.name"))
 		.setDesc(ctx.t("settings.typeset.indent.desc"))
 		.setClass("cna-settings-item")
+		.setDisabled(!ctx.settings.typesetEnabled)
 		.addSlider((slider) =>
 			slider
 				.setLimits(0, 6, 1)
@@ -39,6 +40,7 @@ export function renderTypesetSettings(containerEl: HTMLElement, deps: SettingsTa
 		.setName(ctx.t("settings.typeset.line_spacing.name"))
 		.setDesc(ctx.t("settings.typeset.line_spacing.desc"))
 		.setClass("cna-settings-item")
+		.setDisabled(!ctx.settings.typesetEnabled)
 		.addSlider((slider) =>
 			slider
 				.setLimits(0, 4, 0.1)
@@ -54,6 +56,7 @@ export function renderTypesetSettings(containerEl: HTMLElement, deps: SettingsTa
 		.setName(ctx.t("settings.typeset.paragraph_spacing.name"))
 		.setDesc(ctx.t("settings.typeset.paragraph_spacing.desc"))
 		.setClass("cna-settings-item")
+		.setDisabled(!ctx.settings.typesetEnabled)
 		.addSlider((slider) =>
 			slider
 				.setLimits(0, 32, 1)
@@ -90,4 +93,3 @@ export function renderTypesetSettings(containerEl: HTMLElement, deps: SettingsTa
 			}),
 		);
 }
-

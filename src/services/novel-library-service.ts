@@ -64,6 +64,35 @@ export class NovelLibraryService {
 			.filter((path) => path.length > 0);
 	}
 
+	resolveNovelLibrarySubdirPath(
+		settings: Pick<ChineseNovelAssistantSettings, "locale">,
+		libraryPath: string,
+		subdirName: string,
+	): string {
+		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
+		const normalizedSubdirName = this.normalizeVaultPath(subdirName);
+		if (!normalizedLibraryPath || !normalizedSubdirName) {
+			return "";
+		}
+
+		const featureRootPath = this.getNovelLibraryFeatureRootPath(normalizedLibraryPath, settings.locale);
+		if (!featureRootPath) {
+			return "";
+		}
+		return this.normalizeVaultPath(`${featureRootPath}/${normalizedSubdirName}`);
+	}
+
+	resolveNovelLibraryFeatureRootPath(
+		settings: Pick<ChineseNovelAssistantSettings, "locale">,
+		libraryPath: string,
+	): string {
+		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
+		if (!normalizedLibraryPath) {
+			return "";
+		}
+		return this.getNovelLibraryFeatureRootPath(normalizedLibraryPath, settings.locale);
+	}
+
 	async ensureNovelLibraryStructure(settings: ChineseNovelAssistantSettings, libraryPath: string): Promise<void> {
 		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
 		if (!normalizedLibraryPath) {

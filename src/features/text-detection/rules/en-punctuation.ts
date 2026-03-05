@@ -1,3 +1,4 @@
+import type { EditorView } from "@codemirror/view";
 import type { ChineseNovelAssistantSettings } from "../../../settings/settings";
 import type { TextDetectionRule } from "../engine";
 
@@ -157,9 +158,15 @@ export function fixEnPunctuationErrors(
 	return { text: outputChars.join(""), replacedCount };
 }
 
-export function createEnPunctuationRules(getSettings: () => ChineseNovelAssistantSettings): TextDetectionRule[] {
+export function createEnPunctuationRules(
+	getSettings: () => ChineseNovelAssistantSettings,
+	shouldDetectInView?: (view: EditorView) => boolean,
+): TextDetectionRule[] {
 	return PUNCTUATION_RULE_CONFIGS.map((config) => ({
-		isEnabled: () => {
+		isEnabled: (view) => {
+			if (shouldDetectInView && !shouldDetectInView(view)) {
+				return false;
+			}
 			const settings = getSettings();
 			return settings.proofreadCommonPunctuationEnabled && config.enabled(settings);
 		},

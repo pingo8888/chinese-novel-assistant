@@ -138,7 +138,12 @@
 	"command.proofread.fix_punctuation_errors.name": "修复全部已检测标点错误",
 	"command.proofread.fix_punctuation_errors.no_active_editor": "当前没有可编辑的 Markdown 文档",
 	"command.proofread.fix_punctuation_errors.no_changes": "未发现可自动修复的标点错误",
-	"command.proofread.fix_punctuation_errors.done": "已修复标点错误数量：",
+	"command.proofread.fix_punctuation_errors.done": "已修复标点数量：",
+	"command.proofread.fix_proofread_dict_errors.name": "修复全部错误词",
+	"command.proofread.fix_proofread_dict_errors.no_active_editor": "当前没有可编辑的 Markdown 文档",
+	"command.proofread.fix_proofread_dict_errors.no_changes": "未发现可自动修复的错误词",
+	"command.proofread.fix_proofread_dict_errors.done": "已修复错误词数量：",
+	"command.proofread.fix_proofread_dict_errors.failed": "读取纠错词典失败，请检查词典文件",
 	"feature.character_count.unit.char": "字",
 	"feature.character_count.unit.chapter": "章",
 	"feature.character_count.unit.ten_thousand": "万"

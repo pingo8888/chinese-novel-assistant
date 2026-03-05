@@ -120,6 +120,15 @@
 	padding: 14px 16px;
 }
 
+.cna-settings-item.setting-item.is-disabled {
+	opacity: 0.55;
+}
+
+.cna-settings-item.setting-item.is-disabled .setting-item-name,
+.cna-settings-item.setting-item.is-disabled .setting-item-description {
+	color: var(--text-faint);
+}
+
 .cna-settings-item .setting-item-info {
 	padding-right: 16px;
 }

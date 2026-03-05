@@ -2,7 +2,7 @@ import { RangeSetBuilder } from "@codemirror/state";
 import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 
 export interface TextDetectionRule {
-	isEnabled: () => boolean;
+	isEnabled: (view: EditorView) => boolean;
 	matchIndices?: (lineText: string) => number[];
 	matchDocumentIndices?: (docText: string) => number[];
 }
@@ -14,7 +14,7 @@ function buildDecorations(view: EditorView, rules: TextDetectionRule[]): Decorat
 	const hitIndices = new Set<number>();
 
 	for (const rule of rules) {
-		if (!rule.isEnabled()) {
+		if (!rule.isEnabled(view)) {
 			continue;
 		}
 		if (rule.matchDocumentIndices) {

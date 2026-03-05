@@ -1,3 +1,4 @@
+import type { EditorView } from "@codemirror/view";
 import type { ChineseNovelAssistantSettings } from "../../../settings/settings";
 import type { TextDetectionRule } from "../engine";
 
@@ -221,12 +222,18 @@ export function fixPairPunctuationErrors(
 	return { text: outputChars.join(""), replacedCount };
 }
 
-export function createPairPunctuationRules(getSettings: () => ChineseNovelAssistantSettings): TextDetectionRule[] {
+export function createPairPunctuationRules(
+	getSettings: () => ChineseNovelAssistantSettings,
+	shouldDetectInView?: (view: EditorView) => boolean,
+): TextDetectionRule[] {
 	return PAIR_RULE_CONFIGS.map((config) => {
 		const tokens = COMMON_PAIR_TOKENS.filter((token) => token.group === config.group);
 		const findPairErrors = createPairErrorFinder(tokens);
 		return {
-			isEnabled: () => {
+			isEnabled: (view) => {
+				if (shouldDetectInView && !shouldDetectInView(view)) {
+					return false;
+				}
 				const settings = getSettings();
 				return settings.proofreadCommonPunctuationEnabled && config.isSubEnabled(settings);
 			},
