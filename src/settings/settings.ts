@@ -2,19 +2,19 @@ import type { SupportedLocale } from "../lang";
 
 export interface ChineseNovelAssistantSettings {
 	locale: SupportedLocale;
-	keywordHighlightMode: "first" | "all";
-	keywordHighlightBackgroundColor: string;
-	keywordUnderlineStyle: "none" | "solid" | "dashed" | "dotted" | "double" | "wavy";
-	keywordUnderlineWidth: number;
-	keywordUnderlineColor: string;
-	keywordFontWeight: "normal" | "bold";
-	keywordFontStyle: "normal" | "italic";
-	keywordTextColor: string;
-	previewMainHoverEnabled: boolean;
-	previewSidebarHoverEnabled: boolean;
-	previewWidth: number;
-	previewHeight: number;
-	previewMaxLines: number;
+	guidebookKeywordHighlightMode: "first" | "all";
+	guidebookKeywordHighlightBackgroundColor: string;
+	guidebookKeywordUnderlineStyle: "none" | "solid" | "dashed" | "dotted" | "double" | "wavy";
+	guidebookKeywordUnderlineWidth: number;
+	guidebookKeywordUnderlineColor: string;
+	guidebookKeywordFontWeight: "normal" | "bold";
+	guidebookKeywordFontStyle: "normal" | "italic";
+	guidebookKeywordTextColor: string;
+	guidebookPreviewMainHoverEnabled: boolean;
+	guidebookPreviewSidebarHoverEnabled: boolean;
+	guidebookPreviewWidth: number;
+	guidebookPreviewHeight: number;
+	guidebookPreviewMaxLines: number;
 	stickyNoteEnabled: boolean;
 	stickyNoteDefaultRows: number;
 	stickyNoteImageAutoExpand: boolean;
@@ -55,19 +55,19 @@ export interface ChineseNovelAssistantSettings {
 export function createDefaultSettings(locale: SupportedLocale): ChineseNovelAssistantSettings {
 	return {
 		locale,
-		keywordHighlightMode: "first",
-		keywordHighlightBackgroundColor: "#FFFFFF00",
-		keywordUnderlineStyle: "dotted",
-		keywordUnderlineWidth: 1,
-		keywordUnderlineColor: "#4A86E9",
-		keywordFontWeight: "normal",
-		keywordFontStyle: "normal",
-		keywordTextColor: "#4A86E9",
-		previewMainHoverEnabled: true,
-		previewSidebarHoverEnabled: false,
-		previewWidth: 320,
-		previewHeight: 260,
-		previewMaxLines: 8,
+		guidebookKeywordHighlightMode: "first",
+		guidebookKeywordHighlightBackgroundColor: "#FFFFFF00",
+		guidebookKeywordUnderlineStyle: "dotted",
+		guidebookKeywordUnderlineWidth: 1,
+		guidebookKeywordUnderlineColor: "#4A86E9",
+		guidebookKeywordFontWeight: "normal",
+		guidebookKeywordFontStyle: "normal",
+		guidebookKeywordTextColor: "#4A86E9",
+		guidebookPreviewMainHoverEnabled: true,
+		guidebookPreviewSidebarHoverEnabled: false,
+		guidebookPreviewWidth: 320,
+		guidebookPreviewHeight: 260,
+		guidebookPreviewMaxLines: 8,
 		stickyNoteEnabled: true,
 		stickyNoteDefaultRows: 6,
 		stickyNoteImageAutoExpand: true,
@@ -107,3 +107,4 @@ export function createDefaultSettings(locale: SupportedLocale): ChineseNovelAssi
 }
 
 export const DEFAULT_SETTINGS: ChineseNovelAssistantSettings = createDefaultSettings("zh_cn");
+

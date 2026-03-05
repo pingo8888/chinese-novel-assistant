@@ -6,189 +6,189 @@ export function renderGuidebookSettings(containerEl: HTMLElement, deps: Settings
 	const panelEl = containerEl.createDiv({ cls: "cna-settings-panel" });
 	panelEl.createEl("h4", {
 		cls: "cna-settings-section-title",
-		text: ctx.t("settings.config.section.keyword_highlight"),
+		text: ctx.t("settings.guidebook.section.keyword_highlight"),
 	});
 
 	new Setting(panelEl)
-		.setName(ctx.t("settings.config.keyword.mode.name"))
-		.setDesc(ctx.t("settings.config.keyword.mode.desc"))
+		.setName(ctx.t("settings.guidebook.keyword.mode.name"))
+		.setDesc(ctx.t("settings.guidebook.keyword.mode.desc"))
 		.setClass("cna-settings-item")
 		.addDropdown((dropdown) =>
 			dropdown
-				.addOption("first", ctx.t("settings.config.keyword.mode.option.first"))
-				.addOption("all", ctx.t("settings.config.keyword.mode.option.all"))
-				.setValue(ctx.settings.keywordHighlightMode)
+				.addOption("first", ctx.t("settings.guidebook.keyword.mode.option.first"))
+				.addOption("all", ctx.t("settings.guidebook.keyword.mode.option.all"))
+				.setValue(ctx.settings.guidebookKeywordHighlightMode)
 				.onChange(async (value) => {
 					if (!isKeywordHighlightMode(value)) {
 						return;
 					}
-					await ctx.setSettings({ keywordHighlightMode: value });
+					await ctx.setSettings({ guidebookKeywordHighlightMode: value });
 				}),
 		);
 
 	new Setting(panelEl)
-		.setName(ctx.t("settings.config.keyword.background.name"))
-		.setDesc(ctx.t("settings.config.keyword.background.desc"))
+		.setName(ctx.t("settings.guidebook.keyword.background.name"))
+		.setDesc(ctx.t("settings.guidebook.keyword.background.desc"))
 		.setClass("cna-settings-item")
 		.addText((text) =>
-			text.setValue(ctx.settings.keywordHighlightBackgroundColor).onChange(async (value) => {
-				await ctx.setSettings({ keywordHighlightBackgroundColor: value.trim() });
+			text.setValue(ctx.settings.guidebookKeywordHighlightBackgroundColor).onChange(async (value) => {
+				await ctx.setSettings({ guidebookKeywordHighlightBackgroundColor: value.trim() });
 			}),
 		);
 
 	new Setting(panelEl)
-		.setName(ctx.t("settings.config.keyword.underline_style.name"))
-		.setDesc(ctx.t("settings.config.keyword.underline_style.desc"))
+		.setName(ctx.t("settings.guidebook.keyword.underline_style.name"))
+		.setDesc(ctx.t("settings.guidebook.keyword.underline_style.desc"))
 		.setClass("cna-settings-item")
 		.addDropdown((dropdown) =>
 			dropdown
-				.addOption("none", ctx.t("settings.config.keyword.underline_style.option.none"))
-				.addOption("solid", ctx.t("settings.config.keyword.underline_style.option.solid"))
-				.addOption("dashed", ctx.t("settings.config.keyword.underline_style.option.dashed"))
-				.addOption("dotted", ctx.t("settings.config.keyword.underline_style.option.dotted"))
-				.addOption("double", ctx.t("settings.config.keyword.underline_style.option.double"))
-				.addOption("wavy", ctx.t("settings.config.keyword.underline_style.option.wavy"))
-				.setValue(ctx.settings.keywordUnderlineStyle)
+				.addOption("none", ctx.t("settings.guidebook.keyword.underline_style.option.none"))
+				.addOption("solid", ctx.t("settings.guidebook.keyword.underline_style.option.solid"))
+				.addOption("dashed", ctx.t("settings.guidebook.keyword.underline_style.option.dashed"))
+				.addOption("dotted", ctx.t("settings.guidebook.keyword.underline_style.option.dotted"))
+				.addOption("double", ctx.t("settings.guidebook.keyword.underline_style.option.double"))
+				.addOption("wavy", ctx.t("settings.guidebook.keyword.underline_style.option.wavy"))
+				.setValue(ctx.settings.guidebookKeywordUnderlineStyle)
 				.onChange(async (value) => {
 					if (!isKeywordUnderlineStyle(value)) {
 						return;
 					}
-					await ctx.setSettings({ keywordUnderlineStyle: value });
+					await ctx.setSettings({ guidebookKeywordUnderlineStyle: value });
 				}),
 		);
 
 	new Setting(panelEl)
-		.setName(ctx.t("settings.config.keyword.underline_width.name"))
-		.setDesc(ctx.t("settings.config.keyword.underline_width.desc"))
+		.setName(ctx.t("settings.guidebook.keyword.underline_width.name"))
+		.setDesc(ctx.t("settings.guidebook.keyword.underline_width.desc"))
 		.setClass("cna-settings-item")
 		.addSlider((slider) =>
 			slider
 				.setLimits(0, 10, 1)
-				.setValue(ctx.settings.keywordUnderlineWidth)
+				.setValue(ctx.settings.guidebookKeywordUnderlineWidth)
 				.setDynamicTooltip()
 				.onChange(async (value) => {
-					await ctx.setSettings({ keywordUnderlineWidth: Math.round(value) });
+					await ctx.setSettings({ guidebookKeywordUnderlineWidth: Math.round(value) });
 				}),
 		);
 
 	new Setting(panelEl)
-		.setName(ctx.t("settings.config.keyword.underline_color.name"))
-		.setDesc(ctx.t("settings.config.keyword.underline_color.desc"))
+		.setName(ctx.t("settings.guidebook.keyword.underline_color.name"))
+		.setDesc(ctx.t("settings.guidebook.keyword.underline_color.desc"))
 		.setClass("cna-settings-item")
 		.addText((text) =>
-			text.setValue(ctx.settings.keywordUnderlineColor).onChange(async (value) => {
-				await ctx.setSettings({ keywordUnderlineColor: value.trim() });
+			text.setValue(ctx.settings.guidebookKeywordUnderlineColor).onChange(async (value) => {
+				await ctx.setSettings({ guidebookKeywordUnderlineColor: value.trim() });
 			}),
 		);
 
 	new Setting(panelEl)
-		.setName(ctx.t("settings.config.keyword.font_weight.name"))
-		.setDesc(ctx.t("settings.config.keyword.font_weight.desc"))
+		.setName(ctx.t("settings.guidebook.keyword.font_weight.name"))
+		.setDesc(ctx.t("settings.guidebook.keyword.font_weight.desc"))
 		.setClass("cna-settings-item")
 		.addDropdown((dropdown) =>
 			dropdown
-				.addOption("normal", ctx.t("settings.config.keyword.font_weight.option.normal"))
-				.addOption("bold", ctx.t("settings.config.keyword.font_weight.option.bold"))
-				.setValue(ctx.settings.keywordFontWeight)
+				.addOption("normal", ctx.t("settings.guidebook.keyword.font_weight.option.normal"))
+				.addOption("bold", ctx.t("settings.guidebook.keyword.font_weight.option.bold"))
+				.setValue(ctx.settings.guidebookKeywordFontWeight)
 				.onChange(async (value) => {
 					if (!isKeywordFontWeight(value)) {
 						return;
 					}
-					await ctx.setSettings({ keywordFontWeight: value });
+					await ctx.setSettings({ guidebookKeywordFontWeight: value });
 				}),
 		);
 
 	new Setting(panelEl)
-		.setName(ctx.t("settings.config.keyword.font_style.name"))
-		.setDesc(ctx.t("settings.config.keyword.font_style.desc"))
+		.setName(ctx.t("settings.guidebook.keyword.font_style.name"))
+		.setDesc(ctx.t("settings.guidebook.keyword.font_style.desc"))
 		.setClass("cna-settings-item")
 		.addDropdown((dropdown) =>
 			dropdown
-				.addOption("normal", ctx.t("settings.config.keyword.font_style.option.normal"))
-				.addOption("italic", ctx.t("settings.config.keyword.font_style.option.italic"))
-				.setValue(ctx.settings.keywordFontStyle)
+				.addOption("normal", ctx.t("settings.guidebook.keyword.font_style.option.normal"))
+				.addOption("italic", ctx.t("settings.guidebook.keyword.font_style.option.italic"))
+				.setValue(ctx.settings.guidebookKeywordFontStyle)
 				.onChange(async (value) => {
 					if (!isKeywordFontStyle(value)) {
 						return;
 					}
-					await ctx.setSettings({ keywordFontStyle: value });
+					await ctx.setSettings({ guidebookKeywordFontStyle: value });
 				}),
 		);
 
 	new Setting(panelEl)
-		.setName(ctx.t("settings.config.keyword.text_color.name"))
-		.setDesc(ctx.t("settings.config.keyword.text_color.desc"))
+		.setName(ctx.t("settings.guidebook.keyword.text_color.name"))
+		.setDesc(ctx.t("settings.guidebook.keyword.text_color.desc"))
 		.setClass("cna-settings-item")
 		.addText((text) =>
-			text.setValue(ctx.settings.keywordTextColor).onChange(async (value) => {
-				await ctx.setSettings({ keywordTextColor: value.trim() });
+			text.setValue(ctx.settings.guidebookKeywordTextColor).onChange(async (value) => {
+				await ctx.setSettings({ guidebookKeywordTextColor: value.trim() });
 			}),
 		);
 
 	panelEl.createEl("h4", {
 		cls: "cna-settings-section-title",
-		text: ctx.t("settings.config.section.preview"),
+		text: ctx.t("settings.guidebook.section.preview"),
 	});
 
 	new Setting(panelEl)
-		.setName(ctx.t("settings.config.preview.main_hover.name"))
-		.setDesc(ctx.t("settings.config.preview.main_hover.desc"))
+		.setName(ctx.t("settings.guidebook.preview.main_hover.name"))
+		.setDesc(ctx.t("settings.guidebook.preview.main_hover.desc"))
 		.setClass("cna-settings-item")
 		.addToggle((toggle) =>
-			toggle.setValue(ctx.settings.previewMainHoverEnabled).onChange(async (value) => {
-				await ctx.setSettings({ previewMainHoverEnabled: value });
+			toggle.setValue(ctx.settings.guidebookPreviewMainHoverEnabled).onChange(async (value) => {
+				await ctx.setSettings({ guidebookPreviewMainHoverEnabled: value });
 			}),
 		);
 
 	new Setting(panelEl)
-		.setName(ctx.t("settings.config.preview.sidebar_hover.name"))
-		.setDesc(ctx.t("settings.config.preview.sidebar_hover.desc"))
+		.setName(ctx.t("settings.guidebook.preview.sidebar_hover.name"))
+		.setDesc(ctx.t("settings.guidebook.preview.sidebar_hover.desc"))
 		.setClass("cna-settings-item")
 		.addToggle((toggle) =>
-			toggle.setValue(ctx.settings.previewSidebarHoverEnabled).onChange(async (value) => {
-				await ctx.setSettings({ previewSidebarHoverEnabled: value });
+			toggle.setValue(ctx.settings.guidebookPreviewSidebarHoverEnabled).onChange(async (value) => {
+				await ctx.setSettings({ guidebookPreviewSidebarHoverEnabled: value });
 			}),
 		);
 
 	new Setting(panelEl)
-		.setName(ctx.t("settings.config.preview.width.name"))
-		.setDesc(ctx.t("settings.config.preview.width.desc"))
+		.setName(ctx.t("settings.guidebook.preview.width.name"))
+		.setDesc(ctx.t("settings.guidebook.preview.width.desc"))
 		.setClass("cna-settings-item")
 		.addSlider((slider) =>
 			slider
 				.setLimits(200, 800, 10)
-				.setValue(ctx.settings.previewWidth)
+				.setValue(ctx.settings.guidebookPreviewWidth)
 				.setDynamicTooltip()
 				.onChange(async (value) => {
-					await ctx.setSettings({ previewWidth: Math.round(value) });
+					await ctx.setSettings({ guidebookPreviewWidth: Math.round(value) });
 				}),
 		);
 
 	new Setting(panelEl)
-		.setName(ctx.t("settings.config.preview.height.name"))
-		.setDesc(ctx.t("settings.config.preview.height.desc"))
+		.setName(ctx.t("settings.guidebook.preview.height.name"))
+		.setDesc(ctx.t("settings.guidebook.preview.height.desc"))
 		.setClass("cna-settings-item")
 		.addSlider((slider) =>
 			slider
 				.setLimits(120, 1000, 10)
-				.setValue(ctx.settings.previewHeight)
+				.setValue(ctx.settings.guidebookPreviewHeight)
 				.setDynamicTooltip()
 				.onChange(async (value) => {
-					await ctx.setSettings({ previewHeight: Math.round(value) });
+					await ctx.setSettings({ guidebookPreviewHeight: Math.round(value) });
 				}),
 		);
 
 	new Setting(panelEl)
-		.setName(ctx.t("settings.config.preview.max_lines.name"))
-		.setDesc(ctx.t("settings.config.preview.max_lines.desc"))
+		.setName(ctx.t("settings.guidebook.preview.max_lines.name"))
+		.setDesc(ctx.t("settings.guidebook.preview.max_lines.desc"))
 		.setClass("cna-settings-item")
 		.addSlider((slider) =>
 			slider
 				.setLimits(1, 30, 1)
-				.setValue(ctx.settings.previewMaxLines)
+				.setValue(ctx.settings.guidebookPreviewMaxLines)
 				.setDynamicTooltip()
 				.onChange(async (value) => {
-					await ctx.setSettings({ previewMaxLines: Math.round(value) });
+					await ctx.setSettings({ guidebookPreviewMaxLines: Math.round(value) });
 				}),
 		);
 }
@@ -208,4 +208,6 @@ function isKeywordFontWeight(value: string): value is "normal" | "bold" {
 function isKeywordFontStyle(value: string): value is "normal" | "italic" {
 	return value === "normal" || value === "italic";
 }
+
+
 
