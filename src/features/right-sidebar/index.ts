@@ -33,21 +33,38 @@ export function registerRightSidebarViewsFeature(plugin: Plugin, ctx: PluginCont
 	plugin.addRibbonIcon(UI.icon.plugin, getTooltipText(), () => {
 		void openGuidebookSidebarWithStickyNote(plugin, ctx);
 	});
+	plugin.app.workspace.onLayoutReady(() => {
+		void openGuidebookSidebarWithStickyNote(plugin, ctx, {
+			focusGuidebook: false,
+			revealGuidebook: false,
+		});
+	});
 
 	plugin.register(() => {
 		for (const leaf of plugin.app.workspace.getLeavesOfType(IDS.view.guidebookSidebar)) {
-			void leaf.setViewState({ type: "empty" });
+			leaf.detach();
 		}
 		for (const leaf of plugin.app.workspace.getLeavesOfType(IDS.view.stickyNoteSidebar)) {
-			void leaf.setViewState({ type: "empty" });
+			leaf.detach();
 		}
 	});
 }
 
-async function openGuidebookSidebarWithStickyNote(plugin: Plugin, ctx: PluginContext): Promise<void> {
+interface OpenGuidebookSidebarOptions {
+	focusGuidebook?: boolean;
+	revealGuidebook?: boolean;
+}
+
+async function openGuidebookSidebarWithStickyNote(
+	plugin: Plugin,
+	ctx: PluginContext,
+	options?: OpenGuidebookSidebarOptions,
+): Promise<void> {
+	const focusGuidebook = options?.focusGuidebook ?? true;
+	const revealGuidebook = options?.revealGuidebook ?? true;
 	const guidebookLeaf = await plugin.app.workspace.ensureSideLeaf(IDS.view.guidebookSidebar, "right", {
-		active: true,
-		reveal: true,
+		active: focusGuidebook,
+		reveal: revealGuidebook,
 		split: false,
 	});
 
@@ -65,7 +82,11 @@ async function openGuidebookSidebarWithStickyNote(plugin: Plugin, ctx: PluginCon
 			reveal: false,
 			split: false,
 		});
+	} else {
+		for (const leaf of plugin.app.workspace.getLeavesOfType(IDS.view.stickyNoteSidebar)) {
+			leaf.detach();
+		}
 	}
 
-	plugin.app.workspace.setActiveLeaf(guidebookLeaf, false, true);
+	plugin.app.workspace.setActiveLeaf(guidebookLeaf, false, focusGuidebook);
 }

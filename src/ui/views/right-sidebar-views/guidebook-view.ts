@@ -1,5 +1,5 @@
 import type { RightSidebarViewRenderContext } from "./types";
-import { MarkdownView, setIcon, TFile } from "obsidian";
+import { MarkdownView, Notice, setIcon, TFile } from "obsidian";
 import { UI } from "../../../constants";
 import { NovelLibraryService } from "../../../services/novel-library-service";
 import { watchVaultChanges } from "../../../services/vault-change-watcher";
@@ -21,7 +21,32 @@ export function renderRightSidebarGuidebookView(containerEl: HTMLElement, ctx: R
 	rootEl.createDiv({ cls: "cna-right-sidebar-guidebook__divider" });
 	const contentEl = rootEl.createDiv({ cls: "cna-right-sidebar-guidebook__content" });
 	const scrollEl = contentEl.createDiv({ cls: "cna-right-sidebar-guidebook__scroll" });
-	const treeView = createGuidebookTreeViewComponent(scrollEl);
+	const treeView = createGuidebookTreeViewComponent(scrollEl, {
+		menuLabels: {
+			createCollection: ctx.t("feature.right_sidebar.guidebook.menu.create_collection"),
+			renameCollection: ctx.t("feature.right_sidebar.guidebook.menu.rename_collection"),
+			deleteCollection: ctx.t("feature.right_sidebar.guidebook.menu.delete_collection"),
+			createCategory: ctx.t("feature.right_sidebar.guidebook.menu.create_category"),
+			renameCategory: ctx.t("feature.right_sidebar.guidebook.menu.rename_category"),
+			deleteCategory: ctx.t("feature.right_sidebar.guidebook.menu.delete_category"),
+			createSetting: ctx.t("feature.right_sidebar.guidebook.menu.create_setting"),
+			renameSetting: ctx.t("feature.right_sidebar.guidebook.menu.rename_setting"),
+			deleteSetting: ctx.t("feature.right_sidebar.guidebook.menu.delete_setting"),
+			editSetting: ctx.t("feature.right_sidebar.guidebook.menu.edit_setting"),
+		},
+		onFileContextAction: () => {
+			new Notice(ctx.t("settings.tab.coming_soon"));
+		},
+		onH1ContextAction: () => {
+			new Notice(ctx.t("settings.tab.coming_soon"));
+		},
+		onH2ContextAction: () => {
+			new Notice(ctx.t("settings.tab.coming_soon"));
+		},
+		onBlankContextCreateCollection: () => {
+			new Notice(ctx.t("settings.tab.coming_soon"));
+		},
+	});
 	const toggleButton = new ToggleButtonComponent({
 		containerEl: headerEl,
 		className: "cna-right-sidebar-guidebook__toggle-button",
