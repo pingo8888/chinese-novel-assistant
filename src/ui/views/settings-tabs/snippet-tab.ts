@@ -6,6 +6,21 @@ export function renderSnippetSettings(containerEl: HTMLElement, deps: SettingsTa
 	const panelEl = containerEl.createDiv({ cls: "cna-settings-panel" });
 	panelEl.createEl("h4", {
 		cls: "cna-settings-section-title",
+		text: ctx.t("settings.snippet.section.punctuation"),
+	});
+
+	new Setting(panelEl)
+		.setName(ctx.t("settings.snippet.punctuation.auto_complete_pair.name"))
+		.setDesc(ctx.t("settings.snippet.punctuation.auto_complete_pair.desc"))
+		.setClass("cna-settings-item")
+		.addToggle((toggle) =>
+			toggle.setValue(ctx.settings.autocompletePairPunctuationEnabled).onChange(async (value) => {
+				await ctx.setSettings({ autocompletePairPunctuationEnabled: value });
+			}),
+		);
+
+	panelEl.createEl("h4", {
+		cls: "cna-settings-section-title",
 		text: ctx.t("settings.snippet.section.main"),
 	});
 
@@ -46,4 +61,3 @@ export function renderSnippetSettings(containerEl: HTMLElement, deps: SettingsTa
 			}),
 		);
 }
-

@@ -140,18 +140,6 @@ export function renderProofreadSettings(containerEl: HTMLElement, deps: Settings
 				}),
 		);
 
-	new Setting(panelEl)
-		.setName(ctx.t("settings.proofread.common.auto_complete_pair.name"))
-		.setDesc(ctx.t("settings.proofread.common.auto_complete_pair.desc"))
-		.setClass("cna-settings-item")
-		.addToggle((toggle) =>
-			toggle
-				.setValue(ctx.settings.autocompletePairPunctuationEnabled)
-				.onChange(async (value) => {
-					await ctx.setSettings({ autocompletePairPunctuationEnabled: value });
-				}),
-		);
-
 	panelEl.createEl("h4", {
 		cls: "cna-settings-section-title",
 		text: ctx.t("settings.proofread.section.custom"),
