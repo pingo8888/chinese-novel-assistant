@@ -90,6 +90,10 @@
 	padding-top: 0;
 }
 
+.workspace-leaf-content[data-type="chinese-novel-assistant-right-sidebar"] .view-content {
+	padding-right: 4px;
+}
+
 .cna-right-sidebar {
 	height: 100%;
 }
