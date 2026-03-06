@@ -3,15 +3,16 @@ import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate
 
 export interface TextDetectionRule {
 	isEnabled: (view: EditorView) => boolean;
-	matchIndices?: (lineText: string) => number[];
-	matchDocumentIndices?: (docText: string) => number[];
+	className?: string;
+	matchIndices?: (lineText: string, view: EditorView) => number[];
+	matchDocumentIndices?: (docText: string, view: EditorView) => number[];
 }
 
 function buildDecorations(view: EditorView, rules: TextDetectionRule[]): DecorationSet {
 	const builder = new RangeSetBuilder<Decoration>();
 	const enabledLineRules: TextDetectionRule[] = [];
 	const enabledDocumentRules: TextDetectionRule[] = [];
-	const hitIndices = new Set<number>();
+	const hitIndicesByClassName = new Map<string, Set<number>>();
 
 	for (const rule of rules) {
 		if (!rule.isEnabled(view)) {
@@ -28,7 +29,9 @@ function buildDecorations(view: EditorView, rules: TextDetectionRule[]): Decorat
 	if (enabledDocumentRules.length > 0) {
 		const docText = view.state.doc.toString();
 		for (const rule of enabledDocumentRules) {
-			const indices = rule.matchDocumentIndices?.(docText) ?? [];
+			const indices = rule.matchDocumentIndices?.(docText, view) ?? [];
+			const className = rule.className ?? "cna-text-detection-hit";
+			const hitIndices = ensureHitIndicesSet(hitIndicesByClassName, className);
 			for (const index of indices) {
 				if (index < 0 || index >= view.state.doc.length) {
 					continue;
@@ -42,7 +45,9 @@ function buildDecorations(view: EditorView, rules: TextDetectionRule[]): Decorat
 		let line = view.state.doc.lineAt(from);
 		while (line.from <= to) {
 			for (const rule of enabledLineRules) {
-				const indices = rule.matchIndices?.(line.text) ?? [];
+				const indices = rule.matchIndices?.(line.text, view) ?? [];
+				const className = rule.className ?? "cna-text-detection-hit";
+				const hitIndices = ensureHitIndicesSet(hitIndicesByClassName, className);
 				for (const index of indices) {
 					const charFrom = line.from + index;
 					if (charFrom < 0 || charFrom >= view.state.doc.length) {
@@ -59,18 +64,73 @@ function buildDecorations(view: EditorView, rules: TextDetectionRule[]): Decorat
 		}
 	}
 
-	const sortedHitIndices = Array.from(hitIndices).sort((a, b) => a - b);
-	for (const index of sortedHitIndices) {
+	const decorationSpans: Array<{ from: number; to: number; className: string }> = [];
+	for (const [className, hitIndices] of hitIndicesByClassName) {
+		const sortedHitIndices = Array.from(hitIndices).sort((a, b) => a - b);
+		for (const range of collapseContinuousIndices(sortedHitIndices)) {
+			decorationSpans.push({
+				from: range.from,
+				to: range.to,
+				className,
+			});
+		}
+	}
+
+	decorationSpans.sort((left, right) => {
+		if (left.from !== right.from) {
+			return left.from - right.from;
+		}
+		if (left.to !== right.to) {
+			return left.to - right.to;
+		}
+		return left.className.localeCompare(right.className);
+	});
+	for (const span of decorationSpans) {
 		builder.add(
-			index,
-			index + 1,
+			span.from,
+			span.to,
 			Decoration.mark({
-				class: "cna-text-detection-hit",
+				class: span.className,
 			}),
 		);
 	}
 
 	return builder.finish();
+}
+
+function ensureHitIndicesSet(map: Map<string, Set<number>>, className: string): Set<number> {
+	const existing = map.get(className);
+	if (existing) {
+		return existing;
+	}
+	const next = new Set<number>();
+	map.set(className, next);
+	return next;
+}
+
+function collapseContinuousIndices(sortedIndices: number[]): Array<{ from: number; to: number }> {
+	if (sortedIndices.length === 0) {
+		return [];
+	}
+
+	const ranges: Array<{ from: number; to: number }> = [];
+	let rangeStart = sortedIndices[0] ?? 0;
+	let previous = rangeStart;
+	for (let i = 1; i < sortedIndices.length; i += 1) {
+		const current = sortedIndices[i];
+		if (current === undefined) {
+			continue;
+		}
+		if (current === previous + 1) {
+			previous = current;
+			continue;
+		}
+		ranges.push({ from: rangeStart, to: previous + 1 });
+		rangeStart = current;
+		previous = current;
+	}
+	ranges.push({ from: rangeStart, to: previous + 1 });
+	return ranges;
 }
 
 export function createTextDetectionExtension(rules: TextDetectionRule[]) {

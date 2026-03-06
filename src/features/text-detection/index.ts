@@ -2,10 +2,12 @@ import type { EditorView } from "@codemirror/view";
 import { MarkdownView, Plugin } from "obsidian";
 import type { PluginContext } from "../../core/context";
 import { NovelLibraryService } from "../../services/novel-library-service";
+import { bindVaultChangeWatcher } from "../../services/vault-change-watcher";
 import { createTextDetectionExtension } from "./engine";
 import { createProofreadDictRules } from "./rules/proofread-dict";
 import { createEnPunctuationRules } from "./rules/en-punctuation";
 import { createPairPunctuationRules } from "./rules/pair-punctuation";
+import { GuidebookKeywordHighlightController } from "./rules/guidebook-keyword";
 import { ProofreadDictService } from "../../services/proofread-dict-service";
 import {
 	resolveEditorViewFromMarkdownView,
@@ -22,12 +24,19 @@ class TextDetectionFeature {
 	private ctx: PluginContext;
 	private proofreadDictService: ProofreadDictService;
 	private novelLibraryService: NovelLibraryService;
+	private guidebookKeywordHighlightController: GuidebookKeywordHighlightController;
 
 	constructor(plugin: Plugin, ctx: PluginContext) {
 		this.plugin = plugin;
 		this.ctx = ctx;
 		this.proofreadDictService = ProofreadDictService.getInstance(plugin.app);
 		this.novelLibraryService = new NovelLibraryService(plugin.app);
+		this.guidebookKeywordHighlightController = new GuidebookKeywordHighlightController(
+			plugin,
+			() => this.ctx.settings,
+			(view) => this.shouldDetectForEditor(view),
+			() => this.forceRefreshEditorViews(),
+		);
 	}
 
 	onload(): void {
@@ -37,6 +46,7 @@ class TextDetectionFeature {
 			createTextDetectionExtension([
 				...createEnPunctuationRules(() => this.ctx.settings, (view) => this.shouldDetectForEditor(view)),
 				...createPairPunctuationRules(() => this.ctx.settings, (view) => this.shouldDetectForEditor(view)),
+				...this.guidebookKeywordHighlightController.getRules(),
 				...createProofreadDictRules(
 					() => this.ctx.settings,
 					() => this.proofreadDictService.getSnapshot(),
@@ -48,6 +58,7 @@ class TextDetectionFeature {
 		const unsubscribeSettingsChange = this.ctx.onSettingsChange(() => {
 			this.proofreadDictService.invalidate();
 			void this.proofreadDictService.ensureCacheReady(this.ctx.settings);
+			this.guidebookKeywordHighlightController.handleSettingsChange();
 			this.forceRefreshEditorViews();
 		});
 		this.plugin.register(() => {
@@ -60,7 +71,30 @@ class TextDetectionFeature {
 			unsubscribeCacheChanged();
 		});
 
+		this.plugin.registerEvent(
+			this.plugin.app.workspace.on("file-open", (file) => {
+				this.guidebookKeywordHighlightController.handleFilePathHint(file?.path ?? null);
+			}),
+		);
+		this.plugin.registerEvent(
+			this.plugin.app.workspace.on("active-leaf-change", (leaf) => {
+				const view = leaf?.view;
+				if (!(view instanceof MarkdownView)) {
+					return;
+				}
+				this.guidebookKeywordHighlightController.handleFilePathHint(view.file?.path ?? null);
+			}),
+		);
+		bindVaultChangeWatcher(this.plugin, this.plugin.app, (event) => {
+			this.guidebookKeywordHighlightController.handleVaultChange(event.path, event.oldPath ?? null);
+		});
+
+		this.plugin.register(() => {
+			this.guidebookKeywordHighlightController.dispose();
+		});
+
 		void this.proofreadDictService.ensureCacheReady(this.ctx.settings);
+		this.guidebookKeywordHighlightController.applyInitialState();
 		this.forceRefreshEditorViews();
 	}
 

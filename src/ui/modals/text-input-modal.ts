@@ -1,4 +1,4 @@
-import { App, Modal } from "obsidian";
+import { App, Modal, Notice } from "obsidian";
 
 export interface TextInputModalOptions {
 	title: string;
@@ -102,15 +102,13 @@ export class TextInputModal extends Modal {
 		if (this.inputEl) {
 			this.inputEl.classList.toggle("is-invalid", Boolean(validationError));
 		}
-		if (this.confirmButtonEl) {
-			this.confirmButtonEl.disabled = Boolean(validationError);
-		}
 	}
 
 	private tryConfirm(): void {
 		const value = this.resolveValue();
 		const validationError = this.resolveValidationError(value);
 		if (validationError) {
+			new Notice(validationError);
 			this.syncValidationState();
 			return;
 		}

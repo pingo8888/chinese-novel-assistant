@@ -35,6 +35,8 @@ interface GuidebookActionContext {
 }
 
 const guidebookMarkdownParser = new GuidebookMarkdownParser();
+const DUPLICATE_SETTING_ERROR = "cna_guidebook_setting_exists";
+const DUPLICATE_CATEGORY_ERROR = "cna_guidebook_category_exists";
 
 export async function handleGuidebookBlankCreateCollection(context: GuidebookActionContext): Promise<boolean> {
 	const { app, t, treeData } = context;
@@ -72,7 +74,7 @@ export async function handleGuidebookFileContextAction(
 	action: GuidebookFileContextAction,
 	fileNode: GuidebookTreeFileNode,
 ): Promise<boolean> {
-	const { app, t } = context;
+	const { app, t, treeData } = context;
 	const file = resolveSingleSourceCollectionFile(app, t, fileNode);
 	if (!file) {
 		return false;
@@ -83,7 +85,7 @@ export async function handleGuidebookFileContextAction(
 			case "create_collection":
 				return handleGuidebookBlankCreateCollection(context);
 			case "create_category": {
-				const categoryName = await promptHeadingName(app, t, {
+				const categoryName = await promptCategoryName(app, t, file, treeData, {
 					title: t("feature.right_sidebar.guidebook.dialog.create_category.title"),
 					placeholder: t("feature.right_sidebar.guidebook.dialog.category_name.placeholder"),
 					initialValue: "",
@@ -91,7 +93,7 @@ export async function handleGuidebookFileContextAction(
 				if (!categoryName) {
 					return false;
 				}
-				await app.vault.process(file, (content) => appendH1(content, categoryName));
+				await appendH1WithUniquenessCheck(app, file, treeData, categoryName);
 				return true;
 			}
 			case "rename_collection": {
@@ -134,6 +136,10 @@ export async function handleGuidebookFileContextAction(
 				return false;
 		}
 	} catch (error) {
+		if (isDuplicateGuidebookTitleError(error)) {
+			new Notice(t("feature.right_sidebar.guidebook.validation.exists"));
+			return false;
+		}
 		console.error(error);
 		new Notice(t("feature.right_sidebar.guidebook.notice.action_failed"));
 		return false;
@@ -146,7 +152,7 @@ export async function handleGuidebookH1ContextAction(
 	_fileNode: GuidebookTreeFileNode,
 	h1Node: GuidebookTreeH1Node,
 ): Promise<boolean> {
-	const { app, t } = context;
+	const { app, t, treeData } = context;
 	const file = resolveCollectionFileByPath(app, h1Node.sourcePath);
 	if (!file) {
 		new Notice(t("feature.right_sidebar.guidebook.notice.node_not_found"));
@@ -156,7 +162,7 @@ export async function handleGuidebookH1ContextAction(
 	try {
 		switch (action) {
 			case "create_category": {
-				const categoryName = await promptHeadingName(app, t, {
+				const categoryName = await promptCategoryName(app, t, file, treeData, {
 					title: t("feature.right_sidebar.guidebook.dialog.create_category.title"),
 					placeholder: t("feature.right_sidebar.guidebook.dialog.category_name.placeholder"),
 					initialValue: "",
@@ -164,11 +170,11 @@ export async function handleGuidebookH1ContextAction(
 				if (!categoryName) {
 					return false;
 				}
-				await app.vault.process(file, (content) => appendH1(content, categoryName));
+				await appendH1WithUniquenessCheck(app, file, treeData, categoryName);
 				return true;
 			}
 			case "create_setting": {
-				const settingName = await promptHeadingName(app, t, {
+				const settingName = await promptSettingName(app, t, file, treeData, {
 					title: t("feature.right_sidebar.guidebook.dialog.create_setting.title"),
 					placeholder: t("feature.right_sidebar.guidebook.dialog.setting_name.placeholder"),
 					initialValue: "",
@@ -176,19 +182,20 @@ export async function handleGuidebookH1ContextAction(
 				if (!settingName) {
 					return false;
 				}
-				await app.vault.process(file, (content) => appendH2(content, h1Node.h1IndexInSource, settingName));
+				await appendH2WithUniquenessCheck(app, file, treeData, h1Node.h1IndexInSource, settingName);
 				return true;
 			}
 			case "rename_category": {
-				const renamed = await promptHeadingName(app, t, {
+				const renamed = await promptCategoryName(app, t, file, treeData, {
 					title: t("feature.right_sidebar.guidebook.dialog.rename_category.title"),
 					placeholder: t("feature.right_sidebar.guidebook.dialog.category_name.placeholder"),
 					initialValue: h1Node.title,
+					ignoreTitle: h1Node.title,
 				});
 				if (!renamed || renamed === h1Node.title) {
 					return false;
 				}
-				await app.vault.process(file, (content) => renameH1(content, h1Node.h1IndexInSource, renamed));
+				await renameH1WithUniquenessCheck(app, file, treeData, h1Node.h1IndexInSource, renamed);
 				return true;
 			}
 			case "delete_category": {
@@ -211,6 +218,10 @@ export async function handleGuidebookH1ContextAction(
 				return false;
 		}
 	} catch (error) {
+		if (isDuplicateGuidebookTitleError(error)) {
+			new Notice(t("feature.right_sidebar.guidebook.validation.exists"));
+			return false;
+		}
 		console.error(error);
 		new Notice(t("feature.right_sidebar.guidebook.notice.action_failed"));
 		return false;
@@ -224,7 +235,7 @@ export async function handleGuidebookH2ContextAction(
 	h1Node: GuidebookTreeH1Node,
 	h2Node: GuidebookTreeH2Node,
 ): Promise<boolean> {
-	const { app, t } = context;
+	const { app, t, treeData } = context;
 	const file = resolveCollectionFileByPath(app, h2Node.sourcePath);
 	if (!file) {
 		new Notice(t("feature.right_sidebar.guidebook.notice.node_not_found"));
@@ -234,7 +245,7 @@ export async function handleGuidebookH2ContextAction(
 	try {
 		switch (action) {
 			case "create_setting": {
-				const settingName = await promptHeadingName(app, t, {
+				const settingName = await promptSettingName(app, t, file, treeData, {
 					title: t("feature.right_sidebar.guidebook.dialog.create_setting.title"),
 					placeholder: t("feature.right_sidebar.guidebook.dialog.setting_name.placeholder"),
 					initialValue: "",
@@ -242,24 +253,23 @@ export async function handleGuidebookH2ContextAction(
 				if (!settingName) {
 					return false;
 				}
-				await app.vault.process(file, (content) => appendH2(content, h1Node.h1IndexInSource, settingName));
+				await appendH2WithUniquenessCheck(app, file, treeData, h1Node.h1IndexInSource, settingName);
 				return true;
 			}
 			case "edit_setting":
 				await app.workspace.openLinkText(`${file.path}#${h2Node.title}`, file.path, false);
 				return false;
 			case "rename_setting": {
-				const renamed = await promptHeadingName(app, t, {
+				const renamed = await promptSettingName(app, t, file, treeData, {
 					title: t("feature.right_sidebar.guidebook.dialog.rename_setting.title"),
 					placeholder: t("feature.right_sidebar.guidebook.dialog.setting_name.placeholder"),
 					initialValue: h2Node.title,
+					ignoreTitle: h2Node.title,
 				});
 				if (!renamed || renamed === h2Node.title) {
 					return false;
 				}
-				await app.vault.process(file, (content) =>
-					renameH2(content, h2Node.h1IndexInSource, h2Node.h2IndexInH1, renamed),
-				);
+				await renameH2WithUniquenessCheck(app, file, treeData, h2Node.h1IndexInSource, h2Node.h2IndexInH1, renamed);
 				return true;
 			}
 			case "delete_setting": {
@@ -284,6 +294,10 @@ export async function handleGuidebookH2ContextAction(
 				return false;
 		}
 	} catch (error) {
+		if (isDuplicateGuidebookTitleError(error)) {
+			new Notice(t("feature.right_sidebar.guidebook.validation.exists"));
+			return false;
+		}
 		console.error(error);
 		new Notice(t("feature.right_sidebar.guidebook.notice.action_failed"));
 		return false;
@@ -357,6 +371,7 @@ async function promptHeadingName(
 		title: string;
 		placeholder: string;
 		initialValue: string;
+		validate?: (value: string) => string | null;
 	},
 ): Promise<string | null> {
 	return promptTextInput(app, {
@@ -373,15 +388,242 @@ async function promptHeadingName(
 			if (/[\r\n]/.test(value)) {
 				return t("feature.right_sidebar.guidebook.validation.invalid_name");
 			}
+			const customValidationMessage = options.validate?.(value);
+			if (customValidationMessage) {
+				return customValidationMessage;
+			}
 			return null;
 		},
 	});
+}
+
+async function promptSettingName(
+	app: App,
+	t: (key: TranslationKey) => string,
+	file: TFile,
+	treeData: GuidebookTreeData | null,
+	options: {
+		title: string;
+		placeholder: string;
+		initialValue: string;
+		ignoreTitle?: string;
+	},
+): Promise<string | null> {
+	const existingTitles = await collectAllCollectionH2Titles(app, file, treeData, options.ignoreTitle);
+	return promptHeadingName(app, t, {
+		...options,
+		validate: (value) =>
+			existingTitles.has(value) ? t("feature.right_sidebar.guidebook.validation.exists") : null,
+	});
+}
+
+async function promptCategoryName(
+	app: App,
+	t: (key: TranslationKey) => string,
+	file: TFile,
+	treeData: GuidebookTreeData | null,
+	options: {
+		title: string;
+		placeholder: string;
+		initialValue: string;
+		ignoreTitle?: string;
+	},
+): Promise<string | null> {
+	const existingTitles = await collectAllCollectionH1Titles(app, file, treeData, options.ignoreTitle);
+	return promptHeadingName(app, t, {
+		...options,
+		validate: (value) =>
+			existingTitles.has(value) ? t("feature.right_sidebar.guidebook.validation.exists") : null,
+	});
+}
+
+async function appendH1WithUniquenessCheck(
+	app: App,
+	file: TFile,
+	treeData: GuidebookTreeData | null,
+	categoryName: string,
+): Promise<void> {
+	const existingTitles = await collectAllCollectionH1Titles(app, file, treeData);
+	if (existingTitles.has(categoryName)) {
+		throw new Error(DUPLICATE_CATEGORY_ERROR);
+	}
+	await app.vault.process(file, (content) => {
+		if (collectH1Titles(content).has(categoryName)) {
+			throw new Error(DUPLICATE_CATEGORY_ERROR);
+		}
+		return appendH1(content, categoryName);
+	});
+}
+
+async function appendH2WithUniquenessCheck(
+	app: App,
+	file: TFile,
+	treeData: GuidebookTreeData | null,
+	h1Index: number,
+	settingName: string,
+): Promise<void> {
+	const existingTitles = await collectAllCollectionH2Titles(app, file, treeData);
+	if (existingTitles.has(settingName)) {
+		throw new Error(DUPLICATE_SETTING_ERROR);
+	}
+	await app.vault.process(file, (content) => {
+		if (collectH2Titles(content).has(settingName)) {
+			throw new Error(DUPLICATE_SETTING_ERROR);
+		}
+		return appendH2(content, h1Index, settingName);
+	});
+}
+
+async function renameH1WithUniquenessCheck(
+	app: App,
+	file: TFile,
+	treeData: GuidebookTreeData | null,
+	h1Index: number,
+	nextTitle: string,
+): Promise<void> {
+	const existingTitles = await collectAllCollectionH1Titles(app, file, treeData);
+	if (existingTitles.has(nextTitle)) {
+		throw new Error(DUPLICATE_CATEGORY_ERROR);
+	}
+	await app.vault.process(file, (content) => {
+		const parsed = guidebookMarkdownParser.parseTree(content);
+		const currentTitle = parsed[h1Index]?.title?.trim() ?? "";
+		const titleSet = collectH1Titles(content);
+		if (currentTitle.length > 0) {
+			titleSet.delete(currentTitle);
+		}
+		if (titleSet.has(nextTitle.trim())) {
+			throw new Error(DUPLICATE_CATEGORY_ERROR);
+		}
+		return renameH1(content, h1Index, nextTitle);
+	});
+}
+
+async function renameH2WithUniquenessCheck(
+	app: App,
+	file: TFile,
+	treeData: GuidebookTreeData | null,
+	h1Index: number,
+	h2Index: number,
+	nextTitle: string,
+): Promise<void> {
+	const existingTitles = await collectAllCollectionH2Titles(app, file, treeData);
+	if (existingTitles.has(nextTitle)) {
+		throw new Error(DUPLICATE_SETTING_ERROR);
+	}
+	await app.vault.process(file, (content) => {
+		const parsed = guidebookMarkdownParser.parseTree(content);
+		const currentTitle = parsed[h1Index]?.h2List[h2Index]?.title?.trim() ?? "";
+		const titleSet = collectH2Titles(content);
+		if (currentTitle.length > 0) {
+			titleSet.delete(currentTitle);
+		}
+		if (titleSet.has(nextTitle.trim())) {
+			throw new Error(DUPLICATE_SETTING_ERROR);
+		}
+		return renameH2(content, h1Index, h2Index, nextTitle);
+	});
+}
+
+function isDuplicateGuidebookTitleError(error: unknown): boolean {
+	if (!(error instanceof Error)) {
+		return false;
+	}
+	return error.message === DUPLICATE_SETTING_ERROR || error.message === DUPLICATE_CATEGORY_ERROR;
 }
 
 function appendH1(content: string, headingTitle: string): string {
 	const lines = splitLines(content);
 	lines.push(`# ${headingTitle}`);
 	return joinLines(lines);
+}
+
+function collectH2Titles(content: string): Set<string> {
+	const titles = new Set<string>();
+	const h1List = guidebookMarkdownParser.parseTree(content);
+	for (const h1Node of h1List) {
+		for (const h2Node of h1Node.h2List) {
+			const title = h2Node.title.trim();
+			if (title.length > 0) {
+				titles.add(title);
+			}
+		}
+	}
+	return titles;
+}
+
+function collectH1Titles(content: string): Set<string> {
+	const titles = new Set<string>();
+	const h1List = guidebookMarkdownParser.parseTree(content);
+	for (const h1Node of h1List) {
+		const title = h1Node.title.trim();
+		if (title.length > 0) {
+			titles.add(title);
+		}
+	}
+	return titles;
+}
+
+async function collectAllCollectionH2Titles(
+	app: App,
+	currentFile: TFile,
+	treeData: GuidebookTreeData | null,
+	excludeTitle?: string,
+): Promise<Set<string>> {
+	const titles = new Set<string>();
+	const files = resolveCollectionFilesForUniquenessCheck(app, currentFile, treeData);
+	for (const file of files) {
+		const content = await app.vault.cachedRead(file);
+		const fileTitles = collectH2Titles(content);
+		for (const title of fileTitles) {
+			titles.add(title);
+		}
+	}
+	const normalizedExcludeTitle = excludeTitle?.trim();
+	if (normalizedExcludeTitle && normalizedExcludeTitle.length > 0) {
+		titles.delete(normalizedExcludeTitle);
+	}
+	return titles;
+}
+
+async function collectAllCollectionH1Titles(
+	app: App,
+	currentFile: TFile,
+	treeData: GuidebookTreeData | null,
+	excludeTitle?: string,
+): Promise<Set<string>> {
+	const titles = new Set<string>();
+	const files = resolveCollectionFilesForUniquenessCheck(app, currentFile, treeData);
+	for (const file of files) {
+		const content = await app.vault.cachedRead(file);
+		const fileTitles = collectH1Titles(content);
+		for (const title of fileTitles) {
+			titles.add(title);
+		}
+	}
+	const normalizedExcludeTitle = excludeTitle?.trim();
+	if (normalizedExcludeTitle && normalizedExcludeTitle.length > 0) {
+		titles.delete(normalizedExcludeTitle);
+	}
+	return titles;
+}
+
+function resolveCollectionFilesForUniquenessCheck(
+	app: App,
+	currentFile: TFile,
+	treeData: GuidebookTreeData | null,
+): TFile[] {
+	const guidebookRootPath = treeData?.guidebookRootPath;
+	if (!guidebookRootPath) {
+		const parentPath = getParentPath(currentFile.path);
+		return app.vault
+			.getMarkdownFiles()
+			.filter((file) => getParentPath(file.path) === parentPath);
+	}
+
+	return app.vault
+		.getMarkdownFiles()
+		.filter((file) => file.path === guidebookRootPath || file.path.startsWith(`${guidebookRootPath}/`));
 }
 
 function appendH2(content: string, h1Index: number, headingTitle: string): string {
