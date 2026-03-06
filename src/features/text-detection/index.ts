@@ -3,7 +3,7 @@ import { MarkdownView, Plugin } from "obsidian";
 import type { PluginContext } from "../../core/context";
 import { NovelLibraryService } from "../../services/novel-library-service";
 import { bindVaultChangeWatcher } from "../../services/vault-change-watcher";
-import { createTextDetectionExtension } from "./engine";
+import { createTextDetectionExtension, createTextDetectionForceRefreshTransaction } from "./engine";
 import { createProofreadDictRules } from "./rules/proofread-dict";
 import { createEnPunctuationRules } from "./rules/en-punctuation";
 import { createPairPunctuationRules } from "./rules/pair-punctuation";
@@ -107,7 +107,7 @@ class TextDetectionFeature {
 			}
 
 			const editorView = resolveEditorViewFromMarkdownView(view);
-			editorView?.dispatch({});
+			editorView?.dispatch(createTextDetectionForceRefreshTransaction());
 		}
 	}
 

@@ -460,7 +460,7 @@
 	color: var(--cna-guidebook-keyword-text-color, inherit);
 	font-style: var(--cna-guidebook-keyword-font-style, normal);
 	font-weight: var(--cna-guidebook-keyword-font-weight, normal);
-	text-decoration-line: underline;
+	text-decoration-line: var(--cna-guidebook-keyword-underline-line, underline);
 	text-decoration-style: var(--cna-guidebook-keyword-underline-style, dotted);
 	text-decoration-color: var(--cna-guidebook-keyword-underline-color, currentColor);
 	text-decoration-thickness: var(--cna-guidebook-keyword-underline-width, 1px);

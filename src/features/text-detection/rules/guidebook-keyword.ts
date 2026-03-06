@@ -4,10 +4,11 @@ import { GuidebookMarkdownParser } from "../../guidebook/markdown-parser";
 import { NovelLibraryService } from "../../../services/novel-library-service";
 import type { ChineseNovelAssistantSettings } from "../../../settings/settings";
 import { resolveMarkdownViewByEditorView } from "../../../utils/markdown-editor-view";
-import type { TextDetectionRule } from "../engine";
+import type { TextDetectionRange, TextDetectionRule } from "../engine";
 
 const GUIDEBOOK_KEYWORD_HIT_CLASS = "cna-guidebook-keyword-hit";
 const GUIDEBOOK_KEYWORD_BACKGROUND_VAR = "--cna-guidebook-keyword-background-color";
+const GUIDEBOOK_KEYWORD_UNDERLINE_LINE_VAR = "--cna-guidebook-keyword-underline-line";
 const GUIDEBOOK_KEYWORD_UNDERLINE_STYLE_VAR = "--cna-guidebook-keyword-underline-style";
 const GUIDEBOOK_KEYWORD_UNDERLINE_WIDTH_VAR = "--cna-guidebook-keyword-underline-width";
 const GUIDEBOOK_KEYWORD_UNDERLINE_COLOR_VAR = "--cna-guidebook-keyword-underline-color";
@@ -29,7 +30,9 @@ export class GuidebookKeywordHighlightController {
 	private readonly guidebookMarkdownParser: GuidebookMarkdownParser;
 	private readonly guidebookKeywordsByLibraryRoot = new Map<string, readonly string[]>();
 	private readonly loadingGuidebookKeywordRoots = new Set<string>();
+	private readonly dirtyGuidebookKeywordRoots = new Set<string>();
 	private guidebookKeywordRefreshTimer: number | null = null;
+	private keywordCacheVersion = 0;
 	private isDisposed = false;
 
 	constructor(
@@ -73,8 +76,19 @@ export class GuidebookKeywordHighlightController {
 		if (!this.isGuidebookPath(path) && !this.isGuidebookPath(oldPath ?? null)) {
 			return false;
 		}
-		this.clearKeywordCache();
-		this.schedulePrefetchKeywords();
+		const affectedLibraryRoots = new Set<string>();
+		const currentLibraryRoot = this.resolveContainingLibraryRoot(path);
+		if (currentLibraryRoot) {
+			affectedLibraryRoots.add(currentLibraryRoot);
+		}
+		const previousLibraryRoot = this.resolveContainingLibraryRoot(oldPath ?? null);
+		if (previousLibraryRoot) {
+			affectedLibraryRoots.add(previousLibraryRoot);
+		}
+		for (const libraryRoot of affectedLibraryRoots) {
+			this.dirtyGuidebookKeywordRoots.add(libraryRoot);
+		}
+		this.schedulePrefetchKeywords(path);
 		return true;
 	}
 
@@ -129,26 +143,38 @@ export class GuidebookKeywordHighlightController {
 		}
 		this.pruneKeywordCache();
 
-		const filePaths = new Set<string>();
+		const libraryRoots = new Set<string>();
 		if (preferredFilePath) {
-			filePaths.add(preferredFilePath);
+			const preferredLibraryRoot = this.resolveContainingLibraryRoot(preferredFilePath);
+			if (preferredLibraryRoot) {
+				libraryRoots.add(preferredLibraryRoot);
+			}
 		}
 		const activeFilePath = this.plugin.app.workspace.getActiveViewOfType(MarkdownView)?.file?.path;
 		if (activeFilePath) {
-			filePaths.add(activeFilePath);
+			const activeLibraryRoot = this.resolveContainingLibraryRoot(activeFilePath);
+			if (activeLibraryRoot) {
+				libraryRoots.add(activeLibraryRoot);
+			}
 		}
 		for (const leaf of this.plugin.app.workspace.getLeavesOfType("markdown")) {
 			const view = leaf.view;
 			if (!(view instanceof MarkdownView) || !view.file?.path) {
 				continue;
 			}
-			filePaths.add(view.file.path);
+			const libraryRoot = this.resolveContainingLibraryRoot(view.file.path);
+			if (!libraryRoot) {
+				continue;
+			}
+			libraryRoots.add(libraryRoot);
 		}
 
 		const refreshTasks: Promise<boolean>[] = [];
-		for (const filePath of filePaths) {
-			const libraryRoot = this.resolveContainingLibraryRoot(filePath);
-			if (!libraryRoot) {
+		for (const libraryRoot of libraryRoots) {
+			const shouldRefresh =
+				this.dirtyGuidebookKeywordRoots.has(libraryRoot) ||
+				!this.guidebookKeywordsByLibraryRoot.has(libraryRoot);
+			if (!shouldRefresh) {
 				continue;
 			}
 			refreshTasks.push(this.refreshKeywordsForLibrary(libraryRoot));
@@ -167,16 +193,19 @@ export class GuidebookKeywordHighlightController {
 		}
 
 		this.loadingGuidebookKeywordRoots.add(libraryRootPath);
+		const cacheVersionAtStart = this.keywordCacheVersion;
 		try {
 			const keywords = await this.collectGuidebookH2Keywords(libraryRootPath);
-			if (this.isDisposed) {
+			if (this.isDisposed || cacheVersionAtStart !== this.keywordCacheVersion) {
 				return false;
 			}
 			const previousKeywords = this.guidebookKeywordsByLibraryRoot.get(libraryRootPath) ?? [];
 			if (areKeywordListsEqual(previousKeywords, keywords)) {
+				this.dirtyGuidebookKeywordRoots.delete(libraryRootPath);
 				return false;
 			}
 			this.guidebookKeywordsByLibraryRoot.set(libraryRootPath, keywords);
+			this.dirtyGuidebookKeywordRoots.delete(libraryRootPath);
 			return true;
 		} finally {
 			this.loadingGuidebookKeywordRoots.delete(libraryRootPath);
@@ -201,7 +230,7 @@ export class GuidebookKeywordHighlightController {
 
 		const keywordSet = new Set<string>();
 		for (const file of guidebookMarkdownFiles) {
-			const markdown = await this.plugin.app.vault.cachedRead(file);
+			const markdown = await this.plugin.app.vault.read(file);
 			const h1List = this.guidebookMarkdownParser.parseTree(markdown);
 			for (const h1Node of h1List) {
 				for (const h2Node of h1Node.h2List) {
@@ -218,8 +247,10 @@ export class GuidebookKeywordHighlightController {
 	}
 
 	private clearKeywordCache(): void {
+		this.keywordCacheVersion += 1;
 		this.guidebookKeywordsByLibraryRoot.clear();
 		this.loadingGuidebookKeywordRoots.clear();
+		this.dirtyGuidebookKeywordRoots.clear();
 	}
 
 	private pruneKeywordCache(): void {
@@ -227,6 +258,11 @@ export class GuidebookKeywordHighlightController {
 		for (const libraryRoot of this.guidebookKeywordsByLibraryRoot.keys()) {
 			if (!validLibraryRoots.has(libraryRoot)) {
 				this.guidebookKeywordsByLibraryRoot.delete(libraryRoot);
+			}
+		}
+		for (const libraryRoot of this.dirtyGuidebookKeywordRoots) {
+			if (!validLibraryRoots.has(libraryRoot)) {
+				this.dirtyGuidebookKeywordRoots.delete(libraryRoot);
 			}
 		}
 	}
@@ -267,11 +303,16 @@ export class GuidebookKeywordHighlightController {
 	private applyStyles(): void {
 		const rootEl = this.getRootEl();
 		const settings = this.getSettings();
+		const underlineEnabled = settings.guidebookKeywordUnderlineStyle !== "none";
 		rootEl.style.setProperty(
 			GUIDEBOOK_KEYWORD_BACKGROUND_VAR,
 			this.normalizeCssColor(settings.guidebookKeywordHighlightBackgroundColor, "transparent"),
 		);
-		rootEl.style.setProperty(GUIDEBOOK_KEYWORD_UNDERLINE_STYLE_VAR, settings.guidebookKeywordUnderlineStyle);
+		rootEl.style.setProperty(GUIDEBOOK_KEYWORD_UNDERLINE_LINE_VAR, underlineEnabled ? "underline" : "none");
+		rootEl.style.setProperty(
+			GUIDEBOOK_KEYWORD_UNDERLINE_STYLE_VAR,
+			underlineEnabled ? settings.guidebookKeywordUnderlineStyle : "solid",
+		);
 		rootEl.style.setProperty(
 			GUIDEBOOK_KEYWORD_UNDERLINE_WIDTH_VAR,
 			`${Math.max(0, Math.min(10, Math.round(settings.guidebookKeywordUnderlineWidth)))}px`,
@@ -291,6 +332,7 @@ export class GuidebookKeywordHighlightController {
 	private clearStyles(): void {
 		const rootEl = this.getRootEl();
 		rootEl.style.removeProperty(GUIDEBOOK_KEYWORD_BACKGROUND_VAR);
+		rootEl.style.removeProperty(GUIDEBOOK_KEYWORD_UNDERLINE_LINE_VAR);
 		rootEl.style.removeProperty(GUIDEBOOK_KEYWORD_UNDERLINE_STYLE_VAR);
 		rootEl.style.removeProperty(GUIDEBOOK_KEYWORD_UNDERLINE_WIDTH_VAR);
 		rootEl.style.removeProperty(GUIDEBOOK_KEYWORD_UNDERLINE_COLOR_VAR);
@@ -327,7 +369,7 @@ export function createGuidebookKeywordRules(
 				}
 				return getNormalizedKeywordsByView(view).length > 0;
 			},
-			matchDocumentIndices: (docText, view) => {
+			matchDocumentRanges: (docText, view): TextDetectionRange[] => {
 				const settings = getSettings();
 				const keywords = getNormalizedKeywordsByView(view);
 				if (docText.length === 0 || keywords.length === 0) {
@@ -341,14 +383,7 @@ export function createGuidebookKeywordRules(
 				if (ranges.length === 0) {
 					return [];
 				}
-
-				const hitIndices = new Set<number>();
-				for (const range of ranges) {
-					for (let index = range.from; index < range.to; index += 1) {
-						hitIndices.add(index);
-					}
-				}
-				return Array.from(hitIndices).sort((left, right) => left - right);
+				return ranges;
 			},
 		},
 	];
