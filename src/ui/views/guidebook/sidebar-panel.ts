@@ -4,7 +4,7 @@ import { UI } from "../../../constants";
 import { NovelLibraryService } from "../../../services/novel-library-service";
 import { type VaultChangeEvent, watchVaultChanges } from "../../../services/vault-change-watcher";
 import { ToggleButtonComponent } from "../../componets/toggle-button";
-import { createGuidebookTreeViewComponent } from "./outline-tree";
+import { createGuidebookTreeViewComponent, type GuidebookTreeExpandedStateSnapshot } from "./outline-tree";
 import type { GuidebookTreeData } from "../../../features/guidebook/tree-builder";
 import {
 	handleGuidebookBlankCreateCollection,
@@ -30,6 +30,42 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 	const contentEl = rootEl.createDiv({ cls: "cna-right-sidebar-guidebook__content" });
 	const scrollEl = contentEl.createDiv({ cls: "cna-right-sidebar-guidebook__scroll" });
 	let latestTreeData: GuidebookTreeData | null = null;
+	const initialSettings = ctx.getSettings();
+	const rawExpandedState = initialSettings.guidebookTreeExpandedStates ?? {};
+	const initialExpandedState = filterGuidebookTreeExpandedState(rawExpandedState);
+	const initialAllExpanded = initialSettings.guidebookTreeAllExpanded ?? true;
+	if (!areExpandedStateRecordsEqual(rawExpandedState, initialExpandedState)) {
+		void ctx.setSettings({
+			guidebookTreeExpandedStates: initialExpandedState,
+		});
+	}
+	let persistExpandedStateTimer: number | null = null;
+	let pendingExpandedState: GuidebookTreeExpandedStateSnapshot | null = null;
+	const schedulePersistExpandedState = (snapshot: GuidebookTreeExpandedStateSnapshot): void => {
+		pendingExpandedState = snapshot;
+		if (persistExpandedStateTimer !== null) {
+			window.clearTimeout(persistExpandedStateTimer);
+		}
+		persistExpandedStateTimer = window.setTimeout(() => {
+			persistExpandedStateTimer = null;
+			const nextSnapshot = pendingExpandedState;
+			pendingExpandedState = null;
+			if (!nextSnapshot) {
+				return;
+			}
+			const settings = ctx.getSettings();
+			if (
+				settings.guidebookTreeAllExpanded === nextSnapshot.allExpanded &&
+				areExpandedStateRecordsEqual(settings.guidebookTreeExpandedStates ?? {}, nextSnapshot.nodeExpandedState)
+			) {
+				return;
+			}
+			void ctx.setSettings({
+				guidebookTreeAllExpanded: nextSnapshot.allExpanded,
+				guidebookTreeExpandedStates: nextSnapshot.nodeExpandedState,
+			});
+		}, 120);
+	};
 	const treeView = createGuidebookTreeViewComponent(scrollEl, {
 		menuLabels: {
 			createCollection: ctx.t("feature.right_sidebar.guidebook.menu.create_collection"),
@@ -111,8 +147,11 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 				}
 				return changed;
 			})();
-		},
-	});
+			},
+			initialExpandedState,
+			initialAllExpanded,
+			onExpandedStateChange: schedulePersistExpandedState,
+		});
 	const toggleButton = new ToggleButtonComponent({
 		containerEl: headerEl,
 		className: "cna-right-sidebar-guidebook__toggle-button",
@@ -120,7 +159,7 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 		offIcon: UI.icon.expand,
 		onTooltip: ctx.t("feature.right_sidebar.guidebook.action.collapse_all"),
 		offTooltip: ctx.t("feature.right_sidebar.guidebook.action.expand_all"),
-		initialOn: true,
+		initialOn: initialAllExpanded,
 		onToggle: (isOn) => treeView.setAllExpanded(isOn),
 	});
 
@@ -201,12 +240,16 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 	return () => {
 		isDisposed = true;
 		refreshSeq += 1;
-		if (refreshTimer !== null) {
-			window.clearTimeout(refreshTimer);
-			refreshTimer = null;
-		}
-		toggleButton.destroy();
-		treeView.destroy();
+			if (refreshTimer !== null) {
+				window.clearTimeout(refreshTimer);
+				refreshTimer = null;
+			}
+			if (persistExpandedStateTimer !== null) {
+				window.clearTimeout(persistExpandedStateTimer);
+				persistExpandedStateTimer = null;
+			}
+			toggleButton.destroy();
+			treeView.destroy();
 		for (const eventRef of workspaceEventRefs) {
 			ctx.app.workspace.offref(eventRef);
 		}
@@ -298,4 +341,29 @@ function buildGuidebookTreeSignature(treeData: GuidebookTreeData | null): string
 		}
 	}
 	return signature;
+}
+
+function areExpandedStateRecordsEqual(left: Record<string, boolean>, right: Record<string, boolean>): boolean {
+	const leftKeys = Object.keys(left);
+	const rightKeys = Object.keys(right);
+	if (leftKeys.length !== rightKeys.length) {
+		return false;
+	}
+	for (const key of leftKeys) {
+		if (left[key] !== right[key]) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function filterGuidebookTreeExpandedState(source: Record<string, boolean>): Record<string, boolean> {
+	const next: Record<string, boolean> = {};
+	for (const [key, value] of Object.entries(source)) {
+		if (!key.includes("::file:") && !key.includes("::h1:")) {
+			continue;
+		}
+		next[key] = value;
+	}
+	return next;
 }

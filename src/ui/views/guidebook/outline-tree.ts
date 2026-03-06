@@ -25,8 +25,16 @@ export interface GuidebookTreeViewComponent {
 	destroy(): void;
 }
 
+export interface GuidebookTreeExpandedStateSnapshot {
+	allExpanded: boolean;
+	nodeExpandedState: Record<string, boolean>;
+}
+
 interface GuidebookTreeViewOptions {
 	menuLabels: GuidebookContextMenuLabels;
+	initialExpandedState?: Record<string, boolean>;
+	initialAllExpanded?: boolean;
+	onExpandedStateChange?: (snapshot: GuidebookTreeExpandedStateSnapshot) => void;
 	onMove?: (request: GuidebookTreeDragMoveRequest) => Promise<boolean> | boolean;
 	onFileContextAction?: (action: GuidebookTreeFileContextAction, fileNode: GuidebookTreeFileNode) => void;
 	onH1ContextAction?: (
@@ -63,6 +71,8 @@ type DragTreeNodePayload =
 type DropIndicator = "before" | "after" | "inside";
 const INACTIVE_STATUS_PATTERN = /【状态】\s*(死亡|失效)/;
 const SIDEBAR_PREVIEW_ITEM_PROP = "__cnaGuidebookPreviewItem";
+const STATE_KEY_SCOPE_SEPARATOR = "::";
+const STATE_KEY_PATH_SEPARATOR = "||";
 
 interface SidebarGuidebookPreviewItemPayload {
 	keyword: string;
@@ -94,7 +104,7 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 	private dropIndicatorRowEl: HTMLElement | null = null;
 	private dropIndicatorClassName = "";
 	private handlingDrop = false;
-	private allExpanded = true;
+	private allExpanded: boolean;
 	private lastData: GuidebookTreeData | null = null;
 	private lastEmptyText = "";
 
@@ -102,6 +112,12 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 		this.viewportEl = containerEl;
 		this.rootEl = containerEl.createDiv({ cls: "cna-guidebook-tree" });
 		this.options = options;
+		this.allExpanded = options.initialAllExpanded ?? true;
+		if (options.initialExpandedState) {
+			for (const [key, value] of Object.entries(options.initialExpandedState)) {
+				this.nodeExpandedState.set(key, value);
+			}
+		}
 		this.onViewportContextMenu = (event: MouseEvent) => {
 			const targetEl = event.target instanceof Element ? event.target : null;
 			if (targetEl?.closest(".cna-guidebook-tree__row")) {
@@ -119,6 +135,7 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 		for (const key of this.nodeExpandedState.keys()) {
 			this.nodeExpandedState.set(key, expanded);
 		}
+		this.emitExpandedStateChange();
 		if (this.lastData) {
 			this.renderData(this.lastData, this.lastEmptyText);
 		}
@@ -147,8 +164,11 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 			return;
 		}
 
+		const scopeKeyPrefix = `${data.libraryRootPath}${STATE_KEY_SCOPE_SEPARATOR}`;
+		const knownScopeKeys = new Set<string>();
 		data.files.forEach((fileNode) => {
-			const fileKey = `file:${fileNode.stableKey}`;
+			const fileKey = this.buildFileStateKey(data.libraryRootPath, fileNode);
+			knownScopeKeys.add(fileKey);
 			const fileBranchEl = this.rootEl.createDiv({ cls: "cna-guidebook-tree__branch cna-guidebook-tree__branch--file" });
 			const fileRender = this.renderCollapsibleRow(
 				fileBranchEl,
@@ -166,10 +186,11 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 			this.bindDragAndDrop(fileRender.rowEl, { kind: "file", fileNode });
 			const fileChildrenEl = fileRender.childrenEl;
 
-			fileNode.h1List.forEach((h1Node) => {
-				this.renderH1Node(fileChildrenEl, fileNode, h1Node);
-			});
+				fileNode.h1List.forEach((h1Node) => {
+					this.renderH1Node(fileChildrenEl, data.libraryRootPath, fileNode, h1Node, knownScopeKeys);
+				});
 		});
+		this.pruneExpandedStateByScope(scopeKeyPrefix, knownScopeKeys);
 	}
 
 	destroy(): void {
@@ -181,10 +202,13 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 
 	private renderH1Node(
 		containerEl: HTMLElement,
+		libraryRootPath: string,
 		fileNode: GuidebookTreeFileNode,
 		h1Node: GuidebookTreeH1Node,
+		knownScopeKeys: Set<string>,
 	): void {
-		const h1Key = `h1:${h1Node.sourceFileCtime}:${h1Node.h1IndexInSource}`;
+		const h1Key = this.buildH1StateKey(libraryRootPath, h1Node);
+		knownScopeKeys.add(h1Key);
 		const h1BranchEl = containerEl.createDiv({ cls: "cna-guidebook-tree__branch cna-guidebook-tree__branch--h1" });
 		const h1Render = this.renderCollapsibleRow(
 			h1BranchEl,
@@ -290,15 +314,18 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 		});
 
 		const childrenEl = branchEl.createDiv({ cls: "cna-guidebook-tree__children" });
-		const applyExpanded = (expanded: boolean): void => {
+		const applyExpanded = (expanded: boolean, persist: boolean): void => {
 			this.nodeExpandedState.set(stateKey, expanded);
 			branchEl.toggleClass("is-collapsed", !expanded);
 			setIcon(toggleIconEl, expanded ? UI.icon.chevronDown : UI.icon.chevronRight);
+			if (persist) {
+				this.emitExpandedStateChange();
+			}
 		};
 
 		const toggle = (): void => {
 			const currentExpanded = this.resolveExpanded(stateKey);
-			applyExpanded(!currentExpanded);
+			applyExpanded(!currentExpanded, true);
 		};
 		toggleButtonEl.addEventListener("click", (event) => {
 			event.preventDefault();
@@ -313,7 +340,7 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 				options.onContextMenu?.(event);
 			});
 		}
-		applyExpanded(this.resolveExpanded(stateKey));
+		applyExpanded(this.resolveExpanded(stateKey), false);
 
 		return {
 			rowEl,
@@ -509,5 +536,39 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 		}
 		this.nodeExpandedState.set(stateKey, this.allExpanded);
 		return this.allExpanded;
+	}
+
+	private emitExpandedStateChange(): void {
+		this.options.onExpandedStateChange?.({
+			allExpanded: this.allExpanded,
+			nodeExpandedState: Object.fromEntries(this.nodeExpandedState),
+		});
+	}
+
+	private pruneExpandedStateByScope(scopeKeyPrefix: string, knownScopeKeys: Set<string>): void {
+		let pruned = false;
+		for (const key of this.nodeExpandedState.keys()) {
+			if (!key.startsWith(scopeKeyPrefix)) {
+				continue;
+			}
+			if (!knownScopeKeys.has(key)) {
+				this.nodeExpandedState.delete(key);
+				pruned = true;
+			}
+		}
+		if (pruned) {
+			this.emitExpandedStateChange();
+		}
+	}
+
+	private buildFileStateKey(libraryRootPath: string, fileNode: GuidebookTreeFileNode): string {
+		const sourcePathsKey = [...fileNode.sourcePaths]
+			.sort((left, right) => left.localeCompare(right))
+			.join(STATE_KEY_PATH_SEPARATOR);
+		return `${libraryRootPath}${STATE_KEY_SCOPE_SEPARATOR}file:${sourcePathsKey}`;
+	}
+
+	private buildH1StateKey(libraryRootPath: string, h1Node: GuidebookTreeH1Node): string {
+		return `${libraryRootPath}${STATE_KEY_SCOPE_SEPARATOR}h1:${h1Node.sourcePath}${STATE_KEY_PATH_SEPARATOR}${h1Node.title.trim()}`;
 	}
 }
