@@ -148,6 +148,7 @@
 	"command.proofread.fix_proofread_dict_errors.done": "已修復錯誤詞數量：",
 	"command.proofread.fix_proofread_dict_errors.failed": "讀取糾錯詞典失敗，請檢查詞典檔案",
 	"feature.snippet.candidate.empty": "沒有匹配片段",
+	"feature.snippet.quick_insert.candidate.empty": "沒有匹配設定",
 	"feature.snippet.candidate.footer": "第 {current}/{total} 頁（←/→ 翻頁，↑/↓ 選擇，Enter 確認）",
 	"feature.right_sidebar.guidebook.tooltip": "中文小說寫作助手",
 	"feature.right_sidebar.guidebook.current_library.none": "未匹配小說庫",
