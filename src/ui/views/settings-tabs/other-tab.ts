@@ -52,7 +52,21 @@ export function renderOtherSettings(containerEl: HTMLElement, deps: SettingsTabR
 			toggle.setValue(ctx.settings.enableCharacterCount).onChange(async (value) => {
 				await ctx.setSettings({ enableCharacterCount: value });
 				refresh();
-			}),
+				}),
+		);
+
+	new Setting(panelEl)
+		.setName(ctx.t("settings.other.enable_character_milestone.name"))
+		.setDesc(ctx.t("settings.other.enable_character_milestone.desc"))
+		.setClass("cna-settings-item")
+		.setDisabled(!ctx.settings.enableCharacterCount)
+		.addToggle((toggle) =>
+			toggle
+				.setValue(ctx.settings.enableCharacterMilestone)
+				.setDisabled(!ctx.settings.enableCharacterCount)
+				.onChange(async (value) => {
+					await ctx.setSettings({ enableCharacterMilestone: value });
+				}),
 		);
 
 	new Setting(panelEl)
@@ -73,4 +87,3 @@ export function renderOtherSettings(containerEl: HTMLElement, deps: SettingsTabR
 function isSupportedLocale(value: string): value is SupportedLocale {
 	return value === "zh_cn" || value === "zh_tw";
 }
-

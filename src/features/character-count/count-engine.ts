@@ -12,6 +12,7 @@ const COUNT_TOKEN = "¤";
 interface FrontmatterExtractionResult {
 	body: string;
 	frontmatter: string | null;
+	bodyStartLine: number;
 }
 
 function extractFrontmatter(content: string): FrontmatterExtractionResult {
@@ -21,12 +22,15 @@ function extractFrontmatter(content: string): FrontmatterExtractionResult {
 		return {
 			body: normalized,
 			frontmatter: null,
+			bodyStartLine: 1,
 		};
 	}
+	const consumedLineBreaks = (match[0].match(/\n/g) ?? []).length;
 
 	return {
 		body: normalized.slice(match[0].length),
 		frontmatter: match[1] ?? "",
+		bodyStartLine: consumedLineBreaks + 1,
 	};
 }
 
@@ -48,6 +52,50 @@ export function countMarkdownCharacters(content: string): number {
 	const withoutTaskPrefixes = withoutBlockquoteMarkers.replace(EMPTY_TASK_PREFIX_REGEX, "");
 	const withoutHeadingMarkers = withoutTaskPrefixes.replace(HEADING_PREFIX_REGEX, "");
 	const orderedListCollapsed = withoutHeadingMarkers.replace(ORDERED_LIST_PREFIX_REGEX, COUNT_TOKEN);
+	const asciiRunsCollapsed = orderedListCollapsed.replace(ASCII_RUN_REGEX, COUNT_TOKEN);
+	const compacted = asciiRunsCollapsed.replace(WHITESPACE_AND_HYPHEN_REGEX, "");
+	return Array.from(compacted).length;
+}
+
+export interface CharacterMilestoneLine {
+	lineNumber: number;
+	milestone: number;
+}
+
+export function resolveCharacterMilestoneLines(content: string, milestoneStep = 500): CharacterMilestoneLine[] {
+	if (!content || milestoneStep <= 0 || hasExcalidrawFrontmatter(content)) {
+		return [];
+	}
+
+	const extracted = extractFrontmatter(content);
+	const bodyLines = extracted.body.split(/\r?\n/);
+	const totalLines = content.split(/\r?\n/).length;
+	let cumulative = 0;
+	let nextMilestone = milestoneStep;
+	const milestoneByLine = new Map<number, number>();
+
+	for (let index = 0; index < bodyLines.length; index += 1) {
+		const line = bodyLines[index] ?? "";
+		cumulative += countMarkdownCharactersInLine(line);
+		while (cumulative >= nextMilestone) {
+			const milestoneLine = extracted.bodyStartLine + index + 1;
+			if (milestoneLine <= totalLines) {
+				milestoneByLine.set(milestoneLine, nextMilestone);
+			}
+			nextMilestone += milestoneStep;
+		}
+	}
+
+	return Array.from(milestoneByLine.entries())
+		.sort((left, right) => left[0] - right[0])
+		.map(([lineNumber, milestone]) => ({ lineNumber, milestone }));
+}
+
+function countMarkdownCharactersInLine(line: string): number {
+	const withoutBlockquoteMarkers = line.replace(/^[ \t]*>[ \t]+/, "");
+	const withoutTaskPrefixes = withoutBlockquoteMarkers.replace(/^[ \t]*-[ \t]+\[[ \t]\][ \t]*/, "");
+	const withoutHeadingMarkers = withoutTaskPrefixes.replace(/^[ \t]{0,3}#{1,6}[ \t]*/, "");
+	const orderedListCollapsed = withoutHeadingMarkers.replace(/^[ \t]*[+-]?\d+\.[ \t]+/, COUNT_TOKEN);
 	const asciiRunsCollapsed = orderedListCollapsed.replace(ASCII_RUN_REGEX, COUNT_TOKEN);
 	const compacted = asciiRunsCollapsed.replace(WHITESPACE_AND_HYPHEN_REGEX, "");
 	return Array.from(compacted).length;

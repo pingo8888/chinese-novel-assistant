@@ -45,6 +45,8 @@
 	"settings.other.open_file_in_new_tab.desc": "透過外掛內相關功能開啟或新建檔案時，是否在新分頁開啟（已開啟則重用現有分頁）",
 	"settings.other.enable_character_count.name": "啟用字數統計",
 	"settings.other.enable_character_count.desc": "關閉後不顯示統計，且不在背景執行字元統計",
+	"settings.other.enable_character_milestone.name": "啟用字數里程碑",
+	"settings.other.enable_character_milestone.desc": "開啟後，在編輯區行號右側顯示累計字數里程碑（每500字）",
 	"settings.other.count_only_novel_library.name": "僅統計小說庫（正文目錄）",
 	"settings.other.count_only_novel_library.desc": "開啟後僅統計資料夾對應關係中配置的小說庫（正文目錄）；狀態列字數統計不受影響",
 	"settings.snippet.section.main": "片段補全",

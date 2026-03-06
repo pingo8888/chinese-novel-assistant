@@ -637,6 +637,23 @@
 	font-variant-numeric: tabular-nums;
 }
 
+.cna-character-milestone-enabled .markdown-source-view.mod-cm6 .cm-gutter.cna-character-milestone-gutter {
+	border-right: none;
+	min-width: 3.5em;
+}
+
+.cna-character-milestone-enabled .markdown-source-view.mod-cm6 .cm-gutter.cna-character-milestone-gutter .cm-gutterElement {
+	color: inherit;
+	font: inherit;
+	font-variant-numeric: inherit;
+	padding: 0 6px 0 2px;
+	text-align: right;
+}
+
+:not(.cna-character-milestone-enabled) .markdown-source-view.mod-cm6 .cm-gutter.cna-character-milestone-gutter {
+	display: none;
+}
+
 .tree-item-self.is-active .cna-character-count-badge,
 .nav-file-title.is-active .cna-character-count-badge,
 .nav-folder-title.is-active .cna-character-count-badge {

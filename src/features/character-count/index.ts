@@ -1,13 +1,22 @@
-import { EditorView, type ViewUpdate } from "@codemirror/view";
+import { Annotation, Prec } from "@codemirror/state";
+import { EditorView, gutter, GutterMarker, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { MarkdownView, Plugin, TFile } from "obsidian";
 import type { PluginContext } from "../../core/context";
 import type { ChineseNovelAssistantSettings } from "../../settings/settings";
 import { NovelLibraryService } from "../../services/novel-library-service";
 import { bindVaultChangeWatcher } from "../../services/vault-change-watcher";
-import { countMarkdownCharacters, hasExcalidrawFrontmatter } from "./count-engine";
+import {
+	countMarkdownCharacters,
+	hasExcalidrawFrontmatter,
+	resolveCharacterMilestoneLines,
+} from "./count-engine";
 
 const FOLDER_BADGE_CLASS = "cna-character-count-folder-badge";
 const FILE_BADGE_CLASS = "cna-character-count-file-badge";
+const CHARACTER_MILESTONE_GUTTER_CLASS = "cna-character-milestone-gutter";
+const CHARACTER_MILESTONE_ENABLED_CLASS = "cna-character-milestone-enabled";
+const CHARACTER_MILESTONE_FORCE_REFRESH = Annotation.define<boolean>();
+const CHARACTER_MILESTONE_STEP = 500;
 
 interface FolderStats {
 	fileCount: number;
@@ -86,10 +95,15 @@ class CharacterCountFeature {
 				}
 			}),
 		);
+		this.plugin.registerEditorExtension(
+			createCharacterMilestoneGutterExtension(() => this.ctx.settings),
+		);
 
 		const unsubscribeSettingsChange = this.ctx.onSettingsChange(() => {
 			this.scheduleRebuild();
 			this.scheduleStatusBarRender();
+			this.applyMilestoneGutterVisibility();
+			this.forceRefreshEditorViews();
 		});
 		this.plugin.register(() => {
 			unsubscribeSettingsChange();
@@ -103,10 +117,26 @@ class CharacterCountFeature {
 			this.badgeObserver?.disconnect();
 			this.badgeObserver = null;
 			this.clearFolderBadges();
+			this.clearMilestoneGutterVisibility();
 		});
 
+		this.applyMilestoneGutterVisibility();
 		this.scheduleRebuild();
 		this.scheduleStatusBarRender();
+	}
+
+	private forceRefreshEditorViews(): void {
+		const leaves = this.plugin.app.workspace.getLeavesOfType("markdown");
+		for (const leaf of leaves) {
+			const view = leaf.view;
+			if (!(view instanceof MarkdownView)) {
+				continue;
+			}
+			const editorView = resolveEditorViewFromMarkdownView(view);
+			editorView?.dispatch({
+				annotations: CHARACTER_MILESTONE_FORCE_REFRESH.of(true),
+			});
+		}
 	}
 
 	private observeFileExplorerDom(): void {
@@ -398,6 +428,18 @@ class CharacterCountFeature {
 		}
 	}
 
+	private applyMilestoneGutterVisibility(): void {
+		const rootEl = this.getRootEl();
+		const settings = this.ctx.settings;
+		const enabled = settings.enableCharacterCount && settings.enableCharacterMilestone;
+		rootEl.classList.toggle(CHARACTER_MILESTONE_ENABLED_CLASS, enabled);
+	}
+
+	private clearMilestoneGutterVisibility(): void {
+		const rootEl = this.getRootEl();
+		rootEl.classList.remove(CHARACTER_MILESTONE_ENABLED_CLASS);
+	}
+
 	private formatCharacterCount(charCount: number): string {
 		const charUnit = this.ctx.t("feature.character_count.unit.char");
 		const tenThousandUnit = this.ctx.t("feature.character_count.unit.ten_thousand");
@@ -461,4 +503,105 @@ class CharacterCountFeature {
 			}
 		}
 	}
+
+	private getRootEl(): HTMLElement {
+		const workspaceContainerEl = (this.plugin.app.workspace as unknown as { containerEl?: HTMLElement }).containerEl;
+		return workspaceContainerEl ?? document.body;
+	}
+}
+
+class CharacterMilestoneMarker extends GutterMarker {
+	private readonly text: string;
+
+	constructor(text: string) {
+		super();
+		this.text = text;
+	}
+
+	eq(other: CharacterMilestoneMarker): boolean {
+		return this.text === other.text;
+	}
+
+	toDOM(): HTMLElement {
+		const el = document.createElement("span");
+		el.className = "cna-character-milestone-marker";
+		el.textContent = this.text;
+		return el;
+	}
+}
+
+function createCharacterMilestoneGutterExtension(
+	getSettings: () => ChineseNovelAssistantSettings,
+) {
+	const milestoneByLineByView = new WeakMap<EditorView, Map<number, number>>();
+
+	const pluginExtension = ViewPlugin.fromClass(
+		class {
+			private readonly view: EditorView;
+
+			constructor(view: EditorView) {
+				this.view = view;
+				this.recomputeMilestones();
+			}
+
+			update(update: ViewUpdate): void {
+				const forced = update.transactions.some((tr) => tr.annotation(CHARACTER_MILESTONE_FORCE_REFRESH));
+				if (forced || update.docChanged) {
+					this.recomputeMilestones();
+				}
+			}
+
+			destroy(): void {
+				milestoneByLineByView.delete(this.view);
+			}
+
+			private recomputeMilestones(): void {
+				const settings = getSettings();
+				if (!settings.enableCharacterCount || !settings.enableCharacterMilestone) {
+					milestoneByLineByView.set(this.view, new Map());
+					return;
+				}
+				const content = this.view.state.doc.toString();
+				const milestones = resolveCharacterMilestoneLines(content, CHARACTER_MILESTONE_STEP);
+				const map = new Map<number, number>();
+				for (const item of milestones) {
+					map.set(item.lineNumber, item.milestone);
+				}
+				milestoneByLineByView.set(this.view, map);
+			}
+		},
+	);
+
+	const gutterExtension = gutter({
+		class: CHARACTER_MILESTONE_GUTTER_CLASS,
+		lineMarkerChange: (update) =>
+			update.docChanged ||
+			update.transactions.some((tr) => tr.annotation(CHARACTER_MILESTONE_FORCE_REFRESH)),
+		lineMarker: (view, line) => {
+			const settings = getSettings();
+			if (!settings.enableCharacterCount || !settings.enableCharacterMilestone) {
+				return null;
+			}
+			const map = milestoneByLineByView.get(view);
+			if (!map || map.size === 0) {
+				return null;
+			}
+			const lineNumber = view.state.doc.lineAt(line.from).number;
+			const milestone = map.get(lineNumber);
+			if (!milestone) {
+				return null;
+			}
+			return new CharacterMilestoneMarker(String(milestone));
+		},
+	});
+
+	return [pluginExtension, Prec.low(gutterExtension)];
+}
+
+function resolveEditorViewFromMarkdownView(view: MarkdownView): EditorView | null {
+	const editorAny = view.editor as unknown as {
+		cm?: EditorView;
+		editor?: { cm?: EditorView };
+	};
+	return editorAny.cm ?? editorAny.editor?.cm ?? null;
 }

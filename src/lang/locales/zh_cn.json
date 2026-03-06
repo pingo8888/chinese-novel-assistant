@@ -45,6 +45,8 @@
 	"settings.other.open_file_in_new_tab.desc": "通过插件内相关功能打开或新建文件时，是否在新标签页打开（已打开则复用现有标签）",
 	"settings.other.enable_character_count.name": "启用字数统计",
 	"settings.other.enable_character_count.desc": "关闭后不显示统计，且不在后台执行字符统计",
+	"settings.other.enable_character_milestone.name": "启用字数里程碑",
+	"settings.other.enable_character_milestone.desc": "开启后，在编辑区行号右侧显示累计字数里程碑（每500字）",
 	"settings.other.count_only_novel_library.name": "仅统计小说库（正文目录）",
 	"settings.other.count_only_novel_library.desc": "开启后仅统计文件夹对应关系中配置的小说库（正文目录）；状态栏字数统计不受影响",
 	"settings.snippet.section.main": "片段补全",

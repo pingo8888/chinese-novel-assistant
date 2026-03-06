@@ -33,6 +33,7 @@ export interface ChineseNovelAssistantSettings {
 	snippetTextFragmentEnabled: boolean;
 	openFileInNewTab: boolean;
 	enableCharacterCount: boolean;
+	enableCharacterMilestone: boolean;
 	countOnlyNovelLibrary: boolean;
 	typesetEnabled: boolean;
 	typesetIndentChars: number;
@@ -86,9 +87,10 @@ export function createDefaultSettings(locale: SupportedLocale): ChineseNovelAssi
 		snippetQuickInsertEnabled: true,
 		snippetQuickInsertPageSize: 8,
 		snippetTextFragmentEnabled: true,
-		openFileInNewTab: true,
-		enableCharacterCount: true,
-		countOnlyNovelLibrary: true,
+			openFileInNewTab: true,
+			enableCharacterCount: true,
+			enableCharacterMilestone: true,
+			countOnlyNovelLibrary: true,
 		typesetEnabled: false,
 		typesetIndentChars: 2,
 		typesetLineSpacing: 1,
