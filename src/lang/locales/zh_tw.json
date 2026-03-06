@@ -102,10 +102,8 @@
 	"settings.guidebook.preview.sidebar_hover.desc": "開啟後，滑鼠懸停右邊欄時顯示預覽欄",
 	"settings.guidebook.preview.width.name": "預覽欄寬度",
 	"settings.guidebook.preview.width.desc": "懸停預覽欄寬度（像素）",
-	"settings.guidebook.preview.height.name": "預覽欄高度",
-	"settings.guidebook.preview.height.desc": "懸停預覽欄最大高度（像素）",
 	"settings.guidebook.preview.max_lines.name": "下方內容最多顯示行數",
-	"settings.guidebook.preview.max_lines.desc": "超過該行數時顯示捲動條",
+	"settings.guidebook.preview.max_lines.desc": "顯示行數，超出行數會顯示捲動條",
 	"settings.typeset.enable.name": "啟用編輯區排版",
 	"settings.typeset.enable.desc": "關閉後不套用行首縮排、行距與段距",
 	"settings.typeset.indent.name": "行首縮排（中文字符）",
@@ -192,4 +190,3 @@
 	"feature.character_count.unit.chapter": "章",
 	"feature.character_count.unit.ten_thousand": "萬"
 }
-

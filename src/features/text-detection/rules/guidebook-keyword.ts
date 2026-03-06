@@ -21,10 +21,24 @@ interface MatchRange {
 	to: number;
 }
 
+export interface GuidebookKeywordPreviewItem {
+	keyword: string;
+	title: string;
+	categoryTitle: string;
+	content: string;
+	sourcePath: string;
+}
+
 interface GuidebookFileKeywordCacheEntry {
 	mtime: number;
 	size: number;
 	keywords: readonly string[];
+	previewsByKeyword: ReadonlyMap<string, GuidebookKeywordPreviewItem>;
+}
+
+interface GuidebookLibraryKeywordIndex {
+	keywords: readonly string[];
+	previewsByKeyword: ReadonlyMap<string, GuidebookKeywordPreviewItem>;
 }
 
 export class GuidebookKeywordHighlightController {
@@ -35,6 +49,7 @@ export class GuidebookKeywordHighlightController {
 	private readonly novelLibraryService: NovelLibraryService;
 	private readonly guidebookMarkdownParser: GuidebookMarkdownParser;
 	private readonly guidebookKeywordsByLibraryRoot = new Map<string, readonly string[]>();
+	private readonly guidebookKeywordPreviewByLibraryRoot = new Map<string, ReadonlyMap<string, GuidebookKeywordPreviewItem>>();
 	private readonly loadingGuidebookKeywordRoots = new Set<string>();
 	private readonly dirtyGuidebookKeywordRoots = new Set<string>();
 	private readonly guidebookFileKeywordCacheByPath = new Map<string, GuidebookFileKeywordCacheEntry>();
@@ -107,6 +122,33 @@ export class GuidebookKeywordHighlightController {
 		}
 		this.clearStyles();
 		this.clearKeywordCache();
+	}
+
+	getPreviewItemByEditorView(editorView: EditorView, rawKeyword: string): GuidebookKeywordPreviewItem | null {
+		if (!this.shouldDetectInView(editorView)) {
+			return null;
+		}
+		const keyword = rawKeyword.trim();
+		if (keyword.length === 0) {
+			return null;
+		}
+		const markdownView = resolveMarkdownViewByEditorView(this.plugin.app, editorView);
+		const filePath = markdownView?.file?.path ?? null;
+		const libraryRoot = this.resolveContainingLibraryRoot(filePath);
+		if (!libraryRoot) {
+			return null;
+		}
+		const previewMap = this.guidebookKeywordPreviewByLibraryRoot.get(libraryRoot);
+		if (previewMap) {
+			return previewMap.get(keyword) ?? null;
+		}
+		void (async () => {
+			const changed = await this.refreshKeywordsForLibrary(libraryRoot);
+			if (changed) {
+				this.forceRefreshEditorViews();
+			}
+		})();
+		return null;
 	}
 
 	private getGuidebookKeywordsByEditorView(editorView: EditorView): readonly string[] {
@@ -202,11 +244,13 @@ export class GuidebookKeywordHighlightController {
 		this.loadingGuidebookKeywordRoots.add(libraryRootPath);
 		const cacheVersionAtStart = this.keywordCacheVersion;
 		try {
-			const keywords = await this.collectGuidebookH2Keywords(libraryRootPath);
+			const keywordIndex = await this.collectGuidebookKeywordIndex(libraryRootPath);
 			if (this.isDisposed || cacheVersionAtStart !== this.keywordCacheVersion) {
 				return false;
 			}
+			const { keywords, previewsByKeyword } = keywordIndex;
 			const previousKeywords = this.guidebookKeywordsByLibraryRoot.get(libraryRootPath) ?? [];
+			this.guidebookKeywordPreviewByLibraryRoot.set(libraryRootPath, previewsByKeyword);
 			if (areKeywordListsEqual(previousKeywords, keywords)) {
 				this.dirtyGuidebookKeywordRoots.delete(libraryRootPath);
 				return false;
@@ -219,7 +263,7 @@ export class GuidebookKeywordHighlightController {
 		}
 	}
 
-	private async collectGuidebookH2Keywords(libraryRootPath: string): Promise<readonly string[]> {
+	private async collectGuidebookKeywordIndex(libraryRootPath: string): Promise<GuidebookLibraryKeywordIndex> {
 		const settings = this.getSettings();
 		const guidebookRootPath = this.novelLibraryService.resolveNovelLibrarySubdirPath(
 			{ locale: settings.locale },
@@ -227,7 +271,10 @@ export class GuidebookKeywordHighlightController {
 			settings.guidebookDirName,
 		);
 		if (!guidebookRootPath) {
-			return [];
+			return {
+				keywords: [],
+				previewsByKeyword: new Map(),
+			};
 		}
 
 		const guidebookMarkdownFiles = this.plugin.app.vault
@@ -236,22 +283,32 @@ export class GuidebookKeywordHighlightController {
 			.sort((left, right) => left.stat.ctime - right.stat.ctime || left.path.localeCompare(right.path));
 
 		const keywordSet = new Set<string>();
+		const previewByKeyword = new Map<string, GuidebookKeywordPreviewItem>();
 		const activeGuidebookPaths = new Set<string>();
 		for (const file of guidebookMarkdownFiles) {
 			activeGuidebookPaths.add(file.path);
-			const fileKeywords = await this.resolveGuidebookFileKeywords(file.path, file.stat.mtime, file.stat.size);
-			for (const title of fileKeywords) {
+			const fileKeywordIndex = await this.resolveGuidebookFileKeywordIndex(file.path, file.stat.mtime, file.stat.size);
+			for (const title of fileKeywordIndex.keywords) {
 				keywordSet.add(title);
+			}
+			for (const [keyword, previewItem] of fileKeywordIndex.previewsByKeyword) {
+				if (!previewByKeyword.has(keyword)) {
+					previewByKeyword.set(keyword, previewItem);
+				}
 			}
 		}
 		this.pruneGuidebookFileKeywordCache(guidebookRootPath, activeGuidebookPaths);
 
-		return Array.from(keywordSet).sort((left, right) => right.length - left.length || left.localeCompare(right));
+		return {
+			keywords: Array.from(keywordSet).sort((left, right) => right.length - left.length || left.localeCompare(right)),
+			previewsByKeyword: previewByKeyword,
+		};
 	}
 
 	private clearKeywordCache(): void {
 		this.keywordCacheVersion += 1;
 		this.guidebookKeywordsByLibraryRoot.clear();
+		this.guidebookKeywordPreviewByLibraryRoot.clear();
 		this.loadingGuidebookKeywordRoots.clear();
 		this.dirtyGuidebookKeywordRoots.clear();
 		this.guidebookFileKeywordCacheByPath.clear();
@@ -262,6 +319,11 @@ export class GuidebookKeywordHighlightController {
 		for (const libraryRoot of this.guidebookKeywordsByLibraryRoot.keys()) {
 			if (!validLibraryRoots.has(libraryRoot)) {
 				this.guidebookKeywordsByLibraryRoot.delete(libraryRoot);
+			}
+		}
+		for (const libraryRoot of this.guidebookKeywordPreviewByLibraryRoot.keys()) {
+			if (!validLibraryRoots.has(libraryRoot)) {
+				this.guidebookKeywordPreviewByLibraryRoot.delete(libraryRoot);
 			}
 		}
 		for (const libraryRoot of this.dirtyGuidebookKeywordRoots) {
@@ -350,37 +412,54 @@ export class GuidebookKeywordHighlightController {
 		return normalized.length > 0 ? normalized : fallback;
 	}
 
-	private async resolveGuidebookFileKeywords(
+	private async resolveGuidebookFileKeywordIndex(
 		filePath: string,
 		mtime: number,
 		size: number,
-	): Promise<readonly string[]> {
+	): Promise<GuidebookFileKeywordCacheEntry> {
 		const cached = this.guidebookFileKeywordCacheByPath.get(filePath);
 		if (cached && cached.mtime === mtime && cached.size === size) {
-			return cached.keywords;
+			return cached;
 		}
 		const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
 		if (!(file instanceof TFile)) {
-			return [];
+			return {
+				mtime,
+				size,
+				keywords: [],
+				previewsByKeyword: new Map(),
+			};
 		}
 		const markdown = await this.plugin.app.vault.cachedRead(file);
 		const h1List = this.guidebookMarkdownParser.parseTree(markdown);
 		const keywordSet = new Set<string>();
+		const previewsByKeyword = new Map<string, GuidebookKeywordPreviewItem>();
 		for (const h1Node of h1List) {
 			for (const h2Node of h1Node.h2List) {
-				const title = h2Node.title.trim();
-				if (title.length > 0) {
-					keywordSet.add(title);
+				const keyword = h2Node.title.trim();
+				if (keyword.length > 0) {
+					keywordSet.add(keyword);
+					if (!previewsByKeyword.has(keyword)) {
+						previewsByKeyword.set(keyword, {
+							keyword,
+							title: h2Node.title,
+							categoryTitle: h1Node.title,
+							content: h2Node.content,
+							sourcePath: filePath,
+						});
+					}
 				}
 			}
 		}
 		const keywords = Array.from(keywordSet).sort((left, right) => right.length - left.length || left.localeCompare(right));
-		this.guidebookFileKeywordCacheByPath.set(filePath, {
+		const nextEntry: GuidebookFileKeywordCacheEntry = {
 			mtime,
 			size,
 			keywords,
-		});
-		return keywords;
+			previewsByKeyword,
+		};
+		this.guidebookFileKeywordCacheByPath.set(filePath, nextEntry);
+		return nextEntry;
 	}
 
 	private pruneGuidebookFileKeywordCache(guidebookRootPath: string, activeGuidebookPaths: Set<string>): void {

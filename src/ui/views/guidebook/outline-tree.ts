@@ -62,6 +62,19 @@ type DragTreeNodePayload =
 
 type DropIndicator = "before" | "after" | "inside";
 const INACTIVE_STATUS_PATTERN = /【状态】\s*(死亡|失效)/;
+const SIDEBAR_PREVIEW_ITEM_PROP = "__cnaGuidebookPreviewItem";
+
+interface SidebarGuidebookPreviewItemPayload {
+	keyword: string;
+	title: string;
+	categoryTitle: string;
+	content: string;
+	sourcePath: string;
+}
+
+type SidebarPreviewCarrierElement = HTMLElement & {
+	[SIDEBAR_PREVIEW_ITEM_PROP]?: SidebarGuidebookPreviewItemPayload;
+};
 
 export function createGuidebookTreeViewComponent(
 	containerEl: HTMLElement,
@@ -207,6 +220,17 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 		h2Node: GuidebookTreeH2Node,
 	): void {
 		const rowEl = containerEl.createDiv({ cls: "cna-guidebook-tree__row cna-guidebook-tree__row--h2" });
+		const normalizedKeyword = h2Node.title.trim();
+		if (normalizedKeyword.length > 0) {
+			const previewItem: SidebarGuidebookPreviewItemPayload = {
+				keyword: normalizedKeyword,
+				title: h2Node.title,
+				categoryTitle: h1Node.title,
+				content: h2Node.content,
+				sourcePath: h2Node.sourcePath,
+			};
+			(rowEl as unknown as SidebarPreviewCarrierElement)[SIDEBAR_PREVIEW_ITEM_PROP] = previewItem;
+		}
 		rowEl.createDiv({ cls: "cna-guidebook-tree__row-toggle cna-guidebook-tree__row-toggle--placeholder" });
 
 		const iconEl = rowEl.createSpan({ cls: "cna-guidebook-tree__row-icon" });

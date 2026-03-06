@@ -9,6 +9,7 @@ import { createEnPunctuationRules } from "./rules/en-punctuation";
 import { createPairPunctuationRules } from "./rules/pair-punctuation";
 import { GuidebookKeywordHighlightController } from "./rules/guidebook-keyword";
 import { ProofreadDictService } from "../../services/proofread-dict-service";
+import { GuidebookPreviewController } from "../guidebook/preview-controller";
 import {
 	resolveEditorViewFromMarkdownView,
 	resolveMarkdownViewByEditorView,
@@ -25,6 +26,7 @@ class TextDetectionFeature {
 	private proofreadDictService: ProofreadDictService;
 	private novelLibraryService: NovelLibraryService;
 	private guidebookKeywordHighlightController: GuidebookKeywordHighlightController;
+	private guidebookPreviewController: GuidebookPreviewController;
 
 	constructor(plugin: Plugin, ctx: PluginContext) {
 		this.plugin = plugin;
@@ -37,6 +39,10 @@ class TextDetectionFeature {
 			(view) => this.shouldDetectForEditor(view),
 			() => this.forceRefreshEditorViews(),
 		);
+		this.guidebookPreviewController = new GuidebookPreviewController(plugin, {
+			getSettings: () => this.ctx.settings,
+			resolveKeywordPreviewItem: (view, keyword) => this.guidebookKeywordHighlightController.getPreviewItemByEditorView(view, keyword),
+		});
 	}
 
 	onload(): void {
@@ -59,6 +65,7 @@ class TextDetectionFeature {
 			this.proofreadDictService.invalidate();
 			void this.proofreadDictService.ensureCacheReady(this.ctx.settings);
 			this.guidebookKeywordHighlightController.handleSettingsChange();
+			this.guidebookPreviewController.handleSettingsChange();
 			this.forceRefreshEditorViews();
 		});
 		this.plugin.register(() => {
@@ -95,6 +102,7 @@ class TextDetectionFeature {
 
 		void this.proofreadDictService.ensureCacheReady(this.ctx.settings);
 		this.guidebookKeywordHighlightController.applyInitialState();
+		this.guidebookPreviewController.start();
 		this.forceRefreshEditorViews();
 	}
 

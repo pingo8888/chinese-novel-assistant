@@ -14,7 +14,6 @@ export interface ChineseNovelAssistantSettings {
 	guidebookPreviewMainHoverEnabled: boolean;
 	guidebookPreviewSidebarHoverEnabled: boolean;
 	guidebookPreviewWidth: number;
-	guidebookPreviewHeight: number;
 	guidebookPreviewMaxLines: number;
 	stickyNoteEnabled: boolean;
 	stickyNoteDefaultRows: number;
@@ -68,7 +67,6 @@ export function createDefaultSettings(locale: SupportedLocale): ChineseNovelAssi
 		guidebookPreviewMainHoverEnabled: true,
 		guidebookPreviewSidebarHoverEnabled: false,
 		guidebookPreviewWidth: 320,
-		guidebookPreviewHeight: 260,
 		guidebookPreviewMaxLines: 8,
 		stickyNoteEnabled: true,
 		stickyNoteDefaultRows: 6,

@@ -165,20 +165,6 @@ export function renderGuidebookSettings(containerEl: HTMLElement, deps: Settings
 		);
 
 	new Setting(panelEl)
-		.setName(ctx.t("settings.guidebook.preview.height.name"))
-		.setDesc(ctx.t("settings.guidebook.preview.height.desc"))
-		.setClass("cna-settings-item")
-		.addSlider((slider) =>
-			slider
-				.setLimits(120, 1000, 10)
-				.setValue(ctx.settings.guidebookPreviewHeight)
-				.setDynamicTooltip()
-				.onChange(async (value) => {
-					await ctx.setSettings({ guidebookPreviewHeight: Math.round(value) });
-				}),
-		);
-
-	new Setting(panelEl)
 		.setName(ctx.t("settings.guidebook.preview.max_lines.name"))
 		.setDesc(ctx.t("settings.guidebook.preview.max_lines.desc"))
 		.setClass("cna-settings-item")
