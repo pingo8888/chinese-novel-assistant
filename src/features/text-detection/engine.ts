@@ -196,10 +196,10 @@ function mergeRanges(ranges: TextDetectionRange[]): TextDetectionRange[] {
 			current = { ...range };
 			continue;
 		}
-		if (range.from <= current.to) {
-			current.to = Math.max(current.to, range.to);
-			continue;
-		}
+			if (range.from < current.to) {
+				current.to = Math.max(current.to, range.to);
+				continue;
+			}
 		merged.push(current);
 		current = { ...range };
 	}
