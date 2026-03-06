@@ -151,6 +151,18 @@ export class GuidebookKeywordHighlightController {
 		return null;
 	}
 
+	hasKeywordInEditorView(editorView: EditorView, rawKeyword: string): boolean {
+		if (!this.shouldDetectInView(editorView)) {
+			return false;
+		}
+		const keyword = rawKeyword.trim();
+		if (keyword.length === 0) {
+			return false;
+		}
+		const keywords = this.getGuidebookKeywordsByEditorView(editorView);
+		return keywords.includes(keyword);
+	}
+
 	private getGuidebookKeywordsByEditorView(editorView: EditorView): readonly string[] {
 		const markdownView = resolveMarkdownViewByEditorView(this.plugin.app, editorView);
 		const filePath = markdownView?.file?.path ?? null;

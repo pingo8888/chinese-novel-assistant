@@ -319,6 +319,59 @@ export async function handleGuidebookH2ContextAction(
 	}
 }
 
+export async function appendGuidebookSettingToCategoryByPath(
+	context: GuidebookActionContext,
+	sourcePath: string,
+	h1IndexInSource: number,
+	settingName: string,
+	h1Title?: string,
+): Promise<boolean> {
+	const { app, t, treeData } = context;
+	const file = resolveCollectionFileByPath(app, sourcePath);
+	if (!file) {
+		new Notice(t("feature.right_sidebar.guidebook.notice.node_not_found"));
+		return false;
+	}
+	const normalizedSettingName = settingName.trim();
+	if (normalizedSettingName.length === 0) {
+		new Notice(t("feature.right_sidebar.guidebook.validation.empty"));
+		return false;
+	}
+
+	try {
+		let targetH1Index = h1IndexInSource;
+		const normalizedH1Title = h1Title?.trim();
+		if (normalizedH1Title && normalizedH1Title.length > 0) {
+			const resolvedH1Index = await resolveH1IndexByTitle(app, file, normalizedH1Title);
+			if (resolvedH1Index >= 0) {
+				targetH1Index = resolvedH1Index;
+			}
+		}
+		await appendH2WithUniquenessCheck(app, file, treeData, targetH1Index, normalizedSettingName);
+		return true;
+	} catch (error) {
+		if (isDuplicateGuidebookTitleError(error)) {
+			new Notice(t("feature.right_sidebar.guidebook.validation.exists"));
+			return false;
+		}
+		console.error(error);
+		new Notice(t("feature.right_sidebar.guidebook.notice.action_failed"));
+		return false;
+	}
+}
+
+async function resolveH1IndexByTitle(app: App, file: TFile, h1Title: string): Promise<number> {
+	const markdown = await app.vault.cachedRead(file);
+	const h1List = guidebookMarkdownParser.parseTree(markdown);
+	for (let index = 0; index < h1List.length; index += 1) {
+		const currentTitle = h1List[index]?.title?.trim() ?? "";
+		if (currentTitle === h1Title) {
+			return index;
+		}
+	}
+	return -1;
+}
+
 function resolveCollectionFileByPath(app: App, path: string): TFile | null {
 	const file = app.vault.getAbstractFileByPath(path);
 	return file instanceof TFile ? file : null;

@@ -163,6 +163,7 @@
 	"feature.right_sidebar.guidebook.menu.delete_collection": "刪除集合",
 	"feature.right_sidebar.guidebook.menu.delete_category": "刪除分類",
 	"feature.right_sidebar.guidebook.menu.delete_setting": "刪除設定",
+	"feature.editor_menu.add_setting": "添加設定",
 	"feature.right_sidebar.guidebook.dialog.create_collection.title": "建立集合",
 	"feature.right_sidebar.guidebook.dialog.rename_collection.title": "重新命名集合",
 	"feature.right_sidebar.guidebook.dialog.create_category.title": "建立分類",

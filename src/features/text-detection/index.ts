@@ -10,6 +10,7 @@ import { createPairPunctuationRules } from "./rules/pair-punctuation";
 import { GuidebookKeywordHighlightController } from "./rules/guidebook-keyword";
 import { ProofreadDictService } from "../../services/proofread-dict-service";
 import { GuidebookPreviewController } from "../guidebook/preview-controller";
+import { TextMenuGuidebookController } from "../guidebook/text-menu-controller";
 import {
 	resolveEditorViewFromMarkdownView,
 	resolveMarkdownViewByEditorView,
@@ -27,6 +28,7 @@ class TextDetectionFeature {
 	private novelLibraryService: NovelLibraryService;
 	private guidebookKeywordHighlightController: GuidebookKeywordHighlightController;
 	private guidebookPreviewController: GuidebookPreviewController;
+	private textMenuGuidebookController: TextMenuGuidebookController;
 
 	constructor(plugin: Plugin, ctx: PluginContext) {
 		this.plugin = plugin;
@@ -42,6 +44,11 @@ class TextDetectionFeature {
 		this.guidebookPreviewController = new GuidebookPreviewController(plugin, {
 			getSettings: () => this.ctx.settings,
 			resolveKeywordPreviewItem: (view, keyword) => this.guidebookKeywordHighlightController.getPreviewItemByEditorView(view, keyword),
+		});
+		this.textMenuGuidebookController = new TextMenuGuidebookController(plugin, {
+			getSettings: () => this.ctx.settings,
+			t: (key) => this.ctx.t(key),
+			isGuidebookKeywordInEditor: (view, keyword) => this.guidebookKeywordHighlightController.hasKeywordInEditorView(view, keyword),
 		});
 	}
 
@@ -66,6 +73,7 @@ class TextDetectionFeature {
 			void this.proofreadDictService.ensureCacheReady(this.ctx.settings);
 			this.guidebookKeywordHighlightController.handleSettingsChange();
 			this.guidebookPreviewController.handleSettingsChange();
+			this.textMenuGuidebookController.handleSettingsChange();
 			this.forceRefreshEditorViews();
 		});
 		this.plugin.register(() => {
@@ -94,6 +102,7 @@ class TextDetectionFeature {
 		);
 		bindVaultChangeWatcher(this.plugin, this.plugin.app, (event) => {
 			this.guidebookKeywordHighlightController.handleVaultChange(event.path, event.oldPath ?? null);
+			this.textMenuGuidebookController.handleVaultChange();
 		});
 
 		this.plugin.register(() => {
@@ -103,6 +112,10 @@ class TextDetectionFeature {
 		void this.proofreadDictService.ensureCacheReady(this.ctx.settings);
 		this.guidebookKeywordHighlightController.applyInitialState();
 		this.guidebookPreviewController.start();
+		this.textMenuGuidebookController.start();
+		this.plugin.register(() => {
+			this.textMenuGuidebookController.dispose();
+		});
 		this.forceRefreshEditorViews();
 	}
 

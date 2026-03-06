@@ -163,6 +163,7 @@
 	"feature.right_sidebar.guidebook.menu.delete_collection": "删除集合",
 	"feature.right_sidebar.guidebook.menu.delete_category": "删除分类",
 	"feature.right_sidebar.guidebook.menu.delete_setting": "删除设定",
+	"feature.editor_menu.add_setting": "添加设定",
 	"feature.right_sidebar.guidebook.dialog.create_collection.title": "创建集合",
 	"feature.right_sidebar.guidebook.dialog.rename_collection.title": "重命名集合",
 	"feature.right_sidebar.guidebook.dialog.create_category.title": "创建分类",
@@ -190,4 +191,3 @@
 	"feature.character_count.unit.chapter": "章",
 	"feature.character_count.unit.ten_thousand": "万"
 }
-
