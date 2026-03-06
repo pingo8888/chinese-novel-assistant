@@ -5,7 +5,8 @@ import type {
 	GuidebookTreeFileNode,
 	GuidebookTreeH1Node,
 	GuidebookTreeH2Node,
-} from "./guidebook-tree-builder";
+} from "./tree-builder";
+import { GuidebookMarkdownParser } from "./markdown-parser";
 import { askForConfirmation } from "../../ui/modals/confirm-modal";
 import { promptTextInput } from "../../ui/modals/text-input-modal";
 
@@ -33,16 +34,7 @@ interface GuidebookActionContext {
 	treeData: GuidebookTreeData | null;
 }
 
-interface ParsedH2Section {
-	startLine: number;
-	endLine: number;
-}
-
-interface ParsedH1Section {
-	startLine: number;
-	endLine: number;
-	h2Sections: ParsedH2Section[];
-}
+const guidebookMarkdownParser = new GuidebookMarkdownParser();
 
 export async function handleGuidebookBlankCreateCollection(context: GuidebookActionContext): Promise<boolean> {
 	const { app, t, treeData } = context;
@@ -394,7 +386,7 @@ function appendH1(content: string, headingTitle: string): string {
 
 function appendH2(content: string, h1Index: number, headingTitle: string): string {
 	const lines = splitLines(content);
-	const parsed = parseSections(lines);
+	const parsed = guidebookMarkdownParser.parseSections(content);
 	const targetH1 = parsed.h1Sections[h1Index];
 	if (!targetH1) {
 		throw new Error("H1 section not found");
@@ -408,7 +400,7 @@ function appendH2(content: string, h1Index: number, headingTitle: string): strin
 
 function renameH1(content: string, h1Index: number, nextTitle: string): string {
 	const lines = splitLines(content);
-	const parsed = parseSections(lines);
+	const parsed = guidebookMarkdownParser.parseSections(content);
 	const targetH1 = parsed.h1Sections[h1Index];
 	if (!targetH1) {
 		throw new Error("H1 section not found");
@@ -419,7 +411,7 @@ function renameH1(content: string, h1Index: number, nextTitle: string): string {
 
 function renameH2(content: string, h1Index: number, h2Index: number, nextTitle: string): string {
 	const lines = splitLines(content);
-	const parsed = parseSections(lines);
+	const parsed = guidebookMarkdownParser.parseSections(content);
 	const targetH1 = parsed.h1Sections[h1Index];
 	const targetH2 = targetH1?.h2Sections[h2Index];
 	if (!targetH2) {
@@ -431,7 +423,7 @@ function renameH2(content: string, h1Index: number, h2Index: number, nextTitle: 
 
 function deleteH1(content: string, h1Index: number): string {
 	const lines = splitLines(content);
-	const parsed = parseSections(lines);
+	const parsed = guidebookMarkdownParser.parseSections(content);
 	const targetH1 = parsed.h1Sections[h1Index];
 	if (!targetH1) {
 		throw new Error("H1 section not found");
@@ -442,7 +434,7 @@ function deleteH1(content: string, h1Index: number): string {
 
 function deleteH2(content: string, h1Index: number, h2Index: number): string {
 	const lines = splitLines(content);
-	const parsed = parseSections(lines);
+	const parsed = guidebookMarkdownParser.parseSections(content);
 	const targetH1 = parsed.h1Sections[h1Index];
 	const targetH2 = targetH1?.h2Sections[h2Index];
 	if (!targetH2) {
@@ -473,90 +465,6 @@ function splitLines(content: string): string[] {
 
 function joinLines(lines: string[]): string {
 	return lines.join("\n");
-}
-
-function parseSections(lines: string[]): { h1Sections: ParsedH1Section[] } {
-	const h1Sections: ParsedH1Section[] = [];
-	let currentH1: ParsedH1Section | null = null;
-	let currentH2: ParsedH2Section | null = null;
-	let codeFence: { marker: "`" | "~"; length: number } | null = null;
-
-	const finalizeCurrentH2 = (endLine: number): void => {
-		if (!currentH2) {
-			return;
-		}
-		currentH2.endLine = endLine;
-		currentH2 = null;
-	};
-	const finalizeCurrentH1 = (endLine: number): void => {
-		if (!currentH1) {
-			return;
-		}
-		currentH1.endLine = endLine;
-		currentH1 = null;
-	};
-
-	for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
-		const line = lines[lineIndex] ?? "";
-		const fenceMatch = line.match(/^\s*(`{3,}|~{3,})/);
-		if (codeFence) {
-			if (fenceMatch && fenceMatch[1] && fenceMatch[1][0] === codeFence.marker && fenceMatch[1].length >= codeFence.length) {
-				codeFence = null;
-			}
-			continue;
-		}
-		if (fenceMatch && fenceMatch[1]) {
-			codeFence = {
-				marker: fenceMatch[1][0] as "`" | "~",
-				length: fenceMatch[1].length,
-			};
-			continue;
-		}
-
-		const heading = parseAtxHeading(line);
-		if (!heading) {
-			continue;
-		}
-		if (heading.level === 1) {
-			finalizeCurrentH2(lineIndex);
-			finalizeCurrentH1(lineIndex);
-			currentH1 = {
-				startLine: lineIndex,
-				endLine: lines.length,
-				h2Sections: [],
-			};
-			h1Sections.push(currentH1);
-			continue;
-		}
-		if (heading.level === 2) {
-			finalizeCurrentH2(lineIndex);
-			if (!currentH1) {
-				continue;
-			}
-			currentH2 = {
-				startLine: lineIndex,
-				endLine: currentH1.endLine,
-			};
-			currentH1.h2Sections.push(currentH2);
-		}
-	}
-
-	finalizeCurrentH2(lines.length);
-	finalizeCurrentH1(lines.length);
-	return { h1Sections };
-}
-
-function parseAtxHeading(line: string): { level: number } | null {
-	const match = line.match(/^\s{0,3}(#{1,6})[ \t]+(.*)$/);
-	if (!match || !match[1]) {
-		return null;
-	}
-	let title = (match[2] ?? "").trim();
-	title = title.replace(/[ \t]+#+[ \t]*$/, "").trim();
-	if (!title) {
-		return null;
-	}
-	return { level: match[1].length };
 }
 
 function formatTemplate(template: string, values: Record<string, string>): string {

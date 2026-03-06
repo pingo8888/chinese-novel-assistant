@@ -1,21 +1,21 @@
-import type { RightSidebarViewRenderContext } from "./types";
+import type { SidebarViewRenderContext } from "./types";
 import { MarkdownView, setIcon, TFile } from "obsidian";
 import { UI } from "../../../constants";
 import { NovelLibraryService } from "../../../services/novel-library-service";
 import { watchVaultChanges } from "../../../services/vault-change-watcher";
 import { ToggleButtonComponent } from "../../componets/toggle-button";
-import { createGuidebookTreeViewComponent } from "./guidebook-tree";
-import type { GuidebookTreeData } from "../../../features/right-sidebar/guidebook-tree-builder";
+import { createGuidebookTreeViewComponent } from "./outline-tree";
+import type { GuidebookTreeData } from "../../../features/guidebook/tree-builder";
 import {
 	handleGuidebookBlankCreateCollection,
 	handleGuidebookFileContextAction,
 	handleGuidebookH1ContextAction,
 	handleGuidebookH2ContextAction,
-} from "../../../features/right-sidebar/guidebook-menu-actions";
+} from "../../../features/guidebook/menu-actions";
 
 let cachedMarkdownFilePath: string | null = null;
 
-export function renderRightSidebarGuidebookView(containerEl: HTMLElement, ctx: RightSidebarViewRenderContext): () => void {
+export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: SidebarViewRenderContext): () => void {
 	const rootEl = containerEl.createDiv({ cls: "cna-right-sidebar-guidebook" });
 	const headerEl = rootEl.createDiv({ cls: "cna-right-sidebar-guidebook__header" });
 	headerEl.createDiv({ cls: "cna-right-sidebar-guidebook__header-spacer" });
@@ -184,7 +184,7 @@ export function renderRightSidebarGuidebookView(containerEl: HTMLElement, ctx: R
 }
 
 function resolveCurrentNovelLibraryName(
-	ctx: RightSidebarViewRenderContext,
+	ctx: SidebarViewRenderContext,
 	novelLibraryService: NovelLibraryService,
 	filePath?: string | null,
 ): string {
@@ -204,7 +204,7 @@ function resolveCurrentNovelLibraryName(
 	return segments[segments.length - 1] ?? matchedLibraryPath;
 }
 
-function resolveActiveMarkdownFilePath(ctx: RightSidebarViewRenderContext): string | null {
+function resolveActiveMarkdownFilePath(ctx: SidebarViewRenderContext): string | null {
 	const activeView = ctx.app.workspace.getActiveViewOfType(MarkdownView);
 	return activeView?.file?.path ?? null;
 }

@@ -1,12 +1,21 @@
 import { setIcon } from "obsidian";
 import { UI } from "../../../constants";
-import { showContextMenuAtMouseEvent } from "../../componets/context-menu";
 import type {
 	GuidebookTreeData,
 	GuidebookTreeFileNode,
 	GuidebookTreeH1Node,
 	GuidebookTreeH2Node,
-} from "../../../features/right-sidebar/guidebook-tree-builder";
+} from "../../../features/guidebook/tree-builder";
+import {
+	openGuidebookBlankContextMenu,
+	openGuidebookFileContextMenu,
+	openGuidebookH1ContextMenu,
+	openGuidebookH2ContextMenu,
+	type GuidebookContextMenuLabels,
+	type GuidebookTreeFileContextAction,
+	type GuidebookTreeH1ContextAction,
+	type GuidebookTreeH2ContextAction,
+} from "./context-menu";
 
 export interface GuidebookTreeViewComponent {
 	setAllExpanded(expanded: boolean): void;
@@ -15,37 +24,8 @@ export interface GuidebookTreeViewComponent {
 	destroy(): void;
 }
 
-type GuidebookTreeFileContextAction =
-	| "create_collection"
-	| "create_category"
-	| "rename_collection"
-	| "delete_collection";
-
-type GuidebookTreeH1ContextAction =
-	| "create_category"
-	| "create_setting"
-	| "rename_category"
-	| "delete_category";
-
-type GuidebookTreeH2ContextAction =
-	| "create_setting"
-	| "edit_setting"
-	| "rename_setting"
-	| "delete_setting";
-
 interface GuidebookTreeViewOptions {
-	menuLabels: {
-		createCollection: string;
-		createCategory: string;
-		createSetting: string;
-		editSetting: string;
-		renameCollection: string;
-		renameCategory: string;
-		renameSetting: string;
-		deleteCollection: string;
-		deleteCategory: string;
-		deleteSetting: string;
-	};
+	menuLabels: GuidebookContextMenuLabels;
 	onFileContextAction?: (action: GuidebookTreeFileContextAction, fileNode: GuidebookTreeFileNode) => void;
 	onH1ContextAction?: (
 		action: GuidebookTreeH1ContextAction,
@@ -89,7 +69,7 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 			}
 			event.preventDefault();
 			event.stopPropagation();
-			this.openBlankContextMenu(event);
+			openGuidebookBlankContextMenu(event, this.options.menuLabels, this.options.onBlankContextCreateCollection);
 		};
 		this.viewportEl.addEventListener("contextmenu", this.onViewportContextMenu);
 	}
@@ -136,7 +116,7 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 					count: fileNode.h2Count,
 					levelClass: "cna-guidebook-tree__row--file",
 					onContextMenu: (event) => {
-						this.openFileContextMenu(event, fileNode);
+						openGuidebookFileContextMenu(event, this.options.menuLabels, fileNode, this.options.onFileContextAction);
 					},
 				},
 				fileKey,
@@ -169,7 +149,13 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 				count: h1Node.h2List.length,
 				levelClass: "cna-guidebook-tree__row--h1",
 				onContextMenu: (event) => {
-					this.openH1ContextMenu(event, fileNode, h1Node);
+					openGuidebookH1ContextMenu(
+						event,
+						this.options.menuLabels,
+						fileNode,
+						h1Node,
+						this.options.onH1ContextAction,
+					);
 				},
 			},
 			h1Key,
@@ -199,7 +185,14 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 		rowEl.addEventListener("contextmenu", (event) => {
 			event.preventDefault();
 			event.stopPropagation();
-			this.openH2ContextMenu(event, fileNode, h1Node, h2Node);
+			openGuidebookH2ContextMenu(
+				event,
+				this.options.menuLabels,
+				fileNode,
+				h1Node,
+				h2Node,
+				this.options.onH2ContextAction,
+			);
 		});
 	}
 
@@ -260,100 +253,6 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 		applyExpanded(this.resolveExpanded(stateKey));
 
 		return childrenEl;
-	}
-
-	private openFileContextMenu(event: MouseEvent, fileNode: GuidebookTreeFileNode): void {
-		showContextMenuAtMouseEvent(event, [
-			{
-				title: this.options.menuLabels.createCollection,
-				icon: "folder-plus",
-				onClick: () => this.options.onFileContextAction?.("create_collection", fileNode),
-			},
-			{
-				title: this.options.menuLabels.createCategory,
-				icon: UI.icon.h1,
-				onClick: () => this.options.onFileContextAction?.("create_category", fileNode),
-			},
-			{
-				title: this.options.menuLabels.renameCollection,
-				icon: "pencil",
-				onClick: () => this.options.onFileContextAction?.("rename_collection", fileNode),
-			},
-			{
-				title: this.options.menuLabels.deleteCollection,
-				icon: UI.icon.delete,
-				warning: true,
-				onClick: () => this.options.onFileContextAction?.("delete_collection", fileNode),
-			},
-		]);
-	}
-
-	private openH1ContextMenu(event: MouseEvent, fileNode: GuidebookTreeFileNode, h1Node: GuidebookTreeH1Node): void {
-		showContextMenuAtMouseEvent(event, [
-			{
-				title: this.options.menuLabels.createCategory,
-				icon: UI.icon.h1,
-				onClick: () => this.options.onH1ContextAction?.("create_category", fileNode, h1Node),
-			},
-			{
-				title: this.options.menuLabels.createSetting,
-				icon: UI.icon.h2,
-				onClick: () => this.options.onH1ContextAction?.("create_setting", fileNode, h1Node),
-			},
-			{
-				title: this.options.menuLabels.renameCategory,
-				icon: "pencil",
-				onClick: () => this.options.onH1ContextAction?.("rename_category", fileNode, h1Node),
-			},
-			{
-				title: this.options.menuLabels.deleteCategory,
-				icon: UI.icon.delete,
-				warning: true,
-				onClick: () => this.options.onH1ContextAction?.("delete_category", fileNode, h1Node),
-			},
-		]);
-	}
-
-	private openH2ContextMenu(
-		event: MouseEvent,
-		fileNode: GuidebookTreeFileNode,
-		h1Node: GuidebookTreeH1Node,
-		h2Node: GuidebookTreeH2Node,
-	): void {
-		showContextMenuAtMouseEvent(event, [
-			{
-				title: this.options.menuLabels.createSetting,
-				icon: UI.icon.h2,
-				onClick: () => this.options.onH2ContextAction?.("create_setting", fileNode, h1Node, h2Node),
-			},
-			{
-				title: this.options.menuLabels.editSetting,
-				icon: UI.icon.h2,
-				onClick: () => this.options.onH2ContextAction?.("edit_setting", fileNode, h1Node, h2Node),
-			},
-			{ kind: "separator" },
-			{
-				title: this.options.menuLabels.renameSetting,
-				icon: "pencil",
-				onClick: () => this.options.onH2ContextAction?.("rename_setting", fileNode, h1Node, h2Node),
-			},
-			{
-				title: this.options.menuLabels.deleteSetting,
-				icon: UI.icon.delete,
-				warning: true,
-				onClick: () => this.options.onH2ContextAction?.("delete_setting", fileNode, h1Node, h2Node),
-			},
-		]);
-	}
-
-	private openBlankContextMenu(event: MouseEvent): void {
-		showContextMenuAtMouseEvent(event, [
-			{
-				title: this.options.menuLabels.createCollection,
-				icon: "folder-plus",
-				onClick: () => this.options.onBlankContextCreateCollection?.(),
-			},
-		]);
 	}
 
 	private resolveExpanded(stateKey: string): boolean {

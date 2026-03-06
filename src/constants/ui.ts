@@ -3,7 +3,7 @@ export const UI={
   },
   icon:{
     plugin:"book-type",
-    stickyNote:"sparkles",
+    stickyNote:"lightbulb",
     file:"file-text",
     h1:"heading-1",
     h2:"heading-2",
@@ -25,5 +25,7 @@ export const UI={
     delete:"trash-2",
     pin:"pin",
     ellipsis:"ellipsis",
+    folderPlus:"folder-plus",
+    pencil:"pencil",
   }
 } as const;

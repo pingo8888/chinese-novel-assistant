@@ -1,6 +1,7 @@
 import type { App, TFile } from "obsidian";
 import { NovelLibraryService } from "../../services/novel-library-service";
 import type { ChineseNovelAssistantSettings } from "../../settings/settings";
+import { GuidebookMarkdownParser } from "./markdown-parser";
 
 export interface GuidebookTreeH2Node {
 	title: string;
@@ -39,6 +40,8 @@ interface GuidebookTreeFileBucket extends GuidebookTreeFileNode {
 	firstFileCtime: number;
 }
 
+const guidebookMarkdownParser = new GuidebookMarkdownParser();
+
 export async function buildGuidebookTreeData(
 	app: App,
 	settings: GuidebookTreeBuildSettings,
@@ -74,7 +77,7 @@ export async function buildGuidebookTreeData(
 	const fileBucketByName = new Map<string, GuidebookTreeFileBucket>();
 	for (const file of guidebookMarkdownFiles) {
 		const markdown = await app.vault.cachedRead(file);
-		const h1List = parseGuidebookMarkdown(markdown, file.path, file.stat.ctime);
+		const h1List = mapParsedGuidebookTree(markdown, file.path, file.stat.ctime);
 
 		const fileNameKey = file.basename;
 		let fileBucket = fileBucketByName.get(fileNameKey);
@@ -125,114 +128,19 @@ function compareByFileCreationTime(left: TFile, right: TFile): number {
 	return left.path.localeCompare(right.path);
 }
 
-function parseGuidebookMarkdown(content: string, sourcePath: string, sourceFileCtime: number): GuidebookTreeH1Node[] {
-	const h1List: GuidebookTreeH1Node[] = [];
-	const lines = content.split(/\r?\n/);
-	let currentH1: GuidebookTreeH1Node | null = null;
-	let currentH2: GuidebookTreeH2Node | null = null;
-	let currentH2ContentLines: string[] = [];
-	let codeFence: { marker: "`" | "~"; length: number } | null = null;
-	let currentH1Index = -1;
-	let currentH2Index = -1;
-
-	const finalizeCurrentH2 = (): void => {
-		if (!currentH2) {
-			currentH2ContentLines = [];
-			return;
-		}
-		currentH2.content = currentH2ContentLines.join("\n").trimEnd();
-		currentH2 = null;
-		currentH2ContentLines = [];
-	};
-
-	for (const line of lines) {
-		const fenceMatch = line.match(/^\s*(`{3,}|~{3,})/);
-		if (codeFence) {
-			if (currentH2) {
-				currentH2ContentLines.push(line);
-			}
-			if (fenceMatch && fenceMatch[1] && fenceMatch[1][0] === codeFence.marker && fenceMatch[1].length >= codeFence.length) {
-				codeFence = null;
-			}
-			continue;
-		}
-
-		if (fenceMatch && fenceMatch[1]) {
-			if (currentH2) {
-				currentH2ContentLines.push(line);
-			}
-			codeFence = {
-				marker: fenceMatch[1][0] as "`" | "~",
-				length: fenceMatch[1].length,
-			};
-			continue;
-		}
-
-		const heading = parseAtxHeading(line);
-		if (!heading) {
-			if (currentH2) {
-				currentH2ContentLines.push(line);
-			}
-			continue;
-		}
-
-		if (heading.level === 1) {
-			finalizeCurrentH2();
-			currentH1Index += 1;
-			currentH2Index = -1;
-			currentH1 = {
-				title: heading.title,
-				h2List: [],
-				sourcePath,
-				sourceFileCtime,
-				h1IndexInSource: currentH1Index,
-			};
-			h1List.push(currentH1);
-			continue;
-		}
-
-		if (heading.level === 2) {
-			finalizeCurrentH2();
-			if (!currentH1) {
-				continue;
-			}
-			currentH2Index += 1;
-			currentH2 = {
-				title: heading.title,
-				content: "",
-				sourcePath,
-				sourceFileCtime,
-				h1IndexInSource: currentH1.h1IndexInSource,
-				h2IndexInH1: currentH2Index,
-			};
-			currentH1.h2List.push(currentH2);
-			continue;
-		}
-
-		if (heading.level >= 3) {
-			finalizeCurrentH2();
-			continue;
-		}
-	}
-
-	finalizeCurrentH2();
-	return h1List;
-}
-
-function parseAtxHeading(line: string): { level: number; title: string } | null {
-	const match = line.match(/^\s{0,3}(#{1,6})[ \t]+(.*)$/);
-	if (!match || !match[1]) {
-		return null;
-	}
-
-	let title = (match[2] ?? "").trim();
-	title = title.replace(/[ \t]+#+[ \t]*$/, "").trim();
-	if (!title) {
-		return null;
-	}
-
-	return {
-		level: match[1].length,
-		title,
-	};
+function mapParsedGuidebookTree(content: string, sourcePath: string, sourceFileCtime: number): GuidebookTreeH1Node[] {
+	return guidebookMarkdownParser.parseTree(content).map((h1Node) => ({
+		title: h1Node.title,
+		h2List: h1Node.h2List.map((h2Node): GuidebookTreeH2Node => ({
+			title: h2Node.title,
+			content: h2Node.content,
+			sourcePath,
+			sourceFileCtime,
+			h1IndexInSource: h2Node.h1IndexInSource,
+			h2IndexInH1: h2Node.h2IndexInH1,
+		})),
+		sourcePath,
+		sourceFileCtime,
+		h1IndexInSource: h1Node.h1IndexInSource,
+	}));
 }

@@ -1,0 +1,41 @@
+import { ItemView, WorkspaceLeaf } from "obsidian";
+import { IDS, UI } from "../../constants";
+import type { SidebarViewRenderContext } from "./guidebook/types";
+import { renderGuidebookSidebarPanel } from "./guidebook/sidebar-panel";
+
+export class ChineseNovelAssistantGuidebookSidebarView extends ItemView {
+	private activeTabDispose: (() => void) | null = null;
+
+	constructor(
+		leaf: WorkspaceLeaf,
+		private readonly getTooltipText: () => string,
+		private readonly ctx: SidebarViewRenderContext,
+	) {
+		super(leaf);
+	}
+
+	getViewType(): string {
+		return IDS.view.guidebookSidebar;
+	}
+
+	getDisplayText(): string {
+		return this.getTooltipText();
+	}
+
+	getIcon(): string {
+		return UI.icon.plugin;
+	}
+
+	async onOpen(): Promise<void> {
+		const { contentEl } = this;
+		contentEl.empty();
+		const rootEl = contentEl.createDiv({ cls: "cna-right-sidebar" });
+		this.activeTabDispose?.();
+		this.activeTabDispose = renderGuidebookSidebarPanel(rootEl, this.ctx) ?? null;
+	}
+
+	async onClose(): Promise<void> {
+		this.activeTabDispose?.();
+		this.activeTabDispose = null;
+	}
+}
