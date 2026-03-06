@@ -4,6 +4,7 @@ export const UI={
   icon:{
     plugin:"book-type",
     stickyNote:"lightbulb",
+    sparkles:"sparkles",
     file:"file-text",
     h1:"heading-1",
     h2:"heading-2",
@@ -19,6 +20,8 @@ export const UI={
     chevronDown:"chevron-down",
     chevronRight:"chevron-right",
     chevronLeft:"chevron-left",
+    calendarArrowDown:"calendar-arrow-down",
+    calendarArrowUp:"calendar-arrow-up",
     setting:"gear",
     send:"send-horizontal",
     clean:"brush-cleaning",

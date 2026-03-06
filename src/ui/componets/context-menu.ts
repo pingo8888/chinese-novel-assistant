@@ -4,6 +4,7 @@ export interface ContextMenuItemOption {
 	kind?: "item";
 	title: string;
 	icon?: IconName | null;
+	checked?: boolean | null;
 	disabled?: boolean;
 	warning?: boolean;
 	section?: string;
@@ -29,6 +30,9 @@ export function showContextMenuAtMouseEvent(event: MouseEvent, options: ContextM
 			item.setTitle(option.title);
 			if (option.icon !== undefined) {
 				item.setIcon(option.icon);
+			}
+			if (option.checked !== undefined) {
+				item.setChecked(option.checked);
 			}
 			if (option.section) {
 				item.setSection(option.section);
