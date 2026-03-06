@@ -8,6 +8,7 @@ export interface SidebarViewRenderContext {
 	app: App;
 	t: (key: TranslationKey) => string;
 	getSettings: () => ChineseNovelAssistantSettings;
+	setSettings: (patch: Partial<ChineseNovelAssistantSettings>) => Promise<void>;
 	onSettingsChange?: (listener: SettingsChangeListener) => () => void;
 	loadGuidebookTreeData?: (activeFilePath: string | null) => Promise<GuidebookTreeData | null>;
 }

@@ -34,7 +34,10 @@ export interface GuidebookTreeData {
 	files: GuidebookTreeFileNode[];
 }
 
-type GuidebookTreeBuildSettings = Pick<ChineseNovelAssistantSettings, "locale" | "novelLibraries" | "guidebookDirName">;
+type GuidebookTreeBuildSettings = Pick<
+	ChineseNovelAssistantSettings,
+	"locale" | "novelLibraries" | "guidebookDirName" | "guidebookCollectionOrders"
+>;
 
 interface GuidebookTreeFileBucket extends GuidebookTreeFileNode {
 	firstFileCtime: number;
@@ -103,8 +106,15 @@ export async function buildGuidebookTreeData(
 		}
 	}
 
+	const collectionOrderMap = buildCollectionOrderMap(settings.guidebookCollectionOrders[guidebookRootPath] ?? []);
 	const files = Array.from(fileBucketByName.values())
-		.sort((left, right) => left.firstFileCtime - right.firstFileCtime || left.fileName.localeCompare(right.fileName))
+		.sort((left, right) =>
+			compareByCollectionOrder(
+				left,
+				right,
+				collectionOrderMap,
+			),
+		)
 		.map((bucket) => ({
 			fileName: bucket.fileName,
 			stableKey: String(bucket.firstFileCtime),
@@ -126,6 +136,29 @@ function compareByFileCreationTime(left: TFile, right: TFile): number {
 		return ctimeDiff;
 	}
 	return left.path.localeCompare(right.path);
+}
+
+function compareByCollectionOrder(
+	left: GuidebookTreeFileBucket,
+	right: GuidebookTreeFileBucket,
+	orderMap: Map<string, number>,
+): number {
+	const leftPath = left.sourcePaths[0] ?? "";
+	const rightPath = right.sourcePaths[0] ?? "";
+	const leftRank = orderMap.has(leftPath) ? orderMap.get(leftPath) ?? Number.MAX_SAFE_INTEGER : Number.MAX_SAFE_INTEGER;
+	const rightRank = orderMap.has(rightPath) ? orderMap.get(rightPath) ?? Number.MAX_SAFE_INTEGER : Number.MAX_SAFE_INTEGER;
+	if (leftRank !== rightRank) {
+		return leftRank - rightRank;
+	}
+	return left.firstFileCtime - right.firstFileCtime || left.fileName.localeCompare(right.fileName);
+}
+
+function buildCollectionOrderMap(orderedSourcePaths: string[]): Map<string, number> {
+	const orderMap = new Map<string, number>();
+	orderedSourcePaths.forEach((path, index) => {
+		orderMap.set(path, index);
+	});
+	return orderMap;
 }
 
 function mapParsedGuidebookTree(content: string, sourcePath: string, sourceFileCtime: number): GuidebookTreeH1Node[] {

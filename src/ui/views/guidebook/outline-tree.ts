@@ -1,5 +1,6 @@
 import { setIcon } from "obsidian";
 import { UI } from "../../../constants";
+import type { GuidebookTreeDragMoveRequest } from "../../../features/guidebook/drag-sort-actions";
 import type {
 	GuidebookTreeData,
 	GuidebookTreeFileNode,
@@ -26,6 +27,7 @@ export interface GuidebookTreeViewComponent {
 
 interface GuidebookTreeViewOptions {
 	menuLabels: GuidebookContextMenuLabels;
+	onMove?: (request: GuidebookTreeDragMoveRequest) => Promise<boolean> | boolean;
 	onFileContextAction?: (action: GuidebookTreeFileContextAction, fileNode: GuidebookTreeFileNode) => void;
 	onH1ContextAction?: (
 		action: GuidebookTreeH1ContextAction,
@@ -41,6 +43,25 @@ interface GuidebookTreeViewOptions {
 	onBlankContextCreateCollection?: () => void;
 }
 
+type DragTreeNodePayload =
+	| {
+			kind: "file";
+			fileNode: GuidebookTreeFileNode;
+	  }
+	| {
+			kind: "h1";
+			fileNode: GuidebookTreeFileNode;
+			h1Node: GuidebookTreeH1Node;
+	  }
+	| {
+			kind: "h2";
+			fileNode: GuidebookTreeFileNode;
+			h1Node: GuidebookTreeH1Node;
+			h2Node: GuidebookTreeH2Node;
+	  };
+
+type DropIndicator = "before" | "after" | "inside";
+
 export function createGuidebookTreeViewComponent(
 	containerEl: HTMLElement,
 	options: GuidebookTreeViewOptions,
@@ -54,6 +75,11 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 	private readonly options: GuidebookTreeViewOptions;
 	private readonly nodeExpandedState = new Map<string, boolean>();
 	private readonly onViewportContextMenu: (event: MouseEvent) => void;
+	private dragPayload: DragTreeNodePayload | null = null;
+	private dragSourceRowEl: HTMLElement | null = null;
+	private dropIndicatorRowEl: HTMLElement | null = null;
+	private dropIndicatorClassName = "";
+	private handlingDrop = false;
 	private allExpanded = true;
 	private lastData: GuidebookTreeData | null = null;
 	private lastEmptyText = "";
@@ -85,6 +111,7 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 	}
 
 	renderLoading(text: string): void {
+		this.clearDragState();
 		this.rootEl.empty();
 		this.rootEl.createDiv({
 			cls: "cna-guidebook-tree__empty",
@@ -95,6 +122,7 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 	renderData(data: GuidebookTreeData | null, emptyText: string): void {
 		this.lastData = data;
 		this.lastEmptyText = emptyText;
+		this.clearDragState();
 		this.rootEl.empty();
 
 		if (!data || data.files.length === 0) {
@@ -108,7 +136,7 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 		data.files.forEach((fileNode) => {
 			const fileKey = `file:${fileNode.stableKey}`;
 			const fileBranchEl = this.rootEl.createDiv({ cls: "cna-guidebook-tree__branch cna-guidebook-tree__branch--file" });
-			const fileChildrenEl = this.renderCollapsibleRow(
+			const fileRender = this.renderCollapsibleRow(
 				fileBranchEl,
 				{
 					label: fileNode.fileName,
@@ -121,6 +149,8 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 				},
 				fileKey,
 			);
+			this.bindDragAndDrop(fileRender.rowEl, { kind: "file", fileNode });
+			const fileChildrenEl = fileRender.childrenEl;
 
 			fileNode.h1List.forEach((h1Node) => {
 				this.renderH1Node(fileChildrenEl, fileNode, h1Node);
@@ -130,6 +160,7 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 
 	destroy(): void {
 		this.viewportEl.removeEventListener("contextmenu", this.onViewportContextMenu);
+		this.clearDragState();
 		this.rootEl.empty();
 		this.nodeExpandedState.clear();
 	}
@@ -141,7 +172,7 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 	): void {
 		const h1Key = `h1:${h1Node.sourceFileCtime}:${h1Node.h1IndexInSource}`;
 		const h1BranchEl = containerEl.createDiv({ cls: "cna-guidebook-tree__branch cna-guidebook-tree__branch--h1" });
-		const h1ChildrenEl = this.renderCollapsibleRow(
+		const h1Render = this.renderCollapsibleRow(
 			h1BranchEl,
 			{
 				label: h1Node.title,
@@ -160,6 +191,8 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 			},
 			h1Key,
 		);
+		this.bindDragAndDrop(h1Render.rowEl, { kind: "h1", fileNode, h1Node });
+		const h1ChildrenEl = h1Render.childrenEl;
 
 		h1Node.h2List.forEach((h2Node) => {
 			this.renderH2Node(h1ChildrenEl, fileNode, h1Node, h2Node);
@@ -194,6 +227,7 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 				this.options.onH2ContextAction,
 			);
 		});
+		this.bindDragAndDrop(rowEl, { kind: "h2", fileNode, h1Node, h2Node });
 	}
 
 	private renderCollapsibleRow(
@@ -206,7 +240,7 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 			onContextMenu?: (event: MouseEvent) => void;
 		},
 		stateKey: string,
-	): HTMLElement {
+	): { rowEl: HTMLElement; childrenEl: HTMLElement } {
 		const rowEl = branchEl.createDiv({ cls: `cna-guidebook-tree__row ${options.levelClass}` });
 		const toggleButtonEl = rowEl.createEl("button", {
 			cls: "cna-guidebook-tree__row-toggle",
@@ -252,7 +286,191 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 		}
 		applyExpanded(this.resolveExpanded(stateKey));
 
-		return childrenEl;
+		return {
+			rowEl,
+			childrenEl,
+		};
+	}
+
+	private bindDragAndDrop(rowEl: HTMLElement, targetPayload: DragTreeNodePayload): void {
+		if (!this.options.onMove) {
+			return;
+		}
+		rowEl.draggable = this.isDraggable(targetPayload);
+		rowEl.addEventListener("dragstart", (event) => {
+			if (!this.isDraggable(targetPayload) || this.handlingDrop) {
+				event.preventDefault();
+				return;
+			}
+			this.clearDragState();
+			this.dragPayload = targetPayload;
+			this.dragSourceRowEl = rowEl;
+			rowEl.addClass("is-dragging");
+			if (event.dataTransfer) {
+				event.dataTransfer.effectAllowed = "move";
+				event.dataTransfer.setData("text/plain", "guidebook-drag");
+			}
+		});
+		rowEl.addEventListener("dragover", (event) => {
+			const dragPayload = this.dragPayload;
+			if (!dragPayload || this.handlingDrop) {
+				return;
+			}
+			const nextRequest = this.resolveMoveRequest(dragPayload, targetPayload, rowEl, event);
+			if (!nextRequest) {
+				return;
+			}
+			event.preventDefault();
+			event.stopPropagation();
+			if (event.dataTransfer) {
+				event.dataTransfer.dropEffect = "move";
+			}
+			this.applyDropIndicator(rowEl, nextRequest.position);
+		});
+		rowEl.addEventListener("drop", (event) => {
+			const dragPayload = this.dragPayload;
+			const onMove = this.options.onMove;
+			if (!dragPayload || !onMove || this.handlingDrop) {
+				return;
+			}
+			const moveRequest = this.resolveMoveRequest(dragPayload, targetPayload, rowEl, event);
+			if (!moveRequest) {
+				return;
+			}
+			event.preventDefault();
+			event.stopPropagation();
+			this.handlingDrop = true;
+			void (async () => {
+				try {
+					await onMove(moveRequest);
+				} finally {
+					this.handlingDrop = false;
+					this.clearDragState();
+				}
+			})();
+		});
+		rowEl.addEventListener("dragend", () => {
+			this.clearDragState();
+		});
+	}
+
+	private isDraggable(payload: DragTreeNodePayload): boolean {
+		if (payload.kind === "file") {
+			return payload.fileNode.sourcePaths.length === 1;
+		}
+		return true;
+	}
+
+	private resolveMoveRequest(
+		dragPayload: DragTreeNodePayload,
+		targetPayload: DragTreeNodePayload,
+		rowEl: HTMLElement,
+		event: DragEvent | MouseEvent,
+	): GuidebookTreeDragMoveRequest | null {
+		if (dragPayload.kind === "file") {
+			if (
+				targetPayload.kind !== "file" ||
+				dragPayload.fileNode === targetPayload.fileNode ||
+				targetPayload.fileNode.sourcePaths.length !== 1
+			) {
+				return null;
+			}
+			return {
+				kind: "file",
+				sourceFileNode: dragPayload.fileNode,
+				targetFileNode: targetPayload.fileNode,
+				position: this.resolveBeforeAfter(rowEl, event),
+			};
+		}
+
+		if (dragPayload.kind === "h1") {
+			if (targetPayload.kind === "file") {
+				if (targetPayload.fileNode.sourcePaths.length !== 1) {
+					return null;
+				}
+				return {
+					kind: "h1",
+					sourceFileNode: dragPayload.fileNode,
+					sourceH1Node: dragPayload.h1Node,
+					targetFileNode: targetPayload.fileNode,
+					position: "inside",
+				};
+			}
+			if (targetPayload.kind === "h1") {
+				if (dragPayload.h1Node === targetPayload.h1Node) {
+					return null;
+				}
+				return {
+					kind: "h1",
+					sourceFileNode: dragPayload.fileNode,
+					sourceH1Node: dragPayload.h1Node,
+					targetFileNode: targetPayload.fileNode,
+					targetH1Node: targetPayload.h1Node,
+					position: this.resolveBeforeAfter(rowEl, event),
+				};
+			}
+			return null;
+		}
+
+		if (targetPayload.kind === "h1") {
+			return {
+				kind: "h2",
+				sourceFileNode: dragPayload.fileNode,
+				sourceH1Node: dragPayload.h1Node,
+				sourceH2Node: dragPayload.h2Node,
+				targetFileNode: targetPayload.fileNode,
+				targetH1Node: targetPayload.h1Node,
+				position: "inside",
+			};
+		}
+		if (targetPayload.kind === "h2") {
+			if (dragPayload.h2Node === targetPayload.h2Node) {
+				return null;
+			}
+			return {
+				kind: "h2",
+				sourceFileNode: dragPayload.fileNode,
+				sourceH1Node: dragPayload.h1Node,
+				sourceH2Node: dragPayload.h2Node,
+				targetFileNode: targetPayload.fileNode,
+				targetH1Node: targetPayload.h1Node,
+				targetH2Node: targetPayload.h2Node,
+				position: this.resolveBeforeAfter(rowEl, event),
+			};
+		}
+		return null;
+	}
+
+	private resolveBeforeAfter(rowEl: HTMLElement, event: DragEvent | MouseEvent): "before" | "after" {
+		const bounds = rowEl.getBoundingClientRect();
+		const middleY = bounds.top + bounds.height / 2;
+		return event.clientY < middleY ? "before" : "after";
+	}
+
+	private applyDropIndicator(rowEl: HTMLElement, indicator: DropIndicator): void {
+		const nextClassName = `is-drop-${indicator}`;
+		if (this.dropIndicatorRowEl === rowEl && this.dropIndicatorClassName === nextClassName) {
+			return;
+		}
+		if (this.dropIndicatorRowEl && this.dropIndicatorClassName) {
+			this.dropIndicatorRowEl.removeClass(this.dropIndicatorClassName);
+		}
+		rowEl.addClass(nextClassName);
+		this.dropIndicatorRowEl = rowEl;
+		this.dropIndicatorClassName = nextClassName;
+	}
+
+	private clearDragState(): void {
+		this.dragPayload = null;
+		if (this.dragSourceRowEl) {
+			this.dragSourceRowEl.removeClass("is-dragging");
+			this.dragSourceRowEl = null;
+		}
+		if (this.dropIndicatorRowEl && this.dropIndicatorClassName) {
+			this.dropIndicatorRowEl.removeClass(this.dropIndicatorClassName);
+		}
+		this.dropIndicatorRowEl = null;
+		this.dropIndicatorClassName = "";
 	}
 
 	private resolveExpanded(stateKey: string): boolean {

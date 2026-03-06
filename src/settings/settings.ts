@@ -2,6 +2,7 @@ import type { SupportedLocale } from "../lang";
 
 export interface ChineseNovelAssistantSettings {
 	locale: SupportedLocale;
+	guidebookCollectionOrders: Record<string, string[]>;
 	guidebookKeywordHighlightMode: "first" | "all";
 	guidebookKeywordHighlightBackgroundColor: string;
 	guidebookKeywordUnderlineStyle: "none" | "solid" | "dashed" | "dotted" | "double" | "wavy";
@@ -55,6 +56,7 @@ export interface ChineseNovelAssistantSettings {
 export function createDefaultSettings(locale: SupportedLocale): ChineseNovelAssistantSettings {
 	return {
 		locale,
+		guidebookCollectionOrders: {},
 		guidebookKeywordHighlightMode: "first",
 		guidebookKeywordHighlightBackgroundColor: "#FFFFFF00",
 		guidebookKeywordUnderlineStyle: "dotted",

@@ -12,6 +12,7 @@ import {
 	handleGuidebookH1ContextAction,
 	handleGuidebookH2ContextAction,
 } from "../../../features/guidebook/menu-actions";
+import { handleGuidebookTreeDragMove } from "../../../features/guidebook/drag-sort-actions";
 
 let cachedMarkdownFilePath: string | null = null;
 
@@ -91,6 +92,24 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 				if (changed) {
 					void refreshGuidebook();
 				}
+			})();
+		},
+		onMove: (request) => {
+			return (async () => {
+				const changed = await handleGuidebookTreeDragMove(
+					{
+						app: ctx.app,
+						t: (key) => ctx.t(key),
+						treeData: latestTreeData,
+						getSettings: ctx.getSettings,
+						setSettings: ctx.setSettings,
+					},
+					request,
+				);
+				if (changed) {
+					void refreshGuidebook();
+				}
+				return changed;
 			})();
 		},
 	});

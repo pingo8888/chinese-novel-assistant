@@ -91,7 +91,8 @@
 }
 
 .workspace-leaf-content[data-type="chinese-novel-assistant-guidebook-sidebar"] .view-content {
-	padding-right: 12px;
+	padding-right: 2px;
+  padding-bottom: 12px;
 }
 
 .cna-right-sidebar {
@@ -226,6 +227,25 @@
 
 .cna-guidebook-tree__row:hover {
 	background: var(--background-modifier-hover);
+}
+
+.cna-guidebook-tree__row.is-dragging {
+	opacity: 0.45;
+}
+
+.cna-guidebook-tree__row.is-drop-inside {
+	background: var(--background-modifier-hover);
+	outline: 1px solid var(--interactive-accent);
+}
+
+.cna-guidebook-tree__row.is-drop-before {
+	border-radius: 0;
+	box-shadow: inset 0 2px 0 var(--interactive-accent);
+}
+
+.cna-guidebook-tree__row.is-drop-after {
+	border-radius: 0;
+	box-shadow: inset 0 -2px 0 var(--interactive-accent);
 }
 
 .cna-guidebook-tree__row-toggle {

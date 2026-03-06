@@ -16,12 +16,14 @@ export function registerGuidebookSidebarFeature(plugin: Plugin, ctx: PluginConte
 		app: plugin.app,
 		t: (key) => ctx.t(key),
 		getSettings: () => ctx.settings,
+		setSettings: (patch) => ctx.setSettings(patch),
 		onSettingsChange: (listener) => ctx.onSettingsChange(listener),
 		loadGuidebookTreeData: (activeFilePath) =>
 			buildGuidebookTreeData(plugin.app, {
 				locale: ctx.settings.locale,
 				novelLibraries: ctx.settings.novelLibraries,
 				guidebookDirName: ctx.settings.guidebookDirName,
+				guidebookCollectionOrders: ctx.settings.guidebookCollectionOrders,
 			}, activeFilePath),
 	};
 	plugin.registerView(
