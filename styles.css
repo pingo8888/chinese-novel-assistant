@@ -305,6 +305,12 @@
 	font-size: var(--font-ui-small);
 }
 
+.cna-guidebook-tree__row--h2.is-inactive-status .cna-guidebook-tree__row-label,
+.cna-guidebook-tree__row--h2 .cna-guidebook-tree__row-label.is-inactive-status {
+	text-decoration: line-through;
+	text-decoration-thickness: 1px;
+}
+
 .cna-guidebook-tree__row-count {
 	color: var(--text-muted);
 	font-variant-numeric: tabular-nums;

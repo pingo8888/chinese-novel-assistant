@@ -61,6 +61,7 @@ type DragTreeNodePayload =
 	  };
 
 type DropIndicator = "before" | "after" | "inside";
+const INACTIVE_STATUS_PATTERN = /【状态】\s*(死亡|失效)/;
 
 export function createGuidebookTreeViewComponent(
 	containerEl: HTMLElement,
@@ -211,10 +212,14 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 		const iconEl = rowEl.createSpan({ cls: "cna-guidebook-tree__row-icon" });
 		setIcon(iconEl, UI.icon.h2);
 
-		rowEl.createSpan({
+		const labelEl = rowEl.createSpan({
 			cls: "cna-guidebook-tree__row-label",
 			text: h2Node.title,
 		});
+		if (INACTIVE_STATUS_PATTERN.test(h2Node.content)) {
+			rowEl.addClass("is-inactive-status");
+			labelEl.addClass("is-inactive-status");
+		}
 		rowEl.addEventListener("contextmenu", (event) => {
 			event.preventDefault();
 			event.stopPropagation();
