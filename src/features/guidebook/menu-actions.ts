@@ -37,6 +37,21 @@ interface GuidebookActionContext {
 const guidebookMarkdownParser = new GuidebookMarkdownParser();
 const DUPLICATE_SETTING_ERROR = "cna_guidebook_setting_exists";
 const DUPLICATE_CATEGORY_ERROR = "cna_guidebook_category_exists";
+const guidebookFileTitlesCacheByPath = new Map<string, GuidebookFileTitlesCacheEntry>();
+const guidebookScopeTitlesCacheByKey = new Map<string, GuidebookScopeTitlesCacheEntry>();
+
+interface GuidebookFileTitlesCacheEntry {
+	mtime: number;
+	size: number;
+	h1Titles: readonly string[];
+	h2Titles: readonly string[];
+}
+
+interface GuidebookScopeTitlesCacheEntry {
+	signature: string;
+	h1Titles: readonly string[];
+	h2Titles: readonly string[];
+}
 
 export async function handleGuidebookBlankCreateCollection(context: GuidebookActionContext): Promise<boolean> {
 	const { app, t, treeData } = context;
@@ -570,15 +585,8 @@ async function collectAllCollectionH2Titles(
 	treeData: GuidebookTreeData | null,
 	excludeTitle?: string,
 ): Promise<Set<string>> {
-	const titles = new Set<string>();
-	const files = resolveCollectionFilesForUniquenessCheck(app, currentFile, treeData);
-	for (const file of files) {
-		const content = await app.vault.cachedRead(file);
-		const fileTitles = collectH2Titles(content);
-		for (const title of fileTitles) {
-			titles.add(title);
-		}
-	}
+	const { h2Titles } = await resolveCollectionScopeTitles(app, currentFile, treeData);
+	const titles = new Set(h2Titles);
 	const normalizedExcludeTitle = excludeTitle?.trim();
 	if (normalizedExcludeTitle && normalizedExcludeTitle.length > 0) {
 		titles.delete(normalizedExcludeTitle);
@@ -592,15 +600,8 @@ async function collectAllCollectionH1Titles(
 	treeData: GuidebookTreeData | null,
 	excludeTitle?: string,
 ): Promise<Set<string>> {
-	const titles = new Set<string>();
-	const files = resolveCollectionFilesForUniquenessCheck(app, currentFile, treeData);
-	for (const file of files) {
-		const content = await app.vault.cachedRead(file);
-		const fileTitles = collectH1Titles(content);
-		for (const title of fileTitles) {
-			titles.add(title);
-		}
-	}
+	const { h1Titles } = await resolveCollectionScopeTitles(app, currentFile, treeData);
+	const titles = new Set(h1Titles);
 	const normalizedExcludeTitle = excludeTitle?.trim();
 	if (normalizedExcludeTitle && normalizedExcludeTitle.length > 0) {
 		titles.delete(normalizedExcludeTitle);
@@ -624,6 +625,103 @@ function resolveCollectionFilesForUniquenessCheck(
 	return app.vault
 		.getMarkdownFiles()
 		.filter((file) => file.path === guidebookRootPath || file.path.startsWith(`${guidebookRootPath}/`));
+}
+
+async function resolveCollectionScopeTitles(
+	app: App,
+	currentFile: TFile,
+	treeData: GuidebookTreeData | null,
+): Promise<{ h1Titles: readonly string[]; h2Titles: readonly string[] }> {
+	const files = resolveCollectionFilesForUniquenessCheck(app, currentFile, treeData);
+	const scopeKey = resolveCollectionScopeCacheKey(currentFile, treeData);
+	const signature = buildCollectionScopeSignature(files);
+	const cachedScope = guidebookScopeTitlesCacheByKey.get(scopeKey);
+	if (cachedScope && cachedScope.signature === signature) {
+		return {
+			h1Titles: cachedScope.h1Titles,
+			h2Titles: cachedScope.h2Titles,
+		};
+	}
+
+	const h1TitleSet = new Set<string>();
+	const h2TitleSet = new Set<string>();
+	for (const file of files) {
+		const fileTitles = await resolveFileTitles(app, file);
+		for (const title of fileTitles.h1Titles) {
+			h1TitleSet.add(title);
+		}
+		for (const title of fileTitles.h2Titles) {
+			h2TitleSet.add(title);
+		}
+	}
+
+	const entry: GuidebookScopeTitlesCacheEntry = {
+		signature,
+		h1Titles: Array.from(h1TitleSet),
+		h2Titles: Array.from(h2TitleSet),
+	};
+	guidebookScopeTitlesCacheByKey.set(scopeKey, entry);
+	return {
+		h1Titles: entry.h1Titles,
+		h2Titles: entry.h2Titles,
+	};
+}
+
+async function resolveFileTitles(
+	app: App,
+	file: TFile,
+): Promise<{ h1Titles: readonly string[]; h2Titles: readonly string[] }> {
+	const cached = guidebookFileTitlesCacheByPath.get(file.path);
+	if (cached && cached.mtime === file.stat.mtime && cached.size === file.stat.size) {
+		return {
+			h1Titles: cached.h1Titles,
+			h2Titles: cached.h2Titles,
+		};
+	}
+
+	const content = await app.vault.cachedRead(file);
+	const parsed = guidebookMarkdownParser.parseTree(content);
+	const h1TitleSet = new Set<string>();
+	const h2TitleSet = new Set<string>();
+	for (const h1Node of parsed) {
+		const h1Title = h1Node.title.trim();
+		if (h1Title.length > 0) {
+			h1TitleSet.add(h1Title);
+		}
+		for (const h2Node of h1Node.h2List) {
+			const h2Title = h2Node.title.trim();
+			if (h2Title.length > 0) {
+				h2TitleSet.add(h2Title);
+			}
+		}
+	}
+
+	const entry: GuidebookFileTitlesCacheEntry = {
+		mtime: file.stat.mtime,
+		size: file.stat.size,
+		h1Titles: Array.from(h1TitleSet),
+		h2Titles: Array.from(h2TitleSet),
+	};
+	guidebookFileTitlesCacheByPath.set(file.path, entry);
+	return {
+		h1Titles: entry.h1Titles,
+		h2Titles: entry.h2Titles,
+	};
+}
+
+function resolveCollectionScopeCacheKey(currentFile: TFile, treeData: GuidebookTreeData | null): string {
+	const guidebookRootPath = treeData?.guidebookRootPath;
+	if (guidebookRootPath) {
+		return `guidebook:${guidebookRootPath}`;
+	}
+	return `parent:${getParentPath(currentFile.path)}`;
+}
+
+function buildCollectionScopeSignature(files: TFile[]): string {
+	const orderedFiles = [...files].sort((left, right) => left.path.localeCompare(right.path));
+	return orderedFiles
+		.map((file) => `${file.path}\u0000${file.stat.mtime}\u0000${file.stat.size}`)
+		.join("\u0001");
 }
 
 function appendH2(content: string, h1Index: number, headingTitle: string): string {

@@ -43,7 +43,22 @@ interface GuidebookTreeFileBucket extends GuidebookTreeFileNode {
 	firstFileCtime: number;
 }
 
+interface ParsedGuidebookFileCacheEntry {
+	mtime: number;
+	size: number;
+	ctime: number;
+	h1List: GuidebookTreeH1Node[];
+}
+
+interface GuidebookTreeCacheEntry {
+	signature: string;
+	orderedSourcePathsKey: string;
+	data: GuidebookTreeData;
+}
+
 const guidebookMarkdownParser = new GuidebookMarkdownParser();
+const parsedGuidebookFileCacheByPath = new Map<string, ParsedGuidebookFileCacheEntry>();
+const guidebookTreeCacheByRootPath = new Map<string, GuidebookTreeCacheEntry>();
 
 export async function buildGuidebookTreeData(
 	app: App,
@@ -76,11 +91,21 @@ export async function buildGuidebookTreeData(
 		.getMarkdownFiles()
 		.filter((file) => libraryService.isSameOrChildPath(file.path, guidebookRootPath))
 		.sort(compareByFileCreationTime);
+	const guidebookFileSignature = guidebookMarkdownFiles
+		.map((file) => `${file.path}\u0000${file.stat.mtime}\u0000${file.stat.size}\u0000${file.stat.ctime}`)
+		.join("\u0001");
+	const orderedSourcePaths = settings.guidebookCollectionOrders[guidebookRootPath] ?? [];
+	const orderedSourcePathsKey = orderedSourcePaths.join("\u0001");
+	const cachedTree = guidebookTreeCacheByRootPath.get(guidebookRootPath);
+	if (cachedTree && cachedTree.signature === guidebookFileSignature && cachedTree.orderedSourcePathsKey === orderedSourcePathsKey) {
+		return cachedTree.data;
+	}
 
 	const fileBucketByName = new Map<string, GuidebookTreeFileBucket>();
+	const activeGuidebookPaths = new Set<string>();
 	for (const file of guidebookMarkdownFiles) {
-		const markdown = await app.vault.cachedRead(file);
-		const h1List = mapParsedGuidebookTree(markdown, file.path, file.stat.ctime);
+		activeGuidebookPaths.add(file.path);
+		const h1List = await resolveParsedGuidebookTreeByFile(app, file);
 
 		const fileNameKey = file.basename;
 		let fileBucket = fileBucketByName.get(fileNameKey);
@@ -105,8 +130,9 @@ export async function buildGuidebookTreeData(
 			targetBucket.stableKey = String(file.stat.ctime);
 		}
 	}
+	pruneGuidebookFileParseCache(guidebookRootPath, activeGuidebookPaths);
 
-	const collectionOrderMap = buildCollectionOrderMap(settings.guidebookCollectionOrders[guidebookRootPath] ?? []);
+	const collectionOrderMap = buildCollectionOrderMap(orderedSourcePaths);
 	const files = Array.from(fileBucketByName.values())
 		.sort((left, right) =>
 			compareByCollectionOrder(
@@ -123,11 +149,17 @@ export async function buildGuidebookTreeData(
 			h2Count: bucket.h2Count,
 		}));
 
-	return {
+	const treeData: GuidebookTreeData = {
 		libraryRootPath: containingLibraryRoot,
 		guidebookRootPath,
 		files,
 	};
+	guidebookTreeCacheByRootPath.set(guidebookRootPath, {
+		signature: guidebookFileSignature,
+		orderedSourcePathsKey,
+		data: treeData,
+	});
+	return treeData;
 }
 
 function compareByFileCreationTime(left: TFile, right: TFile): number {
@@ -176,4 +208,31 @@ function mapParsedGuidebookTree(content: string, sourcePath: string, sourceFileC
 		sourceFileCtime,
 		h1IndexInSource: h1Node.h1IndexInSource,
 	}));
+}
+
+async function resolveParsedGuidebookTreeByFile(app: App, file: TFile): Promise<GuidebookTreeH1Node[]> {
+	const cached = parsedGuidebookFileCacheByPath.get(file.path);
+	if (cached && cached.mtime === file.stat.mtime && cached.size === file.stat.size && cached.ctime === file.stat.ctime) {
+		return cached.h1List;
+	}
+	const markdown = await app.vault.cachedRead(file);
+	const h1List = mapParsedGuidebookTree(markdown, file.path, file.stat.ctime);
+	parsedGuidebookFileCacheByPath.set(file.path, {
+		mtime: file.stat.mtime,
+		size: file.stat.size,
+		ctime: file.stat.ctime,
+		h1List,
+	});
+	return h1List;
+}
+
+function pruneGuidebookFileParseCache(guidebookRootPath: string, activeGuidebookPaths: Set<string>): void {
+	for (const path of parsedGuidebookFileCacheByPath.keys()) {
+		if (!path.startsWith(`${guidebookRootPath}/`) && path !== guidebookRootPath) {
+			continue;
+		}
+		if (!activeGuidebookPaths.has(path)) {
+			parsedGuidebookFileCacheByPath.delete(path);
+		}
+	}
 }

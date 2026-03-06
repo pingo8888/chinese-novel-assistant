@@ -2,7 +2,7 @@ import type { SidebarViewRenderContext } from "./types";
 import { MarkdownView, setIcon, TFile } from "obsidian";
 import { UI } from "../../../constants";
 import { NovelLibraryService } from "../../../services/novel-library-service";
-import { watchVaultChanges } from "../../../services/vault-change-watcher";
+import { type VaultChangeEvent, watchVaultChanges } from "../../../services/vault-change-watcher";
 import { ToggleButtonComponent } from "../../componets/toggle-button";
 import { createGuidebookTreeViewComponent } from "./outline-tree";
 import type { GuidebookTreeData } from "../../../features/guidebook/tree-builder";
@@ -132,6 +132,8 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 	let isDisposed = false;
 	let refreshSeq = 0;
 	let refreshTimer: number | null = null;
+	let renderedTreeSignature: string | null = null;
+	let hasRenderedTree = false;
 
 	const refreshGuidebook = async (preferredFilePath?: string | null): Promise<void> => {
 		const nextFilePath = preferredFilePath ?? resolveActiveMarkdownFilePath(ctx) ?? lastMarkdownFilePath ?? cachedMarkdownFilePath;
@@ -141,13 +143,21 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 		}
 		titleTextEl.setText(resolveCurrentNovelLibraryName(ctx, novelLibraryService, nextFilePath));
 		const currentSeq = ++refreshSeq;
-		treeView.renderLoading(ctx.t("feature.right_sidebar.guidebook.tree.loading"));
+		if (!hasRenderedTree) {
+			treeView.renderLoading(ctx.t("feature.right_sidebar.guidebook.tree.loading"));
+		}
 
 		const treeData = (await ctx.loadGuidebookTreeData?.(nextFilePath ?? null)) ?? null;
 		if (isDisposed || currentSeq !== refreshSeq) {
 			return;
 		}
+		const treeSignature = buildGuidebookTreeSignature(treeData);
+		if (hasRenderedTree && treeSignature === renderedTreeSignature) {
+			return;
+		}
 		latestTreeData = treeData;
+		renderedTreeSignature = treeSignature;
+		hasRenderedTree = true;
 
 		treeView.renderData(treeData, ctx.t("feature.right_sidebar.guidebook.tree.empty"));
 	};
@@ -164,19 +174,22 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 
 	const workspaceEventRefs = [
 		ctx.app.workspace.on("file-open", (file) => {
-			void refreshGuidebook(file?.path ?? null);
+			scheduleRefresh(file?.path ?? null);
 		}),
 		ctx.app.workspace.on("active-leaf-change", (leaf) => {
 			const markdownView = leaf?.view;
 			if (!(markdownView instanceof MarkdownView)) {
 				return;
 			}
-			void refreshGuidebook(markdownView.file?.path ?? null);
+			scheduleRefresh(markdownView.file?.path ?? null);
 		}),
 	];
 
 	const disposeVaultWatcher = watchVaultChanges(ctx.app, (event) => {
-		if (isMarkdownFile(event.file)) {
+		if (!isMarkdownFile(event.file)) {
+			return;
+		}
+		if (shouldRefreshForVaultEvent(event, ctx, novelLibraryService, latestTreeData, lastMarkdownFilePath)) {
 			scheduleRefresh();
 		}
 	});
@@ -230,4 +243,59 @@ function resolveActiveMarkdownFilePath(ctx: SidebarViewRenderContext): string | 
 
 function isMarkdownFile(file: unknown): file is TFile {
 	return file instanceof TFile && file.extension === "md";
+}
+
+function shouldRefreshForVaultEvent(
+	event: VaultChangeEvent,
+	ctx: SidebarViewRenderContext,
+	novelLibraryService: NovelLibraryService,
+	latestTreeData: GuidebookTreeData | null,
+	lastMarkdownFilePath: string | null,
+): boolean {
+	const settings = ctx.getSettings();
+	const normalizedLibraryRoots = novelLibraryService.normalizeLibraryRoots(settings.novelLibraries);
+	const referenceFilePath = resolveActiveMarkdownFilePath(ctx) ?? lastMarkdownFilePath ?? cachedMarkdownFilePath;
+	if (!referenceFilePath) {
+		return true;
+	}
+
+	const activeLibraryRoot = novelLibraryService.resolveContainingLibraryRoot(referenceFilePath, normalizedLibraryRoots);
+	if (!activeLibraryRoot) {
+		return false;
+	}
+	const guidebookRootPath =
+		latestTreeData?.guidebookRootPath ||
+		novelLibraryService.resolveNovelLibrarySubdirPath(
+			{ locale: settings.locale },
+			activeLibraryRoot,
+			settings.guidebookDirName,
+		);
+	if (!guidebookRootPath) {
+		return false;
+	}
+	return isSameOrChildPath(event.path, guidebookRootPath) || isSameOrChildPath(event.oldPath, guidebookRootPath);
+}
+
+function isSameOrChildPath(path: string | undefined, root: string): boolean {
+	if (!path || !root) {
+		return false;
+	}
+	return path === root || path.startsWith(`${root}/`);
+}
+
+function buildGuidebookTreeSignature(treeData: GuidebookTreeData | null): string {
+	if (!treeData) {
+		return "";
+	}
+	let signature = `${treeData.libraryRootPath}\u0000${treeData.guidebookRootPath}\u0000${treeData.files.length}`;
+	for (const fileNode of treeData.files) {
+		signature += `\u0001${fileNode.stableKey}\u0000${fileNode.fileName}\u0000${fileNode.h2Count}\u0000${fileNode.sourcePaths.join("\u0002")}`;
+		for (const h1Node of fileNode.h1List) {
+			signature += `\u0003${h1Node.h1IndexInSource}\u0000${h1Node.title}\u0000${h1Node.h2List.length}\u0000${h1Node.sourcePath}`;
+			for (const h2Node of h1Node.h2List) {
+				signature += `\u0004${h2Node.h1IndexInSource}\u0000${h2Node.h2IndexInH1}\u0000${h2Node.title}\u0000${h2Node.sourcePath}\u0000${h2Node.sourceFileCtime}`;
+			}
+		}
+	}
+	return signature;
 }

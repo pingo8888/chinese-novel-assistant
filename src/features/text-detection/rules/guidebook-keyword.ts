@@ -1,5 +1,5 @@
 import type { EditorView } from "@codemirror/view";
-import { MarkdownView, type Plugin } from "obsidian";
+import { MarkdownView, TFile, type Plugin } from "obsidian";
 import { GuidebookMarkdownParser } from "../../guidebook/markdown-parser";
 import { NovelLibraryService } from "../../../services/novel-library-service";
 import type { ChineseNovelAssistantSettings } from "../../../settings/settings";
@@ -21,6 +21,12 @@ interface MatchRange {
 	to: number;
 }
 
+interface GuidebookFileKeywordCacheEntry {
+	mtime: number;
+	size: number;
+	keywords: readonly string[];
+}
+
 export class GuidebookKeywordHighlightController {
 	private readonly plugin: Plugin;
 	private readonly getSettings: () => ChineseNovelAssistantSettings;
@@ -31,6 +37,7 @@ export class GuidebookKeywordHighlightController {
 	private readonly guidebookKeywordsByLibraryRoot = new Map<string, readonly string[]>();
 	private readonly loadingGuidebookKeywordRoots = new Set<string>();
 	private readonly dirtyGuidebookKeywordRoots = new Set<string>();
+	private readonly guidebookFileKeywordCacheByPath = new Map<string, GuidebookFileKeywordCacheEntry>();
 	private guidebookKeywordRefreshTimer: number | null = null;
 	private keywordCacheVersion = 0;
 	private isDisposed = false;
@@ -229,19 +236,15 @@ export class GuidebookKeywordHighlightController {
 			.sort((left, right) => left.stat.ctime - right.stat.ctime || left.path.localeCompare(right.path));
 
 		const keywordSet = new Set<string>();
+		const activeGuidebookPaths = new Set<string>();
 		for (const file of guidebookMarkdownFiles) {
-			const markdown = await this.plugin.app.vault.read(file);
-			const h1List = this.guidebookMarkdownParser.parseTree(markdown);
-			for (const h1Node of h1List) {
-				for (const h2Node of h1Node.h2List) {
-					const title = h2Node.title.trim();
-					if (title.length === 0) {
-						continue;
-					}
-					keywordSet.add(title);
-				}
+			activeGuidebookPaths.add(file.path);
+			const fileKeywords = await this.resolveGuidebookFileKeywords(file.path, file.stat.mtime, file.stat.size);
+			for (const title of fileKeywords) {
+				keywordSet.add(title);
 			}
 		}
+		this.pruneGuidebookFileKeywordCache(guidebookRootPath, activeGuidebookPaths);
 
 		return Array.from(keywordSet).sort((left, right) => right.length - left.length || left.localeCompare(right));
 	}
@@ -251,6 +254,7 @@ export class GuidebookKeywordHighlightController {
 		this.guidebookKeywordsByLibraryRoot.clear();
 		this.loadingGuidebookKeywordRoots.clear();
 		this.dirtyGuidebookKeywordRoots.clear();
+		this.guidebookFileKeywordCacheByPath.clear();
 	}
 
 	private pruneKeywordCache(): void {
@@ -344,6 +348,50 @@ export class GuidebookKeywordHighlightController {
 	private normalizeCssColor(value: string, fallback: string): string {
 		const normalized = value.trim();
 		return normalized.length > 0 ? normalized : fallback;
+	}
+
+	private async resolveGuidebookFileKeywords(
+		filePath: string,
+		mtime: number,
+		size: number,
+	): Promise<readonly string[]> {
+		const cached = this.guidebookFileKeywordCacheByPath.get(filePath);
+		if (cached && cached.mtime === mtime && cached.size === size) {
+			return cached.keywords;
+		}
+		const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
+		if (!(file instanceof TFile)) {
+			return [];
+		}
+		const markdown = await this.plugin.app.vault.cachedRead(file);
+		const h1List = this.guidebookMarkdownParser.parseTree(markdown);
+		const keywordSet = new Set<string>();
+		for (const h1Node of h1List) {
+			for (const h2Node of h1Node.h2List) {
+				const title = h2Node.title.trim();
+				if (title.length > 0) {
+					keywordSet.add(title);
+				}
+			}
+		}
+		const keywords = Array.from(keywordSet).sort((left, right) => right.length - left.length || left.localeCompare(right));
+		this.guidebookFileKeywordCacheByPath.set(filePath, {
+			mtime,
+			size,
+			keywords,
+		});
+		return keywords;
+	}
+
+	private pruneGuidebookFileKeywordCache(guidebookRootPath: string, activeGuidebookPaths: Set<string>): void {
+		for (const path of this.guidebookFileKeywordCacheByPath.keys()) {
+			if (!this.novelLibraryService.isSameOrChildPath(path, guidebookRootPath)) {
+				continue;
+			}
+			if (!activeGuidebookPaths.has(path)) {
+				this.guidebookFileKeywordCacheByPath.delete(path);
+			}
+		}
 	}
 
 	private getRootEl(): HTMLElement {
