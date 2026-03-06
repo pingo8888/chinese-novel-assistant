@@ -37,7 +37,7 @@ export class GuidebookPreviewController {
 		this.plugin = plugin;
 		this.getSettings = options.getSettings;
 		this.resolveKeywordPreviewItem = options.resolveKeywordPreviewItem;
-		this.previewPopover = new GuidebookPreviewPopover(this.getRootEl(), {
+		this.previewPopover = new GuidebookPreviewPopover(document.body, {
 			onLocate: (item) => {
 				void this.searchKeywordInGlobalSearch(item.keyword);
 			},
@@ -55,10 +55,9 @@ export class GuidebookPreviewController {
 			return;
 		}
 		this.started = true;
-		const rootEl = this.getRootEl();
-		this.plugin.registerDomEvent(rootEl, "mouseover", this.onMouseOver);
-		this.plugin.registerDomEvent(rootEl, "mouseout", this.onMouseOut);
-		this.plugin.registerDomEvent(rootEl, "mousedown", this.onMouseDown);
+		this.plugin.registerDomEvent(document, "mouseover", this.onMouseOver);
+		this.plugin.registerDomEvent(document, "mouseout", this.onMouseOut);
+		this.plugin.registerDomEvent(document, "mousedown", this.onMouseDown);
 		this.plugin.registerDomEvent(this.previewPopover.getElement(), "mouseenter", this.onPopoverMouseEnter);
 		this.plugin.registerDomEvent(this.previewPopover.getElement(), "mouseleave", this.onPopoverMouseLeave);
 		this.plugin.registerEvent(
@@ -294,11 +293,6 @@ export class GuidebookPreviewController {
 			return null;
 		}
 		return EditorView.findFromDOM(editorEl);
-	}
-
-	private getRootEl(): HTMLElement {
-		const workspaceContainerEl = (this.plugin.app.workspace as unknown as { containerEl?: HTMLElement }).containerEl;
-		return workspaceContainerEl ?? document.body;
 	}
 
 	private async searchKeywordInGlobalSearch(keyword: string): Promise<void> {
