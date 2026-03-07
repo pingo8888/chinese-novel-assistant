@@ -1,14 +1,20 @@
-import type { App } from "obsidian";
+import { Notice, type App } from "obsidian";
 import type { TranslationKey } from "../../../lang";
 import { renderStickyNoteCardItem } from "./card-item";
 import type { StickyNoteCardModel, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
 import { closeStickyNoteCardMenu } from "./card-menu";
+import type { ChineseNovelAssistantSettings } from "../../../settings/settings";
+import { StickyNoteRepository } from "../../../features/sticky-note/repository";
 
 export interface StickyNoteCardListController {
 	setSortMode(sortMode: StickyNoteSortMode): void;
 	setSearchKeyword(keyword: string): void;
 	setViewOptions(nextOptions: StickyNoteViewOptions): void;
+	rerender(): void;
 	refresh(): void;
+	applyVaultFileCreateOrModify(path: string): void;
+	applyVaultFileDelete(path: string): void;
+	applyVaultFileRename(oldPath: string, newPath: string): void;
 	destroy(): void;
 }
 
@@ -16,6 +22,8 @@ interface StickyNoteCardListDeps {
 	app: App;
 	containerEl: HTMLElement;
 	t: (key: TranslationKey) => string;
+	getSettings: () => ChineseNovelAssistantSettings;
+	getStickyNoteRootPaths: () => string[];
 	initialSortMode: StickyNoteSortMode;
 	initialSearchKeyword?: string;
 	initialViewOptions: StickyNoteViewOptions;
@@ -33,11 +41,154 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 		sortMode: deps.initialSortMode,
 		searchKeyword: deps.initialSearchKeyword ?? "",
 		viewOptions: deps.initialViewOptions,
-		cards: createMockStickyNoteCards(deps.initialViewOptions.imageAutoExpand),
+		cards: [],
 	};
+	const repository = new StickyNoteRepository(deps.app);
 
 	let isDestroyed = false;
+	let loadVersion = 0;
 	let cardItemDisposers: Array<() => void> = [];
+	const fileReadVersionByPath = new Map<string, number>();
+
+	const replaceCards = (nextCards: StickyNoteCardModel[]): void => {
+		for (const card of state.cards) {
+			revokeImageUrls(card.images);
+		}
+		state.cards = nextCards;
+	};
+
+	const preserveImageExpandedState = (nextCards: StickyNoteCardModel[]): StickyNoteCardModel[] => {
+		if (state.cards.length === 0 || nextCards.length === 0) {
+			return nextCards;
+		}
+		const expandedByCardId = new Map<string, boolean>();
+		for (const card of state.cards) {
+			expandedByCardId.set(card.id, card.isImageExpanded);
+		}
+		for (const card of nextCards) {
+			const preserved = expandedByCardId.get(card.id);
+			if (typeof preserved === "boolean") {
+				card.isImageExpanded = preserved;
+			}
+		}
+		return nextCards;
+	};
+
+	const loadCardsFromVault = async (): Promise<void> => {
+		const currentLoadVersion = ++loadVersion;
+		try {
+			const cards = await repository.listCards(deps.getSettings(), {
+				imageAutoExpand: state.viewOptions.imageAutoExpand,
+				rootPaths: deps.getStickyNoteRootPaths(),
+			});
+			if (isDestroyed || currentLoadVersion !== loadVersion) {
+				for (const card of cards) {
+					revokeImageUrls(card.images);
+				}
+				return;
+			}
+			replaceCards(preserveImageExpandedState(cards));
+			render();
+		} catch (error) {
+			if (isDestroyed) {
+				return;
+			}
+			console.error("[Chinese Novel Assistant] Failed to load sticky notes.", error);
+			new Notice("便签加载失败，请检查控制台日志。");
+		}
+	};
+
+	const removeCardByPath = (path: string, shouldRender: boolean): boolean => {
+		const index = state.cards.findIndex((item) => item.sourcePath === path);
+		if (index < 0) {
+			return false;
+		}
+		const [removed] = state.cards.splice(index, 1);
+		if (removed) {
+			revokeImageUrls(removed.images);
+		}
+		if (shouldRender) {
+			render();
+		}
+		return true;
+	};
+
+	const upsertCard = (nextCard: StickyNoteCardModel): void => {
+		const index = state.cards.findIndex((item) => item.sourcePath === nextCard.sourcePath);
+		if (index < 0) {
+			state.cards.push(nextCard);
+			render();
+			return;
+		}
+		const previous = state.cards[index];
+		if (!previous) {
+			state.cards.push(nextCard);
+			render();
+			return;
+		}
+		nextCard.isImageExpanded = previous.isImageExpanded;
+		state.cards[index] = nextCard;
+		revokeImageUrls(previous.images);
+		render();
+	};
+
+	const loadCardByPathFromVault = async (path: string): Promise<void> => {
+		const pathReadVersion = (fileReadVersionByPath.get(path) ?? 0) + 1;
+		fileReadVersionByPath.set(path, pathReadVersion);
+		try {
+			const nextCard = await repository.getCardByPath(path, {
+				imageAutoExpand: state.viewOptions.imageAutoExpand,
+			});
+			if (isDestroyed) {
+				if (nextCard) {
+					revokeImageUrls(nextCard.images);
+				}
+				return;
+			}
+			if (fileReadVersionByPath.get(path) !== pathReadVersion) {
+				if (nextCard) {
+					revokeImageUrls(nextCard.images);
+				}
+				return;
+			}
+			fileReadVersionByPath.delete(path);
+			if (!nextCard) {
+				removeCardByPath(path, true);
+				return;
+			}
+			upsertCard(nextCard);
+		} catch (error) {
+			fileReadVersionByPath.delete(path);
+			if (!isDestroyed) {
+				console.error("[Chinese Novel Assistant] Failed to load sticky note file.", error);
+			}
+		}
+	};
+
+	const persistCard = async (card: StickyNoteCardModel): Promise<void> => {
+		try {
+			await repository.saveCard(card);
+		} catch (error) {
+			if (isDestroyed) {
+				return;
+			}
+			console.error("[Chinese Novel Assistant] Failed to save sticky note.", error);
+			new Notice("便签保存失败，请检查控制台日志。");
+		}
+	};
+
+	const deleteCardFromVault = async (card: StickyNoteCardModel): Promise<boolean> => {
+		try {
+			await repository.deleteCard(card);
+			return true;
+		} catch (error) {
+			if (!isDestroyed) {
+				console.error("[Chinese Novel Assistant] Failed to delete sticky note.", error);
+				new Notice("便签删除失败，请检查控制台日志。");
+			}
+			return false;
+		}
+	};
 
 	const render = (): void => {
 		if (isDestroyed) {
@@ -68,15 +219,17 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 				viewOptions: state.viewOptions,
 				t: deps.t,
 				onCardTouched: () => {
+					void persistCard(card);
 					render();
 				},
 				onCardDelete: () => {
-					const removed = state.cards.find((item) => item.id === card.id);
-					if (removed) {
-						revokeImageUrls(removed.images);
-					}
-					state.cards = state.cards.filter((item) => item.id !== card.id);
-					render();
+					void (async () => {
+						const deleted = await deleteCardFromVault(card);
+						if (!deleted || isDestroyed) {
+							return;
+						}
+						removeCardByPath(card.sourcePath, true);
+					})();
 				},
 			});
 			cardItemDisposers.push(disposeCardItem);
@@ -84,6 +237,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 	};
 
 	render();
+	void loadCardsFromVault();
 
 	return {
 		setSortMode(sortMode) {
@@ -111,6 +265,33 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 			render();
 		},
 		refresh() {
+			void loadCardsFromVault();
+		},
+		rerender() {
+			render();
+		},
+		applyVaultFileCreateOrModify(path) {
+			if (!path) {
+				return;
+			}
+			void loadCardByPathFromVault(path);
+		},
+		applyVaultFileDelete(path) {
+			if (!path) {
+				return;
+			}
+			fileReadVersionByPath.delete(path);
+			removeCardByPath(path, true);
+		},
+		applyVaultFileRename(oldPath, newPath) {
+			if (oldPath && oldPath !== newPath) {
+				fileReadVersionByPath.delete(oldPath);
+				removeCardByPath(oldPath, false);
+			}
+			if (newPath) {
+				void loadCardByPathFromVault(newPath);
+				return;
+			}
 			render();
 		},
 		destroy() {
@@ -118,6 +299,8 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 				return;
 			}
 			isDestroyed = true;
+			loadVersion += 1;
+			fileReadVersionByPath.clear();
 			for (const dispose of cardItemDisposers) {
 				dispose();
 			}
@@ -167,43 +350,4 @@ function revokeImageUrls(images: StickyNoteCardModel["images"]): void {
 			URL.revokeObjectURL(image.src);
 		}
 	}
-}
-
-function createMockStickyNoteCards(imageAutoExpand: boolean): StickyNoteCardModel[] {
-	const now = Date.now();
-	return [
-		{
-			id: "note-1",
-			createdAt: now - 1000 * 60 * 60 * 24 * 5,
-			updatedAt: now - 1000 * 60 * 35,
-			contentMarkdown: "**剧情钩子**\n- 主角在旧档案里看到一张合照。\n- 合照里出现了已经死亡的人物。",
-			contentPlainText: "剧情钩子 主角在旧档案里看到一张合照。 合照里出现了已经死亡的人物。",
-			tagsText: "#角色 #伏笔",
-			images: [],
-			isImageExpanded: imageAutoExpand,
-			isPinned: false,
-		},
-		{
-			id: "note-2",
-			createdAt: now - 1000 * 60 * 60 * 24 * 2,
-			updatedAt: now - 1000 * 60 * 60 * 3,
-			contentMarkdown: "开篇第一章的天气描写要再压抑一点。\n1. 降低能见度\n2. 增加潮湿感",
-			contentPlainText: "开篇第一章的天气描写要再压抑一点。 降低能见度 增加潮湿感",
-			tagsText: "",
-			images: [],
-			isImageExpanded: imageAutoExpand,
-			isPinned: false,
-		},
-		{
-			id: "note-3",
-			createdAt: now - 1000 * 60 * 60 * 24,
-			updatedAt: now - 1000 * 60 * 15,
-			contentMarkdown: "**反转点：**第三幕由配角揭示真正动机。",
-			contentPlainText: "反转点：第三幕由配角揭示真正动机。",
-			tagsText: "#剧情 #反转",
-			images: [],
-			isImageExpanded: imageAutoExpand,
-			isPinned: false,
-		},
-	];
 }

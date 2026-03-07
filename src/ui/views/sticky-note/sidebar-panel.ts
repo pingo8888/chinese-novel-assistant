@@ -1,11 +1,12 @@
 import type { SidebarViewRenderContext } from "../guidebook/types";
-import { setIcon } from "obsidian";
+import { MarkdownView, Notice, TFile, setIcon, type EventRef, type TAbstractFile } from "obsidian";
 import { UI } from "../../../constants";
 import { ClearableInputComponent } from "../../componets/clearable-input";
 import { showContextMenuAtMouseEvent } from "../../componets/context-menu";
 import { createStickyNoteCardList } from "./card-list";
 import type { StickyNoteSortMode, StickyNoteViewOptions } from "./types";
-type StickyNoteTitleKey = "feature.right_sidebar.sticky_note.title";
+import { NovelLibraryService } from "../../../services/novel-library-service";
+import { StickyNoteRepository } from "../../../features/sticky-note/repository";
 type StickyNoteSparklesTooltipKey = "feature.right_sidebar.sticky_note.action.sparkles.tooltip";
 type StickyNoteSortTooltipKey =
 	| "feature.right_sidebar.sticky_note.sort.tooltip.desc"
@@ -41,6 +42,9 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 
 	let sortMode: StickyNoteSortMode = "created_desc";
 	let searchKeyword = "";
+	const novelLibraryService = new NovelLibraryService(ctx.app);
+	const repository = new StickyNoteRepository(ctx.app);
+	let stickyNoteRootPaths = resolveScopedStickyNoteRootPaths(ctx, novelLibraryService);
 
 	const resolveViewOptions = (): StickyNoteViewOptions => {
 		const settings = ctx.getSettings();
@@ -55,10 +59,58 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 		app: ctx.app,
 		containerEl: listWrapEl,
 		t: (key) => ctx.t(key),
+		getSettings: () => ctx.getSettings(),
+		getStickyNoteRootPaths: () => stickyNoteRootPaths,
 		initialSortMode: sortMode,
 		initialSearchKeyword: searchKeyword,
 		initialViewOptions: resolveViewOptions(),
 	});
+	const isStickyNoteMarkdownPath = (path: string): boolean => {
+		if (!path || !path.toLowerCase().endsWith(".md")) {
+			return false;
+		}
+		return stickyNoteRootPaths.some((rootPath) => novelLibraryService.isSameOrChildPath(path, rootPath));
+	};
+	const onVaultFileChanged = (file: TAbstractFile): void => {
+		if (!(file instanceof TFile)) {
+			return;
+		}
+		if (!isStickyNoteMarkdownPath(file.path)) {
+			return;
+		}
+		cardList.applyVaultFileCreateOrModify(file.path);
+	};
+	const onVaultFileDeleted = (file: TAbstractFile): void => {
+		if (!(file instanceof TFile)) {
+			return;
+		}
+		if (!isStickyNoteMarkdownPath(file.path)) {
+			return;
+		}
+		cardList.applyVaultFileDelete(file.path);
+	};
+	const onVaultFileRenamed = (file: TAbstractFile, oldPath: string): void => {
+		const nextPath = file instanceof TFile && isStickyNoteMarkdownPath(file.path) ? file.path : "";
+		const oldPathMatched = isStickyNoteMarkdownPath(oldPath);
+		if (!nextPath && !oldPathMatched) {
+			return;
+		}
+		if (nextPath && oldPathMatched) {
+			cardList.applyVaultFileRename(oldPath, nextPath);
+			return;
+		}
+		if (nextPath) {
+			cardList.applyVaultFileCreateOrModify(nextPath);
+			return;
+		}
+		cardList.applyVaultFileDelete(oldPath);
+	};
+	const vaultEventRefs: EventRef[] = [
+		ctx.app.vault.on("create", onVaultFileChanged),
+		ctx.app.vault.on("modify", onVaultFileChanged),
+		ctx.app.vault.on("delete", onVaultFileDeleted),
+		ctx.app.vault.on("rename", onVaultFileRenamed),
+	];
 
 	new ClearableInputComponent({
 		containerEl: searchWrapEl,
@@ -91,11 +143,40 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 	};
 
 	const updateLocalizedText = () => {
-		titleTextEl.setText(ctx.t(getStickyNoteTitleKey()));
+		updateTitleText();
 		actionButtonEl.setAttr("aria-label", ctx.t(getSparklesTooltipKey()));
 		searchInputEl?.setAttr("placeholder", ctx.t("feature.right_sidebar.sticky_note.search.placeholder"));
 		searchClearButtonEl?.setAttr("aria-label", ctx.t("feature.right_sidebar.sticky_note.search.clear"));
 		updateSortButton();
+		cardList.rerender();
+	};
+
+	const createStickyNote = async (): Promise<void> => {
+		const stickyRootPath = resolveTargetStickyNoteRootPath(ctx, novelLibraryService);
+		if (!stickyRootPath) {
+			new Notice("未配置小说库，无法新增便签。");
+			return;
+		}
+		try {
+			const file = await repository.createCardFile(stickyRootPath);
+			cardList.applyVaultFileCreateOrModify(file.path);
+		} catch (error) {
+			console.error("[Chinese Novel Assistant] Failed to create sticky note.", error);
+			new Notice("新增便签失败，请检查控制台日志。");
+		}
+	};
+
+	const updateTitleText = (preferredFilePath?: string | null): void => {
+		titleTextEl.setText(resolveCurrentNovelLibraryName(ctx, novelLibraryService, preferredFilePath));
+	};
+
+	const refreshStickyNoteScope = (preferredFilePath?: string | null): void => {
+		updateTitleText(preferredFilePath);
+		const nextRoots = resolveScopedStickyNoteRootPaths(ctx, novelLibraryService, preferredFilePath);
+		if (areStringArraysEqual(stickyNoteRootPaths, nextRoots)) {
+			return;
+		}
+		stickyNoteRootPaths = nextRoots;
 		cardList.refresh();
 	};
 
@@ -149,21 +230,146 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 		]);
 	};
 	sortButtonEl.addEventListener("click", openSortMenu);
+	const onCreateClick = (): void => {
+		void createStickyNote();
+	};
+	actionButtonEl.addEventListener("click", onCreateClick);
+	const workspaceEventRefs: EventRef[] = [
+		ctx.app.workspace.on("file-open", (file) => {
+			refreshStickyNoteScope(file?.path ?? null);
+		}),
+		ctx.app.workspace.on("active-leaf-change", (leaf) => {
+			const markdownView = leaf?.view;
+			if (!(markdownView instanceof MarkdownView)) {
+				return;
+			}
+			refreshStickyNoteScope(markdownView.file?.path ?? null);
+		}),
+	];
 	updateLocalizedText();
 	const disposeSettingsChange = ctx.onSettingsChange?.(() => {
+		refreshStickyNoteScope();
 		cardList.setViewOptions(resolveViewOptions());
 		updateLocalizedText();
 	});
 
 	return () => {
 		sortButtonEl.removeEventListener("click", openSortMenu);
+		actionButtonEl.removeEventListener("click", onCreateClick);
+		for (const ref of vaultEventRefs) {
+			ctx.app.vault.offref(ref);
+		}
+		for (const ref of workspaceEventRefs) {
+			ctx.app.workspace.offref(ref);
+		}
 		disposeSettingsChange?.();
 		cardList.destroy();
 	};
 }
 
-function getStickyNoteTitleKey(): StickyNoteTitleKey {
-	return "feature.right_sidebar.sticky_note.title";
+function resolveStickyNoteRootPaths(
+	settings: ReturnType<SidebarViewRenderContext["getSettings"]>,
+	novelLibraryService: NovelLibraryService,
+): string[] {
+	const roots = settings.novelLibraries
+		.map((libraryPath) =>
+			novelLibraryService.resolveNovelLibrarySubdirPath(
+				settings,
+				libraryPath,
+				settings.stickyNoteDirName,
+			),
+		)
+		.map((path) => novelLibraryService.normalizeVaultPath(path))
+		.filter((path) => path.length > 0);
+	return Array.from(new Set(roots));
+}
+
+function resolveScopedStickyNoteRootPaths(
+	ctx: SidebarViewRenderContext,
+	novelLibraryService: NovelLibraryService,
+	preferredFilePath?: string | null,
+): string[] {
+	const settings = ctx.getSettings();
+	const allRoots = resolveStickyNoteRootPaths(settings, novelLibraryService);
+	if (allRoots.length === 0) {
+		return allRoots;
+	}
+	const normalizedLibraryRoots = novelLibraryService.normalizeLibraryRoots(settings.novelLibraries);
+	const referencePath = typeof preferredFilePath === "string"
+		? preferredFilePath
+		: (ctx.app.workspace.getActiveFile()?.path ?? "");
+	const matchedLibraryRoot = referencePath
+		? novelLibraryService.resolveContainingLibraryRoot(referencePath, normalizedLibraryRoots)
+		: null;
+	if (!matchedLibraryRoot) {
+		return allRoots;
+	}
+	const stickyRootPath = novelLibraryService.resolveNovelLibrarySubdirPath(
+		settings,
+		matchedLibraryRoot,
+		settings.stickyNoteDirName,
+	);
+	const normalizedStickyRootPath = novelLibraryService.normalizeVaultPath(stickyRootPath);
+	return normalizedStickyRootPath ? [normalizedStickyRootPath] : allRoots;
+}
+
+function areStringArraysEqual(left: string[], right: string[]): boolean {
+	if (left.length !== right.length) {
+		return false;
+	}
+	for (let index = 0; index < left.length; index += 1) {
+		if (left[index] !== right[index]) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function resolveTargetStickyNoteRootPath(
+	ctx: SidebarViewRenderContext,
+	novelLibraryService: NovelLibraryService,
+): string | null {
+	const settings = ctx.getSettings();
+	const normalizedLibraryRoots = novelLibraryService.normalizeLibraryRoots(settings.novelLibraries);
+	if (normalizedLibraryRoots.length === 0) {
+		return null;
+	}
+	const activeFilePath = ctx.app.workspace.getActiveFile()?.path ?? "";
+	const activeLibraryRoot = activeFilePath
+		? novelLibraryService.resolveContainingLibraryRoot(activeFilePath, normalizedLibraryRoots)
+		: null;
+	const targetLibraryRoot = activeLibraryRoot ?? normalizedLibraryRoots[0] ?? "";
+	if (!targetLibraryRoot) {
+		return null;
+	}
+	const stickyRootPath = novelLibraryService.resolveNovelLibrarySubdirPath(
+		settings,
+		targetLibraryRoot,
+		settings.stickyNoteDirName,
+	);
+	const normalizedStickyRootPath = novelLibraryService.normalizeVaultPath(stickyRootPath);
+	return normalizedStickyRootPath.length > 0 ? normalizedStickyRootPath : null;
+}
+
+function resolveCurrentNovelLibraryName(
+	ctx: SidebarViewRenderContext,
+	novelLibraryService: NovelLibraryService,
+	filePath?: string | null,
+): string {
+	const activeFilePath = typeof filePath === "string" && filePath.length > 0
+		? filePath
+		: (ctx.app.workspace.getActiveFile()?.path ?? "");
+	if (!activeFilePath) {
+		return ctx.t("feature.right_sidebar.guidebook.current_library.none");
+	}
+	const settings = ctx.getSettings();
+	const libraryRoots = novelLibraryService.normalizeLibraryRoots(settings.novelLibraries);
+	const matchedLibraryPath = novelLibraryService.resolveContainingLibraryRoot(activeFilePath, libraryRoots);
+	if (!matchedLibraryPath) {
+		return ctx.t("feature.right_sidebar.guidebook.current_library.none");
+	}
+	const segments = matchedLibraryPath.split("/").filter((segment) => segment.length > 0);
+	return segments[segments.length - 1] ?? matchedLibraryPath;
 }
 
 function getSparklesTooltipKey(): StickyNoteSparklesTooltipKey {

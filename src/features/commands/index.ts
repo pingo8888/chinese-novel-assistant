@@ -1,5 +1,7 @@
 import { MarkdownView, Notice, Plugin } from "obsidian";
 import type { PluginContext } from "../../core/context";
+import { StickyNoteRepository } from "../sticky-note/repository";
+import { NovelLibraryService } from "../../services/novel-library-service";
 import { ProofreadDictService } from "../../services/proofread-dict-service";
 import { fixProofreadDictErrors } from "../text-detection/rules/proofread-dict";
 import { fixEnPunctuationErrors } from "../text-detection/rules/en-punctuation";
@@ -8,6 +10,7 @@ import { fixPairPunctuationErrors } from "../text-detection/rules/pair-punctuati
 export function registerCommandsFeature(plugin: Plugin, ctx: PluginContext): void {
 	registerTypesetCommands(plugin, ctx);
 	registerProofreadCommands(plugin, ctx);
+	registerStickyNoteCommands(plugin, ctx);
 }
 
 function registerTypesetCommands(_plugin: Plugin, _ctx: PluginContext): void {
@@ -70,6 +73,26 @@ function registerProofreadCommands(plugin: Plugin, ctx: PluginContext): void {
 	});
 }
 
+function registerStickyNoteCommands(plugin: Plugin, ctx: PluginContext): void {
+	const repository = new StickyNoteRepository(ctx.app);
+	const novelLibraryService = new NovelLibraryService(ctx.app);
+
+	plugin.addCommand({
+		id: "create-sticky-note",
+		name: ctx.t("command.sticky_note.create.name"),
+		checkCallback: (checking) => {
+			if (!ctx.settings.stickyNoteEnabled) {
+				return false;
+			}
+			if (checking) {
+				return true;
+			}
+			void runCreateStickyNoteCommand(ctx, repository, novelLibraryService);
+			return true;
+		},
+	});
+}
+
 async function runFixProofreadDictCommand(ctx: PluginContext): Promise<void> {
 	const activeView = ctx.app.workspace.getActiveViewOfType(MarkdownView);
 	if (!activeView) {
@@ -104,4 +127,48 @@ async function runFixProofreadDictCommand(ctx: PluginContext): Promise<void> {
 	const nextCursorOffset = Math.max(0, Math.min(cursorOffset, fixResult.text.length));
 	editor.setCursor(editor.offsetToPos(nextCursorOffset));
 	new Notice(`${ctx.t("command.proofread.fix_proofread_dict_errors.done")} ${fixResult.replacedCount}`);
+}
+
+async function runCreateStickyNoteCommand(
+	ctx: PluginContext,
+	repository: StickyNoteRepository,
+	novelLibraryService: NovelLibraryService,
+): Promise<void> {
+	const stickyRootPath = resolveTargetStickyNoteRootPath(ctx, novelLibraryService);
+	if (!stickyRootPath) {
+		new Notice(ctx.t("command.sticky_note.create.no_library"));
+		return;
+	}
+
+	try {
+		const file = await repository.createCardFile(stickyRootPath);
+		new Notice(`${ctx.t("command.sticky_note.create.done")} ${file.basename}`);
+	} catch (error) {
+		console.error("[Chinese Novel Assistant] Failed to create sticky note.", error);
+		new Notice(ctx.t("command.sticky_note.create.failed"));
+	}
+}
+
+function resolveTargetStickyNoteRootPath(ctx: PluginContext, novelLibraryService: NovelLibraryService): string | null {
+	const normalizedLibraryRoots = novelLibraryService.normalizeLibraryRoots(ctx.settings.novelLibraries);
+	if (normalizedLibraryRoots.length === 0) {
+		return null;
+	}
+
+	const activeFilePath = ctx.app.workspace.getActiveFile()?.path ?? "";
+	const activeLibraryRoot = activeFilePath
+		? novelLibraryService.resolveContainingLibraryRoot(activeFilePath, normalizedLibraryRoots)
+		: null;
+	const targetLibraryRoot = activeLibraryRoot ?? normalizedLibraryRoots[0] ?? "";
+	if (!targetLibraryRoot) {
+		return null;
+	}
+
+	const stickyRootPath = novelLibraryService.resolveNovelLibrarySubdirPath(
+		ctx.settings,
+		targetLibraryRoot,
+		ctx.settings.stickyNoteDirName,
+	);
+	const normalizedStickyRootPath = novelLibraryService.normalizeVaultPath(stickyRootPath);
+	return normalizedStickyRootPath.length > 0 ? normalizedStickyRootPath : null;
 }

@@ -1,17 +1,7 @@
 import { setIcon } from "obsidian";
-import { UI } from "../../../constants";
+import { STICKY_NOTE_CARD_COLORS, UI } from "../../../constants";
 import type { TranslationKey } from "../../../lang";
 import type { StickyNoteCardMenuCommand } from "../../../features/sticky-note/menu-actions";
-
-export const STICKY_NOTE_CARD_COLORS = [
-	"#4A86E9",
-	"#7B61FF",
-	"#47B881",
-	"#F6C445",
-	"#F59E0B",
-	"#F05D6C",
-	"#9CA3AF",
-] as const;
 
 interface ShowStickyNoteCardMenuArgs {
 	anchorEl: HTMLElement;

@@ -7,6 +7,7 @@ import { applyStickyNoteCardMenuCommand, applyStickyNoteRichTextCommand } from "
 import { promptVaultImageFile } from "../../modals/vault-image-picker-modal";
 import { showStickyNoteCardMenu } from "./card-menu";
 import { openImagePreview } from "../../modals/image-preview-modal";
+import { extractPlainTextFromMarkdown, normalizeMarkdownLineEndings } from "../../../features/sticky-note/markdown-utils";
 
 interface StickyNoteCardItemDeps {
 	app: App;
@@ -249,6 +250,19 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 					type: "button",
 					"aria-label": deps.t("feature.right_sidebar.sticky_note.card.image.remove.tooltip"),
 				},
+			});
+			removeButtonEl.style.setProperty("background", "rgba(0, 0, 0, 0.56)", "important");
+			removeButtonEl.style.setProperty("background-color", "rgba(0, 0, 0, 0.56)", "important");
+			removeButtonEl.style.setProperty("background-image", "none", "important");
+			removeButtonEl.style.setProperty("color", "#ffffff", "important");
+			removeButtonEl.style.setProperty("border", "none", "important");
+			removeButtonEl.addEventListener("mouseenter", () => {
+				removeButtonEl.style.setProperty("background", "rgba(0, 0, 0, 0.74)", "important");
+				removeButtonEl.style.setProperty("background-color", "rgba(0, 0, 0, 0.74)", "important");
+			});
+			removeButtonEl.addEventListener("mouseleave", () => {
+				removeButtonEl.style.setProperty("background", "rgba(0, 0, 0, 0.56)", "important");
+				removeButtonEl.style.setProperty("background-color", "rgba(0, 0, 0, 0.56)", "important");
 			});
 			setIcon(removeButtonEl, "x");
 			removeButtonEl.addEventListener("click", () => {
@@ -495,7 +509,21 @@ function parseTags(source: string): string[] {
 
 function normalizeTagsText(source: string): string {
 	const tags = parseTags(source);
-	return tags.join(" ");
+	return dedupeTagTokens(tags).join(" ");
+}
+
+function dedupeTagTokens(tags: string[]): string[] {
+	const seen = new Set<string>();
+	const result: string[] = [];
+	for (const tag of tags) {
+		const normalized = tag.trim();
+		if (!normalized || seen.has(normalized)) {
+			continue;
+		}
+		seen.add(normalized);
+		result.push(normalized);
+	}
+	return result;
 }
 
 async function resolveVaultImagePreview(app: App, file: TFile): Promise<{ src: string; revokeOnDestroy: boolean }> {
@@ -570,7 +598,7 @@ function placeCaretAtEnd(targetEl: HTMLElement): void {
 }
 
 function normalizeMarkdownValue(source: string): string {
-	return source.replace(/\r\n?/g, "\n");
+	return normalizeMarkdownLineEndings(source);
 }
 
 function resolveMarkdownCaretIndexFromDisplayPoint(
@@ -721,21 +749,6 @@ function buildPlainToMarkdownBoundaryMap(markdown: string, plainText: string): n
 	}
 
 	return boundaries;
-}
-
-function extractPlainTextFromMarkdown(markdown: string): string {
-	return markdown
-		.replace(/```[\s\S]*?```/g, " ")
-		.replace(/`([^`]+)`/g, "$1")
-		.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, "$1")
-		.replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")
-		.replace(/^#{1,6}\s+/gm, "")
-		.replace(/^\s*>\s?/gm, "")
-		.replace(/^\s*[-*+]\s+/gm, "")
-		.replace(/^\s*\d+\.\s+/gm, "")
-		.replace(/[*_~`>#]/g, "")
-		.replace(/\s+/g, " ")
-		.trim();
 }
 
 function extractPlainTextForCaretMapping(markdown: string): string {

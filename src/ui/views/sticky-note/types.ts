@@ -14,6 +14,8 @@ export interface StickyNoteImageModel {
 
 export interface StickyNoteCardModel {
 	id: string;
+	sourcePath: string;
+	cwData: Record<string, unknown>;
 	createdAt: number;
 	updatedAt: number;
 	contentMarkdown: string;
@@ -23,6 +25,11 @@ export interface StickyNoteCardModel {
 	isImageExpanded: boolean;
 	isPinned: boolean;
 	colorHex?: string;
+	isFloating: boolean;
+	floatX: number;
+	floatY: number;
+	floatW: number;
+	floatH: number;
 }
 
 export interface StickyNoteViewOptions {
