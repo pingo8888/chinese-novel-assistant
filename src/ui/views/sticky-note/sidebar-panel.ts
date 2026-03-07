@@ -3,12 +3,8 @@ import { setIcon } from "obsidian";
 import { UI } from "../../../constants";
 import { ClearableInputComponent } from "../../componets/clearable-input";
 import { showContextMenuAtMouseEvent } from "../../componets/context-menu";
-
-type StickyNoteSortMode =
-	| "created_desc"
-	| "created_asc"
-	| "modified_desc"
-	| "modified_asc";
+import { createStickyNoteCardList } from "./card-list";
+import type { StickyNoteSortMode, StickyNoteViewOptions } from "./types";
 type StickyNoteTitleKey = "feature.right_sidebar.sticky_note.title";
 type StickyNoteSparklesTooltipKey = "feature.right_sidebar.sticky_note.action.sparkles.tooltip";
 type StickyNoteSortTooltipKey =
@@ -41,14 +37,37 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 	const contentEl = rootEl.createDiv({ cls: "cna-right-sidebar-sticky-note__content" });
 	const toolbarEl = contentEl.createDiv({ cls: "cna-right-sidebar-sticky-note__toolbar" });
 	const searchWrapEl = toolbarEl.createDiv({ cls: "cna-right-sidebar-sticky-note__search-wrap" });
+	const listWrapEl = contentEl.createDiv({ cls: "cna-right-sidebar-sticky-note__list-wrap" });
+
+	let sortMode: StickyNoteSortMode = "created_desc";
+	let searchKeyword = "";
+
+	const resolveViewOptions = (): StickyNoteViewOptions => {
+		const settings = ctx.getSettings();
+		return {
+			defaultRows: settings.stickyNoteDefaultRows,
+			tagHintTextEnabled: settings.stickyNoteTagHintTextEnabled,
+			imageAutoExpand: settings.stickyNoteImageAutoExpand,
+		};
+	};
+
+	const cardList = createStickyNoteCardList({
+		app: ctx.app,
+		containerEl: listWrapEl,
+		t: (key) => ctx.t(key),
+		initialSortMode: sortMode,
+		initialSearchKeyword: searchKeyword,
+		initialViewOptions: resolveViewOptions(),
+	});
 
 	new ClearableInputComponent({
 		containerEl: searchWrapEl,
 		containerClassName: "cna-sticky-note-search-input-container",
 		placeholder: "",
 		clearAriaLabel: "",
-		onChange: (_value) => {
-			// Reserved for sticky-note search filtering.
+		onChange: (value) => {
+			searchKeyword = value;
+			cardList.setSearchKeyword(value);
 		},
 	});
 	const searchInputEl = searchWrapEl.querySelector<HTMLInputElement>("input");
@@ -60,12 +79,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 			type: "button",
 		},
 	});
-	const placeholderEl = contentEl.createDiv({
-		cls: "cna-right-sidebar-panel-placeholder",
-		text: ctx.t("settings.tab.coming_soon"),
-	});
 
-	let sortMode: StickyNoteSortMode = "created_desc";
 	const updateSortButton = () => {
 		sortButtonEl.empty();
 		const iconName =
@@ -82,7 +96,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 		searchInputEl?.setAttr("placeholder", ctx.t("feature.right_sidebar.sticky_note.search.placeholder"));
 		searchClearButtonEl?.setAttr("aria-label", ctx.t("feature.right_sidebar.sticky_note.search.clear"));
 		updateSortButton();
-		placeholderEl.setText(ctx.t("settings.tab.coming_soon"));
+		cardList.refresh();
 	};
 
 	const openSortMenu = (event: MouseEvent): void => {
@@ -95,6 +109,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 				onClick: () => {
 					sortMode = "created_desc";
 					updateSortButton();
+					cardList.setSortMode(sortMode);
 				},
 			},
 			{
@@ -105,6 +120,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 				onClick: () => {
 					sortMode = "created_asc";
 					updateSortButton();
+					cardList.setSortMode(sortMode);
 				},
 			},
 			{ kind: "separator" },
@@ -116,6 +132,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 				onClick: () => {
 					sortMode = "modified_desc";
 					updateSortButton();
+					cardList.setSortMode(sortMode);
 				},
 			},
 			{
@@ -126,6 +143,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 				onClick: () => {
 					sortMode = "modified_asc";
 					updateSortButton();
+					cardList.setSortMode(sortMode);
 				},
 			},
 		]);
@@ -133,12 +151,14 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 	sortButtonEl.addEventListener("click", openSortMenu);
 	updateLocalizedText();
 	const disposeSettingsChange = ctx.onSettingsChange?.(() => {
+		cardList.setViewOptions(resolveViewOptions());
 		updateLocalizedText();
 	});
 
 	return () => {
 		sortButtonEl.removeEventListener("click", openSortMenu);
 		disposeSettingsChange?.();
+		cardList.destroy();
 	};
 }
 
