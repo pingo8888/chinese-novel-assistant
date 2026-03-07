@@ -37,11 +37,16 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 	};
 
 	let isDestroyed = false;
+	let cardItemDisposers: Array<() => void> = [];
 
 	const render = (): void => {
 		if (isDestroyed) {
 			return;
 		}
+		for (const dispose of cardItemDisposers) {
+			dispose();
+		}
+		cardItemDisposers = [];
 		closeStickyNoteCardMenu();
 		deps.containerEl.empty();
 		const listEl = deps.containerEl.createDiv({ cls: "cna-sticky-note-card-list" });
@@ -55,7 +60,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 		}
 
 		for (const card of visibleCards) {
-			renderStickyNoteCardItem({
+			const disposeCardItem = renderStickyNoteCardItem({
 				app: deps.app,
 				containerEl: listEl,
 				card,
@@ -74,6 +79,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 					render();
 				},
 			});
+			cardItemDisposers.push(disposeCardItem);
 		}
 	};
 
@@ -112,6 +118,10 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 				return;
 			}
 			isDestroyed = true;
+			for (const dispose of cardItemDisposers) {
+				dispose();
+			}
+			cardItemDisposers = [];
 			for (const card of state.cards) {
 				revokeImageUrls(card.images);
 			}
@@ -166,7 +176,7 @@ function createMockStickyNoteCards(imageAutoExpand: boolean): StickyNoteCardMode
 			id: "note-1",
 			createdAt: now - 1000 * 60 * 60 * 24 * 5,
 			updatedAt: now - 1000 * 60 * 35,
-			contentHtml: "<p><strong>剧情钩子</strong></p><ul><li>主角在旧档案里看到一张合照。</li><li>合照里出现了已经死亡的人物。</li></ul>",
+			contentMarkdown: "**剧情钩子**\n- 主角在旧档案里看到一张合照。\n- 合照里出现了已经死亡的人物。",
 			contentPlainText: "剧情钩子 主角在旧档案里看到一张合照。 合照里出现了已经死亡的人物。",
 			tagsText: "#角色 #伏笔",
 			images: [],
@@ -177,7 +187,7 @@ function createMockStickyNoteCards(imageAutoExpand: boolean): StickyNoteCardMode
 			id: "note-2",
 			createdAt: now - 1000 * 60 * 60 * 24 * 2,
 			updatedAt: now - 1000 * 60 * 60 * 3,
-			contentHtml: "<p>开篇第一章的天气描写要再压抑一点。</p><ol><li>降低能见度</li><li>增加潮湿感</li></ol>",
+			contentMarkdown: "开篇第一章的天气描写要再压抑一点。\n1. 降低能见度\n2. 增加潮湿感",
 			contentPlainText: "开篇第一章的天气描写要再压抑一点。 降低能见度 增加潮湿感",
 			tagsText: "",
 			images: [],
@@ -188,7 +198,7 @@ function createMockStickyNoteCards(imageAutoExpand: boolean): StickyNoteCardMode
 			id: "note-3",
 			createdAt: now - 1000 * 60 * 60 * 24,
 			updatedAt: now - 1000 * 60 * 15,
-			contentHtml: "<p><strong>反转点：</strong>第三幕由配角揭示真正动机。</p>",
+			contentMarkdown: "**反转点：**第三幕由配角揭示真正动机。",
 			contentPlainText: "反转点：第三幕由配角揭示真正动机。",
 			tagsText: "#剧情 #反转",
 			images: [],

@@ -17,7 +17,7 @@ type StickyNoteContentMenuOption = StickyNoteContentMenuItem | StickyNoteContent
 
 interface ShowStickyNoteContentMenuArgs {
 	event: MouseEvent;
-	editorEl: HTMLElement;
+	editorEl: HTMLTextAreaElement;
 	t: (key: TranslationKey) => string;
 	onCommand: (command: StickyNoteRichTextCommand) => void;
 }
@@ -69,9 +69,6 @@ const CONTENT_MENU_ITEMS: StickyNoteContentMenuOption[] = [
 
 export function showStickyNoteContentMenu(args: ShowStickyNoteContentMenuArgs): boolean {
 	const selectionRange = captureSelectionRange(args.editorEl);
-	if (!selectionRange) {
-		return false;
-	}
 	args.event.preventDefault();
 	showContextMenuAtMouseEvent(
 		args.event,
@@ -99,31 +96,14 @@ function isSeparatorOption(item: StickyNoteContentMenuOption): item is StickyNot
 	return (item as StickyNoteContentMenuSeparator).kind === "separator";
 }
 
-function captureSelectionRange(containerEl: HTMLElement): Range | null {
-	const selection = window.getSelection();
-	if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
-		return null;
-	}
-	const anchorNode = selection.anchorNode;
-	const focusNode = selection.focusNode;
-	if (!anchorNode || !focusNode) {
-		return null;
-	}
-	if (!containerEl.contains(anchorNode) || !containerEl.contains(focusNode)) {
-		return null;
-	}
-	return selection.getRangeAt(0).cloneRange();
+function captureSelectionRange(editorEl: HTMLTextAreaElement): { start: number; end: number } {
+	return {
+		start: editorEl.selectionStart ?? 0,
+		end: editorEl.selectionEnd ?? (editorEl.selectionStart ?? 0),
+	};
 }
 
-function restoreSelectionRange(containerEl: HTMLElement, range: Range): void {
-	if (!containerEl.contains(range.commonAncestorContainer)) {
-		return;
-	}
-	const selection = window.getSelection();
-	if (!selection) {
-		return;
-	}
-	selection.removeAllRanges();
-	selection.addRange(range.cloneRange());
-	containerEl.focus();
+function restoreSelectionRange(editorEl: HTMLTextAreaElement, range: { start: number; end: number }): void {
+	editorEl.focus();
+	editorEl.setSelectionRange(range.start, range.end);
 }

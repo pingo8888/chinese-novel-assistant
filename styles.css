@@ -389,25 +389,61 @@
 	overflow-wrap: anywhere;
 }
 
-.cna-sticky-note-card__surface-editor-rich {
-	white-space: normal;
+.cna-sticky-note-card__surface-editor-markdown {
+	display: block;
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+	padding: 0 0 0 4px;
+	border-radius: 0;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	appearance: none;
+	font-family: var(--font-text) !important;
+	font-size: calc(var(--font-text-size) - 1px) !important;
+	font-weight: var(--font-normal) !important;
+	line-height: var(--line-height-normal) !important;
+	overflow-y: auto !important;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+	white-space: pre-wrap;
 }
 
-.cna-sticky-note-card__surface-display.markdown-rendered,
-.cna-sticky-note-card__surface-editor-rich.markdown-rendered {
+.cna-sticky-note-card__surface-editor-markdown::-webkit-scrollbar {
+	display: none;
+	width: 0;
+	height: 0;
+}
+
+.cna-sticky-note-card__surface-display.markdown-rendered {
 	font-family: var(--font-text);
 	font-size: calc(var(--font-text-size) - 1px);
 	font-weight: var(--font-normal);
 	line-height: var(--line-height-normal);
+	overflow-y: hidden !important;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
 }
 
-.cna-sticky-note-card__surface-display.markdown-rendered :is(p, li, span, a, strong, em, code),
-.cna-sticky-note-card__surface-editor-rich.markdown-rendered :is(p, li, span, a, strong, em, code) {
+.cna-sticky-note-card__surface-display.markdown-rendered::-webkit-scrollbar {
+	display: none;
+	width: 0;
+	height: 0;
+}
+
+.cna-sticky-note-card__surface-display.markdown-rendered :is(p, li, span, a, strong, em, code) {
 	font-size: inherit;
 	line-height: inherit;
 }
 
 .cna-sticky-note-card__surface-editor:focus {
+	outline: none;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+.cna-sticky-note-card__surface-editor-markdown:focus {
 	outline: none;
 	border: none !important;
 	box-shadow: none !important;
@@ -423,26 +459,57 @@
 	line-height: 1.5;
 }
 
-.cna-sticky-note-card__surface-display.markdown-rendered p,
-.cna-sticky-note-card__surface-editor-rich.markdown-rendered p {
+.cna-sticky-note-card__surface-display.markdown-rendered p {
 	margin: 0;
 }
 
 .cna-sticky-note-card__surface-display.markdown-rendered ul,
-.cna-sticky-note-card__surface-display.markdown-rendered ol,
-.cna-sticky-note-card__surface-editor-rich.markdown-rendered ul,
-.cna-sticky-note-card__surface-editor-rich.markdown-rendered ol {
-	margin: 0 0 0 1.2em;
-	padding: 0;
-}
-
-.cna-sticky-note-card__surface-display.markdown-rendered li,
-.cna-sticky-note-card__surface-editor-rich.markdown-rendered li {
+.cna-sticky-note-card__surface-display.markdown-rendered ol {
 	margin: 0;
+	padding: 0;
+	list-style: none;
 }
 
-.cna-sticky-note-card__surface-display.markdown-rendered mark,
-.cna-sticky-note-card__surface-editor-rich.markdown-rendered mark {
+.cna-sticky-note-card__surface-display.markdown-rendered li {
+	margin: 0;
+	padding: 0 0 0 1em;
+	position: relative;
+}
+
+.cna-sticky-note-card__surface-display.markdown-rendered ul > li {
+	padding-left: 0.7em;
+}
+
+.cna-sticky-note-card__surface-display.markdown-rendered ul > li::before {
+	content: "• ";
+	position: absolute;
+	left: -4px;
+	top: 0;
+}
+
+.cna-sticky-note-card__surface-display.markdown-rendered ol {
+	counter-reset: cna-sticky-note-ol;
+}
+
+.cna-sticky-note-card__surface-display.markdown-rendered ol > li {
+	counter-increment: cna-sticky-note-ol;
+	padding-left: 1em;
+}
+
+.cna-sticky-note-card__surface-display.markdown-rendered ol > li::before {
+	content: counter(cna-sticky-note-ol) ". ";
+	position: absolute;
+	left: -1px;
+	top: 0;
+}
+
+.cna-sticky-note-card__surface-display.markdown-rendered li::before {
+	font-variant-numeric: tabular-nums;
+	width: auto;
+	text-align: left;
+}
+
+.cna-sticky-note-card__surface-display.markdown-rendered mark {
 	background: color-mix(in srgb, var(--text-highlight-bg, #f3e16f) 75%, transparent);
 	color: inherit;
 	padding: 0 1px;
@@ -553,32 +620,46 @@
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
+	cursor: zoom-in;
 }
 
-.cna-sticky-note-card__image-remove {
+.cna-sticky-note-card__image:focus-visible {
+	outline: 2px solid var(--interactive-accent);
+	outline-offset: -2px;
+}
+
+button.cna-sticky-note-card__image-remove {
 	position: absolute;
 	right: 6px;
 	top: 6px;
-	width: 14px;
-	height: 14px;
-	border: none;
+	width: 18px;
+	height: 18px;
+	min-width: 18px;
+	min-height: 18px;
+	border: none !important;
 	border-radius: 999px;
-	background: color-mix(in srgb, var(--text-muted) 35%, transparent);
-	color: var(--background-primary);
+	background: rgba(0, 0, 0, 0.56) !important;
+	background-color: rgba(0, 0, 0, 0.56) !important;
+	background-image: none !important;
+	color: #ffffff !important;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	padding: 0;
 	cursor: pointer;
+	box-shadow: none !important;
+	appearance: none;
 }
 
-.cna-sticky-note-card__image-remove:hover {
-	background: color-mix(in srgb, var(--text-muted) 55%, transparent);
+button.cna-sticky-note-card__image-remove:hover {
+	background: rgba(0, 0, 0, 0.74) !important;
+	background-color: rgba(0, 0, 0, 0.74) !important;
+	background-image: none !important;
 }
 
 .cna-sticky-note-card__image-remove svg {
-	width: 10px;
-	height: 10px;
+	width: 12px;
+	height: 12px;
 }
 
 .cna-sticky-note-card__image-add {
@@ -1372,6 +1453,60 @@
 
 .cna-text-input-modal__button {
 	min-width: 56px;
+}
+
+.modal.cna-image-preview-modal-shell {
+	width: auto;
+	max-width: min(92vw, 1200px);
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	padding: 0 !important;
+}
+
+.modal.cna-image-preview-modal-shell .modal-close-button {
+	top: 10px;
+	right: 10px;
+	width: 28px;
+	height: 28px;
+	border: none;
+	border-radius: 999px;
+	background: rgba(0, 0, 0, 0.56);
+	color: #ffffff;
+	box-shadow: none;
+}
+
+.modal.cna-image-preview-modal-shell .modal-close-button:hover {
+	background: rgba(0, 0, 0, 0.74);
+	color: #ffffff;
+}
+
+.modal.cna-image-preview-modal-shell .modal-close-button:focus-visible {
+	outline: 2px solid rgba(255, 255, 255, 0.7);
+	outline-offset: 1px;
+}
+
+.modal.cna-image-preview-modal-shell .modal-close-button svg {
+	width: 14px;
+	height: 14px;
+}
+
+.cna-image-preview-modal {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	background: transparent !important;
+}
+
+.cna-image-preview-modal__image {
+	display: block;
+	max-width: 100%;
+	max-height: 82vh;
+	width: auto;
+	height: auto;
+	object-fit: contain;
+	border-radius: 8px;
 }
 
 .cna-vault-image-picker__suggestion {

@@ -16,7 +16,7 @@ export interface StickyNoteCardModel {
 	id: string;
 	createdAt: number;
 	updatedAt: number;
-	contentHtml: string;
+	contentMarkdown: string;
 	contentPlainText: string;
 	tagsText: string;
 	images: StickyNoteImageModel[];

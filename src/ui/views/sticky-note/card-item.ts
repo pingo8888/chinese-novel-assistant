@@ -1,4 +1,4 @@
-import { Notice, setIcon, type App, type TFile } from "obsidian";
+import { Component, MarkdownRenderer, Notice, setIcon, TextAreaComponent, type App, type TFile } from "obsidian";
 import { UI } from "../../../constants";
 import type { TranslationKey } from "../../../lang";
 import type { StickyNoteCardModel, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
@@ -6,6 +6,7 @@ import { showStickyNoteContentMenu } from "./content-menu";
 import { applyStickyNoteCardMenuCommand, applyStickyNoteRichTextCommand } from "../../../features/sticky-note/menu-actions";
 import { promptVaultImageFile } from "../../modals/vault-image-picker-modal";
 import { showStickyNoteCardMenu } from "./card-menu";
+import { openImagePreview } from "../../modals/image-preview-modal";
 
 interface StickyNoteCardItemDeps {
 	app: App;
@@ -19,28 +20,8 @@ interface StickyNoteCardItemDeps {
 }
 
 const MIN_CONTENT_ROWS = 1;
-const BLOCK_TAGS = new Set(["P", "DIV", "UL", "OL", "LI", "BLOCKQUOTE", "PRE"]);
-const ALLOWED_TAGS = new Set([
-	"P",
-	"BR",
-	"STRONG",
-	"B",
-	"EM",
-	"I",
-	"U",
-	"S",
-	"DEL",
-	"A",
-	"UL",
-	"OL",
-	"LI",
-	"SPAN",
-	"CODE",
-	"BLOCKQUOTE",
-	"MARK",
-]);
 
-export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): void {
+export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => void {
 	const { card } = deps;
 	const rootEl = deps.containerEl.createDiv({ cls: "cna-sticky-note-card" });
 	applyCardTone(rootEl, card.colorHex);
@@ -77,12 +58,15 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): void {
 	const contentDisplayEl = contentSectionEl.createDiv({
 		cls: "cna-sticky-note-card__surface cna-sticky-note-card__surface-display markdown-rendered",
 	});
-	const contentEditorEl = contentSectionEl.createDiv({
-		cls: "cna-sticky-note-card__surface cna-sticky-note-card__surface-editor cna-sticky-note-card__surface-editor-rich markdown-rendered",
-		attr: {
-			contenteditable: "true",
-		},
+	const contentEditorWrapEl = contentSectionEl.createDiv({
+		cls: "cna-sticky-note-card__surface-editor-wrap",
 	});
+	const contentEditorEl = new TextAreaComponent(contentEditorWrapEl).inputEl;
+	contentEditorEl.addClass(
+		"cna-sticky-note-card__surface",
+		"cna-sticky-note-card__surface-editor",
+		"cna-sticky-note-card__surface-editor-markdown",
+	);
 
 	const tagsBarEl = rootEl.createDiv({ cls: "cna-sticky-note-card__tags-bar" });
 	const tagsMainEl = tagsBarEl.createDiv({ cls: "cna-sticky-note-card__tags-main" });
@@ -90,7 +74,6 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): void {
 		cls: "cna-sticky-note-card__surface cna-sticky-note-card__surface-editor cna-sticky-note-card__tags-editor",
 		attr: {
 			contenteditable: "true",
-			"aria-label": deps.t("feature.right_sidebar.sticky_note.card.tags.editor.aria_label"),
 		},
 	});
 	const imageToggleButtonEl = tagsBarEl.createEl("button", {
@@ -102,9 +85,12 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): void {
 
 	const imageSectionEl = rootEl.createDiv({ cls: "cna-sticky-note-card__images" });
 	const imageGridEl = imageSectionEl.createDiv({ cls: "cna-sticky-note-card__image-grid" });
+	const markdownRenderComponent = new Component();
+	markdownRenderComponent.load();
 
-	let isEditingContent = false;
 	let isEditingTags = false;
+	let contentRenderVersion = 0;
+	let isDestroyed = false;
 
 	const renderHeader = (): void => {
 		timeTextEl.setText(formatDateTime(resolveHeaderTimestamp(card, deps.sortMode)));
@@ -113,6 +99,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): void {
 	};
 
 	const renderContentDisplay = (): void => {
+		const renderVersion = ++contentRenderVersion;
 		contentDisplayEl.empty();
 		if (card.contentPlainText.trim().length === 0) {
 			contentDisplayEl.createDiv({
@@ -121,7 +108,26 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): void {
 			});
 			return;
 		}
-		contentDisplayEl.innerHTML = card.contentHtml;
+		void renderMarkdownContent(renderVersion);
+	};
+
+	const renderMarkdownContent = async (renderVersion: number): Promise<void> => {
+		if (isDestroyed) {
+			return;
+		}
+		markdownRenderComponent.unload();
+		markdownRenderComponent.load();
+		contentDisplayEl.empty();
+		try {
+			await MarkdownRenderer.render(deps.app, card.contentMarkdown, contentDisplayEl, "", markdownRenderComponent);
+		} catch (_error) {
+			contentDisplayEl.empty();
+			contentDisplayEl.setText(card.contentMarkdown);
+			return;
+		}
+		if (isDestroyed || renderVersion !== contentRenderVersion) {
+			contentDisplayEl.empty();
+		}
 	};
 
 	const renderTagsDisplay = (): void => {
@@ -149,20 +155,41 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): void {
 		}
 	};
 
-	const setContentEditing = (editing: boolean, evt?: MouseEvent): void => {
-		isEditingContent = editing;
+	const setContentEditing = (
+		editing: boolean,
+		caretIndex?: number,
+		pointer?: { clientX: number; clientY: number },
+	): void => {
 		contentDisplayEl.toggleClass("is-hidden", editing);
 		contentEditorEl.toggleClass("is-hidden", !editing);
 		if (!editing) {
 			return;
 		}
-		contentEditorEl.innerHTML = card.contentHtml;
+		contentEditorEl.value = card.contentMarkdown;
+		const preservedScrollTop = contentDisplayEl.scrollTop;
+		const preservedScrollLeft = contentDisplayEl.scrollLeft;
+		contentEditorEl.scrollTop = preservedScrollTop;
+		contentEditorEl.scrollLeft = preservedScrollLeft;
 		contentEditorEl.focus();
-		if (evt) {
-			placeCaretByPointer(contentEditorEl, evt.clientX, evt.clientY);
-		} else {
-			placeCaretAtEnd(contentEditorEl);
+		let resolvedCaretIndex = typeof caretIndex === "number"
+			? Math.max(0, Math.min(contentEditorEl.value.length, caretIndex))
+			: contentEditorEl.value.length;
+		if (pointer) {
+			resolvedCaretIndex = resolveTextareaCaretIndexFromClientPoint(
+				contentEditorEl,
+				pointer.clientX,
+				pointer.clientY,
+				resolvedCaretIndex,
+			);
 		}
+		contentEditorEl.setSelectionRange(resolvedCaretIndex, resolvedCaretIndex);
+		// Keep visual viewport stable when switching from rendered content to textarea editing.
+		contentEditorEl.scrollTop = preservedScrollTop;
+		contentEditorEl.scrollLeft = preservedScrollLeft;
+		window.requestAnimationFrame(() => {
+			contentEditorEl.scrollTop = preservedScrollTop;
+			contentEditorEl.scrollLeft = preservedScrollLeft;
+		});
 	};
 
 	const setTagsEditing = (editing: boolean): void => {
@@ -199,9 +226,23 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): void {
 				attr: {
 					src: image.src,
 					alt: image.name,
+					tabindex: "0",
 				},
 			});
 			imageEl.draggable = false;
+			imageEl.addEventListener("click", (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				openImagePreview(deps.app, image.src, image.name);
+			});
+			imageEl.addEventListener("keydown", (event) => {
+				if (event.key !== "Enter" && event.key !== " ") {
+					return;
+				}
+				event.preventDefault();
+				event.stopPropagation();
+				openImagePreview(deps.app, image.src, image.name);
+			});
 			const removeButtonEl = imageCardEl.createEl("button", {
 				cls: "cna-sticky-note-card__image-remove",
 				attr: {
@@ -268,13 +309,13 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): void {
 	};
 
 	const commitContentEditorValue = (): void => {
-		const nextHtml = sanitizeRichHtml(contentEditorEl.innerHTML);
-		const nextPlainText = extractPlainText(nextHtml);
-		const changed = nextHtml !== card.contentHtml;
-		card.contentHtml = nextHtml;
+		const nextMarkdown = normalizeMarkdownValue(contentEditorEl.value);
+		const nextPlainText = extractPlainTextFromMarkdown(nextMarkdown);
+		const changed = nextMarkdown !== card.contentMarkdown;
+		card.contentMarkdown = nextMarkdown;
 		card.contentPlainText = nextPlainText;
-		renderContentDisplay();
 		setContentEditing(false);
+		renderContentDisplay();
 		if (changed) {
 			card.updatedAt = Date.now();
 			renderHeader();
@@ -302,22 +343,39 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): void {
 	renderImageToggle();
 	renderImages();
 
-	contentDisplayEl.addEventListener("click", (evt) => {
-		setContentEditing(true, evt);
+	contentDisplayEl.addEventListener("click", (event) => {
+		const caretIndex = resolveMarkdownCaretIndexFromDisplayPoint(
+			contentDisplayEl,
+			card.contentMarkdown,
+			event.clientX,
+			event.clientY,
+		);
+		setContentEditing(true, caretIndex ?? undefined, {
+			clientX: event.clientX,
+			clientY: event.clientY,
+		});
 	});
+	const handleDisplayWheel = (event: WheelEvent): void => {
+		// Display mode should not respond to wheel scrolling.
+		if (!contentDisplayEl.hasClass("is-hidden")) {
+			event.preventDefault();
+			event.stopPropagation();
+		}
+	};
+	contentDisplayEl.addEventListener("wheel", handleDisplayWheel, { passive: false });
 
 	contentEditorEl.addEventListener("keydown", (evt) => {
 		if (evt.key === "Escape") {
-			contentEditorEl.innerHTML = card.contentHtml;
+			contentEditorEl.value = card.contentMarkdown;
 			commitContentEditorValue();
 		}
 	});
-	contentEditorEl.addEventListener("contextmenu", (evt) => {
-		if (!isEditingContent) {
+	contentEditorEl.addEventListener("contextmenu", (event) => {
+		if (contentEditorEl.classList.contains("is-hidden")) {
 			return;
 		}
 		showStickyNoteContentMenu({
-			event: evt,
+			event,
 			editorEl: contentEditorEl,
 			t: (key) => deps.t(key),
 			onCommand: (command) => {
@@ -383,6 +441,13 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): void {
 			},
 		});
 	});
+
+	return () => {
+		isDestroyed = true;
+		contentRenderVersion += 1;
+		contentDisplayEl.removeEventListener("wheel", handleDisplayWheel);
+		markdownRenderComponent.unload();
+	};
 }
 
 function resolveHeaderTimestamp(card: StickyNoteCardModel, sortMode: StickyNoteSortMode): number {
@@ -492,37 +557,6 @@ function hexToRgba(hex: string, alpha: number): string {
 	return `rgba(${red}, ${green}, ${blue}, ${clampedAlpha})`;
 }
 
-function placeCaretByPointer(targetEl: HTMLElement, clientX: number, clientY: number): void {
-	const selection = window.getSelection();
-	if (!selection) {
-		return;
-	}
-
-	let range: Range | null = null;
-	const docWithCaret = document as Document & {
-		caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null;
-		caretRangeFromPoint?: (x: number, y: number) => Range | null;
-	};
-	if (typeof docWithCaret.caretPositionFromPoint === "function") {
-		const pos = docWithCaret.caretPositionFromPoint(clientX, clientY);
-		if (pos) {
-			range = document.createRange();
-			range.setStart(pos.offsetNode, pos.offset);
-			range.collapse(true);
-		}
-	} else if (typeof docWithCaret.caretRangeFromPoint === "function") {
-		range = docWithCaret.caretRangeFromPoint(clientX, clientY);
-	}
-
-	if (!range || !targetEl.contains(range.startContainer)) {
-		placeCaretAtEnd(targetEl);
-		return;
-	}
-
-	selection.removeAllRanges();
-	selection.addRange(range);
-}
-
 function placeCaretAtEnd(targetEl: HTMLElement): void {
 	const selection = window.getSelection();
 	if (!selection) {
@@ -535,135 +569,190 @@ function placeCaretAtEnd(targetEl: HTMLElement): void {
 	selection.addRange(range);
 }
 
-function sanitizeRichHtml(sourceHtml: string): string {
-	const wrapper = document.createElement("div");
-	wrapper.innerHTML = sourceHtml;
+function normalizeMarkdownValue(source: string): string {
+	return source.replace(/\r\n?/g, "\n");
+}
 
-	const walk = (node: Node): void => {
-		if (node.nodeType !== Node.ELEMENT_NODE) {
-			return;
-		}
-		const element = node as HTMLElement;
-		const tagName = element.tagName.toUpperCase();
-		if (!ALLOWED_TAGS.has(tagName)) {
-			const parent = element.parentNode;
-			if (!parent) {
-				return;
-			}
-			const fragment = document.createDocumentFragment();
-			while (element.firstChild) {
-				fragment.appendChild(element.firstChild);
-			}
-			parent.replaceChild(fragment, element);
-			return;
-		}
+function resolveMarkdownCaretIndexFromDisplayPoint(
+	containerEl: HTMLElement,
+	markdown: string,
+	clientX: number,
+	clientY: number,
+): number | null {
+	const caretPoint = resolveCaretPointByClientPosition(clientX, clientY);
+	if (!caretPoint) {
+		return null;
+	}
+	if (!containerEl.contains(caretPoint.node)) {
+		return null;
+	}
+	const range = document.createRange();
+	range.setStart(containerEl, 0);
+	range.setEnd(caretPoint.node, caretPoint.offset);
+	const visiblePrefix = normalizeVisibleTextPrefix(range.toString());
+	return mapVisibleTextOffsetToMarkdownIndex(markdown, visiblePrefix.length);
+}
 
-		const attrs = Array.from(element.attributes);
-		for (const attr of attrs) {
-			const attrName = attr.name.toLowerCase();
-			if (attrName.startsWith("on")) {
-				element.removeAttribute(attr.name);
-				continue;
-			}
-			if (tagName === "A") {
-				const href = element.getAttribute("href");
-				if (href && !/^(https?:|obsidian:|\/|#)/i.test(href)) {
-					element.removeAttribute("href");
-				}
-				if (attrName !== "href" && attrName !== "title") {
-					element.removeAttribute(attr.name);
-				}
-				continue;
-			}
-			if (attrName === "style" || attrName === "class" || attrName === "id" || attrName.startsWith("data-")) {
-				element.removeAttribute(attr.name);
-				continue;
-			}
-			if (attrName !== "href" && attrName !== "title") {
-				element.removeAttribute(attr.name);
-			}
-		}
+function resolveCaretPointByClientPosition(clientX: number, clientY: number): { node: Node; offset: number } | null {
+	const docWithCaret = document as Document & {
+		caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null;
+		caretRangeFromPoint?: (x: number, y: number) => Range | null;
 	};
-
-	const walker = document.createTreeWalker(wrapper, NodeFilter.SHOW_ELEMENT);
-	const nodes: Node[] = [];
-	let current = walker.nextNode();
-	while (current) {
-		nodes.push(current);
-		current = walker.nextNode();
-	}
-	for (const node of nodes) {
-		walk(node);
-	}
-
-	const normalized = normalizeRichHtml(wrapper);
-	return normalized.length > 0 ? normalized : "";
-}
-
-function normalizeRichHtml(wrapper: HTMLElement): string {
-	const lines: string[] = [];
-	for (const child of Array.from(wrapper.childNodes)) {
-		lines.push(serializeNodeToHtml(child).trim());
-	}
-	return lines.filter((line) => line.length > 0).join("");
-}
-
-function serializeNodeToHtml(node: Node): string {
-	if (node.nodeType === Node.TEXT_NODE) {
-		return escapeHtml(node.textContent ?? "");
-	}
-	if (node.nodeType !== Node.ELEMENT_NODE) {
-		return "";
-	}
-	const element = node as HTMLElement;
-	const tagName = element.tagName.toUpperCase();
-	if (!ALLOWED_TAGS.has(tagName)) {
-		return Array.from(element.childNodes).map(serializeNodeToHtml).join("");
-	}
-
-	const childrenHtml = Array.from(element.childNodes).map(serializeNodeToHtml).join("");
-	if (tagName === "BR") {
-		return "<br>";
-	}
-	if (tagName === "A") {
-		const href = element.getAttribute("href");
-		const title = element.getAttribute("title");
-		const hrefAttr = href ? ` href="${escapeHtml(href)}"` : "";
-		const titleAttr = title ? ` title="${escapeHtml(title)}"` : "";
-		return `<a${hrefAttr}${titleAttr}>${childrenHtml}</a>`;
-	}
-	const tagLower = tagName.toLowerCase();
-	return `<${tagLower}>${childrenHtml}</${tagLower}>`;
-}
-
-function extractPlainText(html: string): string {
-	const wrapper = document.createElement("div");
-	wrapper.innerHTML = html;
-	const chunks: string[] = [];
-	const walker = document.createTreeWalker(wrapper, NodeFilter.SHOW_ALL);
-	let node = walker.nextNode();
-	while (node) {
-		if (node.nodeType === Node.TEXT_NODE) {
-			const text = (node.textContent ?? "").replace(/\s+/g, " ").trim();
-			if (text.length > 0) {
-				chunks.push(text);
-			}
-		} else if (node.nodeType === Node.ELEMENT_NODE) {
-			const tagName = (node as HTMLElement).tagName.toUpperCase();
-			if (BLOCK_TAGS.has(tagName)) {
-				chunks.push("\n");
-			}
+	if (typeof docWithCaret.caretPositionFromPoint === "function") {
+		const caretPosition = docWithCaret.caretPositionFromPoint(clientX, clientY);
+		if (caretPosition) {
+			return {
+				node: caretPosition.offsetNode,
+				offset: caretPosition.offset,
+			};
 		}
-		node = walker.nextNode();
 	}
-	return chunks.join(" ").replace(/\s+/g, " ").trim();
+	if (typeof docWithCaret.caretRangeFromPoint === "function") {
+		const caretRange = docWithCaret.caretRangeFromPoint(clientX, clientY);
+		if (caretRange) {
+			return {
+				node: caretRange.startContainer,
+				offset: caretRange.startOffset,
+			};
+		}
+	}
+	return null;
 }
 
-function escapeHtml(source: string): string {
+function normalizeVisibleTextPrefix(source: string): string {
 	return source
-		.replace(/&/g, "&amp;")
-		.replace(/</g, "&lt;")
-		.replace(/>/g, "&gt;")
-		.replace(/"/g, "&quot;")
-		.replace(/'/g, "&#39;");
+		.replace(/\r\n?/g, "\n")
+		.replace(/\u00A0/g, " ")
+		.replace(/[ \t\f\v]+/g, " ")
+		.replace(/ *\n */g, "\n")
+		.replace(/^\n+/, "");
+}
+
+function mapVisibleTextOffsetToMarkdownIndex(markdown: string, plainOffset: number): number {
+	if (plainOffset <= 0) {
+		return 0;
+	}
+	const plainText = extractPlainTextForCaretMapping(markdown);
+	if (plainText.length === 0) {
+		return 0;
+	}
+	const clampedOffset = Math.max(0, Math.min(plainText.length, plainOffset));
+	const boundaryMap = buildPlainToMarkdownBoundaryMap(markdown, plainText);
+	return boundaryMap[clampedOffset] ?? markdown.length;
+}
+
+function resolveTextareaCaretIndexFromClientPoint(
+	textareaEl: HTMLTextAreaElement,
+	clientX: number,
+	clientY: number,
+	fallbackIndex: number,
+): number {
+	const computedStyle = window.getComputedStyle(textareaEl);
+	const lineHeight = parsePixelValue(computedStyle.lineHeight, 20);
+	const paddingTop = parsePixelValue(computedStyle.paddingTop, 0);
+	const paddingLeft = parsePixelValue(computedStyle.paddingLeft, 0);
+	const rect = textareaEl.getBoundingClientRect();
+	if (lineHeight <= 0 || rect.height <= 0) {
+		return fallbackIndex;
+	}
+
+	const relativeY = clientY - rect.top - paddingTop + textareaEl.scrollTop;
+	const lines = textareaEl.value.split("\n");
+	if (lines.length === 0) {
+		return 0;
+	}
+	const lineIndex = Math.max(0, Math.min(lines.length - 1, Math.floor(relativeY / lineHeight)));
+	const lineText = lines[lineIndex] ?? "";
+	const relativeX = Math.max(0, clientX - rect.left - paddingLeft + textareaEl.scrollLeft);
+	const columnIndex = resolveColumnIndexByPixelX(lineText, relativeX, computedStyle);
+
+	let index = 0;
+	for (let i = 0; i < lineIndex; i += 1) {
+		index += (lines[i]?.length ?? 0) + 1;
+	}
+	index += columnIndex;
+	return Math.max(0, Math.min(textareaEl.value.length, index));
+}
+
+function resolveColumnIndexByPixelX(
+	lineText: string,
+	targetX: number,
+	computedStyle: CSSStyleDeclaration,
+): number {
+	if (targetX <= 0 || lineText.length === 0) {
+		return 0;
+	}
+	const canvas = document.createElement("canvas");
+	const context = canvas.getContext("2d");
+	if (!context) {
+		return Math.min(lineText.length, Math.round(targetX / 8));
+	}
+	context.font = computedStyle.font;
+	let accumulated = 0;
+	for (let index = 0; index < lineText.length; index += 1) {
+		const charWidth = context.measureText(lineText[index] ?? "").width;
+		if (targetX <= accumulated + charWidth / 2) {
+			return index;
+		}
+		accumulated += charWidth;
+	}
+	return lineText.length;
+}
+
+function parsePixelValue(value: string, fallback: number): number {
+	const parsed = Number.parseFloat(value);
+	return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function buildPlainToMarkdownBoundaryMap(markdown: string, plainText: string): number[] {
+	const boundaries = new Array<number>(plainText.length + 1).fill(markdown.length);
+	boundaries[0] = 0;
+	let markdownIndex = 0;
+	let plainIndex = 0;
+
+	while (markdownIndex < markdown.length && plainIndex < plainText.length) {
+		if (markdown[markdownIndex] === plainText[plainIndex]) {
+			boundaries[plainIndex + 1] = markdownIndex + 1;
+			markdownIndex += 1;
+			plainIndex += 1;
+			continue;
+		}
+		markdownIndex += 1;
+	}
+
+	return boundaries;
+}
+
+function extractPlainTextFromMarkdown(markdown: string): string {
+	return markdown
+		.replace(/```[\s\S]*?```/g, " ")
+		.replace(/`([^`]+)`/g, "$1")
+		.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, "$1")
+		.replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")
+		.replace(/^#{1,6}\s+/gm, "")
+		.replace(/^\s*>\s?/gm, "")
+		.replace(/^\s*[-*+]\s+/gm, "")
+		.replace(/^\s*\d+\.\s+/gm, "")
+		.replace(/[*_~`>#]/g, "")
+		.replace(/\s+/g, " ")
+		.trim();
+}
+
+function extractPlainTextForCaretMapping(markdown: string): string {
+	return markdown
+		.replace(/\r\n?/g, "\n")
+		.replace(/```[\s\S]*?```/g, (codeBlock) => codeBlock.replace(/[`]/g, ""))
+		.replace(/`([^`]+)`/g, "$1")
+		.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, "$1")
+		.replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")
+		.replace(/^#{1,6}\s+/gm, "")
+		.replace(/^\s*>\s?/gm, "")
+		.replace(/^\s*[-*+]\s+/gm, "")
+		.replace(/^\s*\d+\.\s+/gm, "")
+		.replace(/[*_~`>#]/g, "")
+		.replace(/[ \t\f\v]+/g, " ")
+		.replace(/ *\n */g, "\n")
+		.replace(/\n{3,}/g, "\n\n")
+		.replace(/^\n+/, "")
+		.replace(/\n+$/, "");
 }
