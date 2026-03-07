@@ -221,6 +221,10 @@
 	"feature.right_sidebar.sticky_note.card.rich_menu.highlight": "高亮",
 	"feature.right_sidebar.sticky_note.card.rich_menu.strikethrough": "删除线",
 	"feature.right_sidebar.sticky_note.card.rich_menu.clear_format": "清除格式",
+	"feature.right_sidebar.sticky_note.card.menu.color": "便签颜色",
+	"feature.right_sidebar.sticky_note.card.menu.pin": "置顶便签",
+	"feature.right_sidebar.sticky_note.card.menu.unpin": "取消置顶",
+	"feature.right_sidebar.sticky_note.card.menu.delete": "删除便签",
 	"feature.character_count.unit.char": "字",
 	"feature.character_count.unit.chapter": "章",
 	"feature.character_count.unit.ten_thousand": "万"

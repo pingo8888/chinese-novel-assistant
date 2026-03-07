@@ -3,8 +3,9 @@ import { UI } from "../../../constants";
 import type { TranslationKey } from "../../../lang";
 import type { StickyNoteCardModel, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
 import { showStickyNoteContentMenu } from "./content-menu";
-import { applyStickyNoteRichTextCommand } from "../../../features/sticky-note/menu-actions";
+import { applyStickyNoteCardMenuCommand, applyStickyNoteRichTextCommand } from "../../../features/sticky-note/menu-actions";
 import { promptVaultImageFile } from "../../modals/vault-image-picker-modal";
+import { showStickyNoteCardMenu } from "./card-menu";
 
 interface StickyNoteCardItemDeps {
 	app: App;
@@ -14,6 +15,7 @@ interface StickyNoteCardItemDeps {
 	viewOptions: StickyNoteViewOptions;
 	t: (key: TranslationKey) => string;
 	onCardTouched: () => void;
+	onCardDelete: () => void;
 }
 
 const MIN_CONTENT_ROWS = 1;
@@ -41,10 +43,16 @@ const ALLOWED_TAGS = new Set([
 export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): void {
 	const { card } = deps;
 	const rootEl = deps.containerEl.createDiv({ cls: "cna-sticky-note-card" });
+	applyCardTone(rootEl, card.colorHex);
 	rootEl.style.setProperty("--cna-sticky-note-content-rows", `${resolveContentRows(deps.viewOptions.defaultRows)}`);
 
 	const headerEl = rootEl.createDiv({ cls: "cna-sticky-note-card__header" });
 	const timeEl = headerEl.createDiv({ cls: "cna-sticky-note-card__time" });
+	const timeTextEl = timeEl.createSpan({ cls: "cna-sticky-note-card__time-text" });
+	const timePinEl = timeEl.createSpan({
+		cls: "cna-sticky-note-card__time-pin is-hidden",
+	});
+	setIcon(timePinEl, UI.icon.pin);
 	const actionsEl = headerEl.createDiv({ cls: "cna-sticky-note-card__actions" });
 
 	const pinButtonEl = actionsEl.createEl("button", {
@@ -99,7 +107,9 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): void {
 	let isEditingTags = false;
 
 	const renderHeader = (): void => {
-		timeEl.setText(formatDateTime(resolveHeaderTimestamp(card, deps.sortMode)));
+		timeTextEl.setText(formatDateTime(resolveHeaderTimestamp(card, deps.sortMode)));
+		timePinEl.style.display = card.isPinned ? "inline-flex" : "none";
+		timePinEl.setAttr("aria-label", deps.t("feature.right_sidebar.sticky_note.card.menu.pin"));
 	};
 
 	const renderContentDisplay = (): void => {
@@ -351,6 +361,28 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): void {
 		renderImageToggle();
 		renderImages();
 	});
+
+	menuButtonEl.addEventListener("click", (event) => {
+		event.preventDefault();
+		event.stopPropagation();
+		showStickyNoteCardMenu({
+			anchorEl: menuButtonEl,
+			t: (key) => deps.t(key),
+			activeColorHex: card.colorHex,
+			isPinned: card.isPinned,
+			onCommand: (command) => {
+				const result = applyStickyNoteCardMenuCommand(command, card);
+				if (result === "deleted") {
+					deps.onCardDelete();
+					return;
+				}
+				if (result === "updated") {
+					applyCardTone(rootEl, card.colorHex);
+					deps.onCardTouched();
+				}
+			},
+		});
+	});
 }
 
 function resolveHeaderTimestamp(card: StickyNoteCardModel, sortMode: StickyNoteSortMode): number {
@@ -368,6 +400,18 @@ function resolveHeaderTimestamp(card: StickyNoteCardModel, sortMode: StickyNoteS
 
 function resolveContentRows(defaultRows: number): number {
 	return Math.max(MIN_CONTENT_ROWS, Math.round(defaultRows));
+}
+
+function applyCardTone(rootEl: HTMLElement, colorHex?: string): void {
+	if (!colorHex) {
+		rootEl.removeClass("has-custom-color");
+		rootEl.style.removeProperty("--cna-sticky-note-card-accent");
+		rootEl.style.removeProperty("--cna-sticky-note-card-accent-alpha");
+		return;
+	}
+	rootEl.addClass("has-custom-color");
+	rootEl.style.setProperty("--cna-sticky-note-card-accent", colorHex);
+	rootEl.style.setProperty("--cna-sticky-note-card-accent-alpha", hexToRgba(colorHex, 0.25));
 }
 
 function formatDateTime(timestamp: number): string {
@@ -434,6 +478,18 @@ function resolveImageMimeType(extension: string): string {
 		default:
 			return "application/octet-stream";
 	}
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+	const normalized = hex.trim().replace("#", "");
+	if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
+		return hex;
+	}
+	const red = Number.parseInt(normalized.slice(0, 2), 16);
+	const green = Number.parseInt(normalized.slice(2, 4), 16);
+	const blue = Number.parseInt(normalized.slice(4, 6), 16);
+	const clampedAlpha = Math.max(0, Math.min(1, alpha));
+	return `rgba(${red}, ${green}, ${blue}, ${clampedAlpha})`;
 }
 
 function placeCaretByPointer(targetEl: HTMLElement, clientX: number, clientY: number): void {

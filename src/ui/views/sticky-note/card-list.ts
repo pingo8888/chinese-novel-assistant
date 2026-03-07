@@ -2,6 +2,7 @@ import type { App } from "obsidian";
 import type { TranslationKey } from "../../../lang";
 import { renderStickyNoteCardItem } from "./card-item";
 import type { StickyNoteCardModel, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
+import { closeStickyNoteCardMenu } from "./card-menu";
 
 export interface StickyNoteCardListController {
 	setSortMode(sortMode: StickyNoteSortMode): void;
@@ -41,6 +42,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 		if (isDestroyed) {
 			return;
 		}
+		closeStickyNoteCardMenu();
 		deps.containerEl.empty();
 		const listEl = deps.containerEl.createDiv({ cls: "cna-sticky-note-card-list" });
 		const visibleCards = getVisibleCards(state);
@@ -61,6 +63,14 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 				viewOptions: state.viewOptions,
 				t: deps.t,
 				onCardTouched: () => {
+					render();
+				},
+				onCardDelete: () => {
+					const removed = state.cards.find((item) => item.id === card.id);
+					if (removed) {
+						revokeImageUrls(removed.images);
+					}
+					state.cards = state.cards.filter((item) => item.id !== card.id);
 					render();
 				},
 			});
@@ -119,6 +129,9 @@ function getVisibleCards(state: StickyNoteCardListState): StickyNoteCardModel[] 
 }
 
 function compareCards(left: StickyNoteCardModel, right: StickyNoteCardModel, sortMode: StickyNoteSortMode): number {
+	if (left.isPinned !== right.isPinned) {
+		return left.isPinned ? -1 : 1;
+	}
 	switch (sortMode) {
 		case "created_desc":
 			return right.createdAt - left.createdAt;
@@ -158,6 +171,7 @@ function createMockStickyNoteCards(imageAutoExpand: boolean): StickyNoteCardMode
 			tagsText: "#角色 #伏笔",
 			images: [],
 			isImageExpanded: imageAutoExpand,
+			isPinned: false,
 		},
 		{
 			id: "note-2",
@@ -168,6 +182,7 @@ function createMockStickyNoteCards(imageAutoExpand: boolean): StickyNoteCardMode
 			tagsText: "",
 			images: [],
 			isImageExpanded: imageAutoExpand,
+			isPinned: false,
 		},
 		{
 			id: "note-3",
@@ -178,6 +193,7 @@ function createMockStickyNoteCards(imageAutoExpand: boolean): StickyNoteCardMode
 			tagsText: "#剧情 #反转",
 			images: [],
 			isImageExpanded: imageAutoExpand,
+			isPinned: false,
 		},
 	];
 }

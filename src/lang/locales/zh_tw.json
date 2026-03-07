@@ -221,6 +221,10 @@
 	"feature.right_sidebar.sticky_note.card.rich_menu.highlight": "高亮",
 	"feature.right_sidebar.sticky_note.card.rich_menu.strikethrough": "刪除線",
 	"feature.right_sidebar.sticky_note.card.rich_menu.clear_format": "清除格式",
+	"feature.right_sidebar.sticky_note.card.menu.color": "便箋顏色",
+	"feature.right_sidebar.sticky_note.card.menu.pin": "置頂便箋",
+	"feature.right_sidebar.sticky_note.card.menu.unpin": "取消置頂",
+	"feature.right_sidebar.sticky_note.card.menu.delete": "刪除便箋",
 	"feature.character_count.unit.char": "字",
 	"feature.character_count.unit.chapter": "章",
 	"feature.character_count.unit.ten_thousand": "萬"

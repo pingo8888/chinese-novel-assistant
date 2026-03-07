@@ -21,6 +21,8 @@ export interface StickyNoteCardModel {
 	tagsText: string;
 	images: StickyNoteImageModel[];
 	isImageExpanded: boolean;
+	isPinned: boolean;
+	colorHex?: string;
 }
 
 export interface StickyNoteViewOptions {
