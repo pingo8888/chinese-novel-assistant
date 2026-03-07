@@ -1,4 +1,4 @@
-import { Notice, Setting } from "obsidian";
+import { Notice, Setting, TFolder } from "obsidian";
 import { NovelLibraryService } from "../../../services/novel-library-service";
 import { attachFolderSuggest } from "../../componets/folder-suggest";
 import { askForConfirmation } from "../../modals/confirm-modal";
@@ -21,6 +21,9 @@ export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTab
 	});
 
 	for (const libraryPath of ctx.settings.novelLibraries) {
+		const normalizedLibraryPath = novelLibraryService.normalizeVaultPath(libraryPath);
+		const libraryEntry = normalizedLibraryPath ? app.vault.getAbstractFileByPath(normalizedLibraryPath) : null;
+		const isMissingLibrary = !(libraryEntry instanceof TFolder);
 		const librarySetting = new Setting(panelEl)
 			.setName(libraryPath)
 			.setClass("cna-settings-item")
@@ -45,6 +48,9 @@ export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTab
 				button.buttonEl.addClass("cna-danger-button");
 			});
 		librarySetting.settingEl.addClass("cna-settings-item--novel-library");
+		if (isMissingLibrary) {
+			appendMissingNovelLibraryTag(deps, librarySetting);
+		}
 	}
 
 	let pendingValue = "";
@@ -159,6 +165,18 @@ function appendCurrentSubdirNameTag(deps: SettingsTabRenderContext, setting: Set
 	nameEl.createSpan({
 		cls: "cna-settings-current-name",
 		text: formatCurrentSubdirName(deps.ctx.t("settings.global.subdir.current_name_label"), currentName),
+	});
+}
+
+function appendMissingNovelLibraryTag(deps: SettingsTabRenderContext, setting: Setting): void {
+	const nameEl = setting.settingEl.querySelector<HTMLElement>(".setting-item-name");
+	if (!nameEl) {
+		return;
+	}
+
+	nameEl.createSpan({
+		cls: "cna-settings-missing-library",
+		text: deps.ctx.t("settings.global.novel_library.missing"),
 	});
 }
 

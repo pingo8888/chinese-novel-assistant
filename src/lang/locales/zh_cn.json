@@ -19,6 +19,7 @@
 	"settings.global.novel_library.add.desc": "添加时，会自动创建设定库、便签库、片段库和纠错词库",
 	"settings.global.novel_library.add.placeholder": "输入小说库路径",
 	"settings.global.novel_library.exists": "该小说库已存在",
+	"settings.global.novel_library.missing": "（已丢失）",
 	"settings.global.novel_library.create_subdirs_failed": "创建小说库目录失败，请检查路径是否有效",
 	"settings.global.novel_library.delete_confirm.title": "确认删除小说库",
 	"settings.global.novel_library.delete_confirm.message": "确定删除这个小说库配置吗？仅移除配置，不会删除实际文件夹。",

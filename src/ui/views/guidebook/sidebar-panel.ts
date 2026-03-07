@@ -1,5 +1,5 @@
 import type { SidebarViewRenderContext } from "./types";
-import { MarkdownView, setIcon, TFile } from "obsidian";
+import { MarkdownView, setIcon, TFile, TFolder } from "obsidian";
 import { UI } from "../../../constants";
 import { NovelLibraryService } from "../../../services/novel-library-service";
 import { type VaultChangeEvent, watchVaultChanges } from "../../../services/vault-change-watcher";
@@ -225,6 +225,12 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 	];
 
 	const disposeVaultWatcher = watchVaultChanges(ctx.app, (event) => {
+		if (event.type === "rename" && event.file instanceof TFolder) {
+			if (shouldRefreshForLibraryFolderRename(event, ctx, novelLibraryService)) {
+				scheduleRefresh(event.path);
+			}
+			return;
+		}
 		if (!isMarkdownFile(event.file)) {
 			return;
 		}
@@ -317,6 +323,28 @@ function shouldRefreshForVaultEvent(
 		return false;
 	}
 	return isSameOrChildPath(event.path, guidebookRootPath) || isSameOrChildPath(event.oldPath, guidebookRootPath);
+}
+
+function shouldRefreshForLibraryFolderRename(
+	event: VaultChangeEvent,
+	ctx: SidebarViewRenderContext,
+	novelLibraryService: NovelLibraryService,
+): boolean {
+	const renamedFolderPath = novelLibraryService.normalizeVaultPath(event.path);
+	const previousFolderPath = novelLibraryService.normalizeVaultPath(event.oldPath ?? "");
+	if (!renamedFolderPath || !previousFolderPath || renamedFolderPath === previousFolderPath) {
+		return false;
+	}
+	const libraryRoots = novelLibraryService.normalizeLibraryRoots(ctx.getSettings().novelLibraries);
+	if (libraryRoots.length === 0) {
+		return false;
+	}
+	return libraryRoots.some((libraryRoot) =>
+		novelLibraryService.isSameOrChildPath(libraryRoot, previousFolderPath) ||
+		novelLibraryService.isSameOrChildPath(previousFolderPath, libraryRoot) ||
+		novelLibraryService.isSameOrChildPath(libraryRoot, renamedFolderPath) ||
+		novelLibraryService.isSameOrChildPath(renamedFolderPath, libraryRoot),
+	);
 }
 
 function isSameOrChildPath(path: string | undefined, root: string): boolean {

@@ -19,6 +19,7 @@
 	"settings.global.novel_library.add.desc": "新增時，會自動建立設定庫、便箋庫、片段庫和糾錯詞庫",
 	"settings.global.novel_library.add.placeholder": "輸入小說庫路徑",
 	"settings.global.novel_library.exists": "該小說庫已存在",
+	"settings.global.novel_library.missing": "（已遺失）",
 	"settings.global.novel_library.create_subdirs_failed": "建立小說庫目錄失敗，請檢查路徑是否有效",
 	"settings.global.novel_library.delete_confirm.title": "確認刪除小說庫",
 	"settings.global.novel_library.delete_confirm.message": "確定刪除這個小說庫設定嗎？僅移除設定，不會刪除實際資料夾。",

@@ -16,6 +16,7 @@ import { registerTextDetectionFeature } from "./features/text-detection";
 import { registerTextAutocompleteFeature } from "./features/text-autocomplete";
 import { registerTypesetFeature } from "./features/typeset";
 import { registerGuidebookSidebarFeature } from "./features/guidebook";
+import { registerNovelLibraryFeature } from "./features/novel-library";
 import { ChineseNovelAssistantSettingTab } from "./ui/views/settings-tab";
 import type { SettingsChangeListener } from "./core/context";
 
@@ -29,6 +30,7 @@ export default class ChineseNovelAssistantPlugin extends Plugin {
 
 		this.ctx = createPluginContext(this.createContextHost());
 		registerGuidebookSidebarFeature(this, this.ctx);
+		registerNovelLibraryFeature(this, this.ctx);
 		this.ctx.addSettingTab(new ChineseNovelAssistantSettingTab(this.app, this, this.ctx));
 		registerCommandsFeature(this, this.ctx);
 		registerCharacterCountFeature(this, this.ctx);

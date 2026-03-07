@@ -1,5 +1,5 @@
 import type { SidebarViewRenderContext } from "../guidebook/types";
-import { MarkdownView, Notice, TFile, setIcon, type EventRef, type TAbstractFile } from "obsidian";
+import { MarkdownView, Notice, TFile, TFolder, setIcon, type EventRef, type TAbstractFile } from "obsidian";
 import { UI } from "../../../constants";
 import { ClearableInputComponent } from "../../componets/clearable-input";
 import { showContextMenuAtMouseEvent } from "../../componets/context-menu";
@@ -45,6 +45,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 	const novelLibraryService = new NovelLibraryService(ctx.app);
 	const repository = new StickyNoteRepository(ctx.app);
 	let stickyNoteRootPaths = resolveScopedStickyNoteRootPaths(ctx, novelLibraryService);
+	let lastScopeReferencePath: string | null = ctx.app.workspace.getActiveFile()?.path ?? null;
 
 	const resolveViewOptions = (): StickyNoteViewOptions => {
 		const settings = ctx.getSettings();
@@ -89,7 +90,30 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 		}
 		cardList.applyVaultFileDelete(file.path);
 	};
+	const isLibraryFolderRename = (nextPath: string, previousPath: string): boolean => {
+		const normalizedNextPath = novelLibraryService.normalizeVaultPath(nextPath);
+		const normalizedPreviousPath = novelLibraryService.normalizeVaultPath(previousPath);
+		if (!normalizedNextPath || !normalizedPreviousPath || normalizedNextPath === normalizedPreviousPath) {
+			return false;
+		}
+		const libraryRoots = novelLibraryService.normalizeLibraryRoots(ctx.getSettings().novelLibraries);
+		if (libraryRoots.length === 0) {
+			return false;
+		}
+		return libraryRoots.some((libraryRoot) =>
+			novelLibraryService.isSameOrChildPath(libraryRoot, normalizedPreviousPath) ||
+			novelLibraryService.isSameOrChildPath(normalizedPreviousPath, libraryRoot) ||
+			novelLibraryService.isSameOrChildPath(libraryRoot, normalizedNextPath) ||
+			novelLibraryService.isSameOrChildPath(normalizedNextPath, libraryRoot),
+		);
+	};
 	const onVaultFileRenamed = (file: TAbstractFile, oldPath: string): void => {
+		if (file instanceof TFolder) {
+			if (isLibraryFolderRename(file.path, oldPath)) {
+				refreshStickyNoteScope(file.path);
+			}
+			return;
+		}
 		const nextPath = file instanceof TFile && isStickyNoteMarkdownPath(file.path) ? file.path : "";
 		const oldPathMatched = isStickyNoteMarkdownPath(oldPath);
 		if (!nextPath && !oldPathMatched) {
@@ -171,8 +195,15 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 	};
 
 	const refreshStickyNoteScope = (preferredFilePath?: string | null): void => {
-		updateTitleText(preferredFilePath);
-		const nextRoots = resolveScopedStickyNoteRootPaths(ctx, novelLibraryService, preferredFilePath);
+		const activeFilePath = ctx.app.workspace.getActiveFile()?.path ?? null;
+		const referencePath = typeof preferredFilePath === "string" && preferredFilePath.length > 0
+			? preferredFilePath
+			: (activeFilePath ?? lastScopeReferencePath);
+		if (referencePath) {
+			lastScopeReferencePath = referencePath;
+		}
+		updateTitleText(referencePath);
+		const nextRoots = resolveScopedStickyNoteRootPaths(ctx, novelLibraryService, referencePath);
 		if (areStringArraysEqual(stickyNoteRootPaths, nextRoots)) {
 			return;
 		}

@@ -1264,6 +1264,12 @@ button.cna-sticky-note-card__image-remove:hover {
 	margin-left: 6px;
 }
 
+.cna-settings-missing-library {
+	color: var(--text-error);
+	font-size: var(--font-ui-small);
+	margin-left: 6px;
+}
+
 .cna-character-count-status {
 	font-variant-numeric: tabular-nums;
 }
