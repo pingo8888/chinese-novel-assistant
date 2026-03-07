@@ -24,6 +24,7 @@ interface StickyNoteCardListDeps {
 	t: (key: TranslationKey) => string;
 	getSettings: () => ChineseNovelAssistantSettings;
 	getStickyNoteRootPaths: () => string[];
+	onVisibleCountChange?: (count: number) => void;
 	initialSortMode: StickyNoteSortMode;
 	initialSearchKeyword?: string;
 	initialViewOptions: StickyNoteViewOptions;
@@ -202,6 +203,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 		deps.containerEl.empty();
 		const listEl = deps.containerEl.createDiv({ cls: "cna-sticky-note-card-list" });
 		const visibleCards = getVisibleCards(state);
+		deps.onVisibleCountChange?.(visibleCards.length);
 		if (visibleCards.length === 0) {
 			listEl.createDiv({
 				cls: "cna-sticky-note-card-list__empty",

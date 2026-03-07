@@ -218,11 +218,16 @@
 	width: 100%;
 }
 
+.cna-sticky-note-search-input-container input[type="search"],
+.cna-sticky-note-search-input-container input[type="text"] {
+	padding-right: 58px;
+}
+
 .cna-sticky-note-search-input-container .search-input-clear-button {
 	display: none;
 	position: absolute;
 	left: auto;
-	right: 8px;
+	right: 28px;
 	top: 0 !important;
 	bottom: 0;
 	height: 16px;
@@ -233,6 +238,19 @@
 
 .cna-sticky-note-search-input-container .search-input-clear-button.is-visible {
 	display: block;
+}
+
+.cna-sticky-note-search-count {
+	position: absolute;
+	right: 8px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: var(--text-faint);
+	font-size: var(--font-ui-smaller);
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+	pointer-events: none;
+	z-index: 1;
 }
 
 .cna-right-sidebar-sticky-note__sort-button {

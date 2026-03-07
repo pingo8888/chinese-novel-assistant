@@ -39,6 +39,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 	const toolbarEl = contentEl.createDiv({ cls: "cna-right-sidebar-sticky-note__toolbar" });
 	const searchWrapEl = toolbarEl.createDiv({ cls: "cna-right-sidebar-sticky-note__search-wrap" });
 	const listWrapEl = contentEl.createDiv({ cls: "cna-right-sidebar-sticky-note__list-wrap" });
+	let noteCountEl: HTMLElement | null = null;
 
 	let sortMode: StickyNoteSortMode = "created_desc";
 	let searchKeyword = "";
@@ -62,6 +63,9 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 		t: (key) => ctx.t(key),
 		getSettings: () => ctx.getSettings(),
 		getStickyNoteRootPaths: () => stickyNoteRootPaths,
+		onVisibleCountChange: (count) => {
+			noteCountEl?.setText(`${Math.max(0, count)}`);
+		},
 		initialSortMode: sortMode,
 		initialSearchKeyword: searchKeyword,
 		initialViewOptions: resolveViewOptions(),
@@ -146,6 +150,11 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 			cardList.setSearchKeyword(value);
 		},
 	});
+	const searchInputContainerEl = searchWrapEl.querySelector<HTMLElement>(".cna-sticky-note-search-input-container");
+	noteCountEl = searchInputContainerEl?.createSpan({
+		cls: "cna-sticky-note-search-count",
+		text: "0",
+	}) ?? null;
 	const searchInputEl = searchWrapEl.querySelector<HTMLInputElement>("input");
 	const searchClearButtonEl = searchWrapEl.querySelector<HTMLElement>(".search-input-clear-button");
 
