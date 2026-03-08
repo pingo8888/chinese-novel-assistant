@@ -579,9 +579,16 @@ function clamp(value: number, min: number, max: number): number {
 
 function resolveFloatingBounds(): FloatingBounds {
 	const left = 0;
-	const top = 0;
+	let top = 0;
 	let right = Math.max(1, window.innerWidth);
 	const bottom = Math.max(1, window.innerHeight);
+	const titleBarEl = document.querySelector<HTMLElement>(".titlebar");
+	if (titleBarEl && titleBarEl.isConnected) {
+		const rect = titleBarEl.getBoundingClientRect();
+		if (rect.height > 0) {
+			top = Math.max(0, Math.floor(rect.bottom));
+		}
+	}
 	const rightSplitEl = document.querySelector<HTMLElement>(".workspace-split.mod-right-split");
 	if (rightSplitEl && rightSplitEl.isConnected) {
 		const rect = rightSplitEl.getBoundingClientRect();

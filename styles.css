@@ -290,14 +290,12 @@
 }
 
 .cna-sticky-note-floating-layer {
-	position: fixed;
-	inset: 0;
+	display: contents;
 	pointer-events: none;
-	z-index: 200;
 }
 
-body:has(.modal-container .modal) .cna-sticky-note-floating-layer {
-	z-index: 1;
+body:has(.modal-container .modal) .cna-sticky-note-floating-window {
+	z-index: 1 !important;
 }
 
 .cna-sticky-note-floating-window {
