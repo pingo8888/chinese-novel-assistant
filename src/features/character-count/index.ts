@@ -337,12 +337,12 @@ class CharacterCountFeature {
 
 	private renderStatusBar(): void {
 		if (!this.ctx.settings.enableCharacterCount) {
-			this.statusBarEl.style.display = "none";
+			this.statusBarEl.toggleClass("is-hidden", true);
 			this.statusBarEl.setText("");
 			return;
 		}
 
-		this.statusBarEl.style.display = "";
+		this.statusBarEl.toggleClass("is-hidden", false);
 		const charUnit = this.ctx.t("feature.character_count.unit.char");
 		const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
 		if (!view) {

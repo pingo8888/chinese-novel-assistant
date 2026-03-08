@@ -300,7 +300,7 @@ export class TextMenuGuidebookController {
 		}
 		this.elevateCategoryPanelAboveMenus(panelEl);
 
-		panelEl.style.visibility = "hidden";
+		panelEl.toggleClass("is-positioning", true);
 		panelEl.show();
 		const anchorRect = anchorEl.getBoundingClientRect();
 		const panelRect = panelEl.getBoundingClientRect();
@@ -315,9 +315,11 @@ export class TextMenuGuidebookController {
 			top = window.innerHeight - panelRect.height - 8;
 		}
 		top = Math.max(8, top);
-		panelEl.style.left = `${Math.round(left)}px`;
-		panelEl.style.top = `${Math.round(top)}px`;
-		panelEl.style.visibility = "visible";
+		panelEl.setCssProps({
+			left: `${Math.round(left)}px`,
+			top: `${Math.round(top)}px`,
+		});
+		panelEl.toggleClass("is-positioning", false);
 	}
 
 	private renderCategoryPanelItems(

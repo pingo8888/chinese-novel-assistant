@@ -121,7 +121,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 	const renderHeader = (): void => {
 		timeDragIndicatorEl.toggleClass("is-visible", card.isFloating);
 		timeTextEl.setText(formatDateTime(resolveHeaderTimestamp(card, deps.sortMode)));
-		timePinEl.style.display = card.isPinned ? "inline-flex" : "none";
+		timePinEl.toggleClass("is-hidden", !card.isPinned);
 		timePinEl.setAttr("aria-label", deps.t("feature.right_sidebar.sticky_note.card.menu.pin"));
 	};
 

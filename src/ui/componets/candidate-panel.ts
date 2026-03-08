@@ -272,8 +272,10 @@ export class CandidatePanelComponent<TItem> {
 			top = Math.max(viewPadding, anchorRect.top - panelRect.height - gap);
 		}
 
-		this.rootEl.style.left = `${Math.round(left)}px`;
-		this.rootEl.style.top = `${Math.round(top)}px`;
+		this.rootEl.setCssProps({
+			left: `${Math.round(left)}px`,
+			top: `${Math.round(top)}px`,
+		});
 	}
 
 	private getCurrentPageItems(): readonly TItem[] {

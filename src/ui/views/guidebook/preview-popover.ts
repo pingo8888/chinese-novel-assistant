@@ -121,31 +121,36 @@ export class GuidebookPreviewPopover {
 		const normalizedContent = parsed.content;
 		if (parsed.aliases.length > 0) {
 			this.aliasValueEl.setText(parsed.aliases.join(" "));
-			this.aliasSectionEl.style.display = "block";
+			this.aliasSectionEl.toggleClass("is-visible", true);
 		} else {
 			this.aliasValueEl.empty();
-			this.aliasSectionEl.style.display = "none";
+			this.aliasSectionEl.toggleClass("is-visible", false);
 		}
 		const renderVersion = ++this.contentRenderVersion;
 		void this.renderPreviewContent(normalizedContent, previewItem.sourcePath, renderVersion);
 		this.contentEl.toggleClass("is-empty", normalizedContent.length === 0);
 		this.emptyEl.toggleClass("is-visible", normalizedContent.length === 0);
-		this.emptyEl.style.display = normalizedContent.length === 0 ? "block" : "none";
 		this.rootEl.style.width = `${width}px`;
-		this.rootEl.style.maxHeight = "";
+		this.rootEl.setCssProps({
+			"max-height": "",
+		});
 		this.currentDisplayOptions = { maxLines };
 
 		this.rootEl.show();
-		this.rootEl.style.visibility = "hidden";
-		this.rootEl.style.left = "0px";
-		this.rootEl.style.top = "0px";
+		this.rootEl.toggleClass("is-positioning", true);
+		this.rootEl.setCssProps({
+			left: "0px",
+			top: "0px",
+		});
 		this.applyContentHeightLimit();
 		this.rootEl.toggleClass("is-visible", true);
 		const bounds = this.rootEl.getBoundingClientRect();
 		const position = this.resolvePosition(anchorRect, bounds);
-		this.rootEl.style.left = `${position.left}px`;
-		this.rootEl.style.top = `${position.top}px`;
-		this.rootEl.style.visibility = "visible";
+		this.rootEl.setCssProps({
+			left: `${position.left}px`,
+			top: `${position.top}px`,
+		});
+		this.rootEl.toggleClass("is-positioning", false);
 		this.visible = true;
 	}
 
@@ -225,7 +230,9 @@ export class GuidebookPreviewPopover {
 		}
 		const lineHeightPx = this.resolveContentLineHeightPx();
 		const maxByLines = Math.max(24, Math.round(options.maxLines * lineHeightPx));
-		this.contentEl.style.maxHeight = `${maxByLines}px`;
+		this.contentEl.setCssProps({
+			"max-height": `${maxByLines}px`,
+		});
 	}
 
 	private resolveContentLineHeightPx(): number {

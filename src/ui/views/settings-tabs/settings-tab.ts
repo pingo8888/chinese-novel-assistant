@@ -13,6 +13,8 @@ import {
 	renderTypesetSettings,
 } from "./index";
 
+const SETTINGS_SEARCH_HIDDEN_CLASS = "cna-settings-search-hidden";
+
 export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
 	private ctx: PluginContext;
 	private activeTabId = "general";
@@ -150,7 +152,7 @@ export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
 		for (const item of settingItems) {
 			const text = item.textContent?.toLowerCase() ?? "";
 			const isVisible = isEmptyKeyword || text.includes(normalizedKeyword);
-			item.style.display = isVisible ? "" : "none";
+			this.setSearchHidden(item, !isVisible);
 			if (isVisible) {
 				hasAnyVisibleSettingItem = true;
 			}
@@ -170,9 +172,9 @@ export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
 		const searchTabSections = Array.from(tabPanelEl.querySelectorAll<HTMLElement>(".cna-search-tab-section"));
 		for (const section of searchTabSections) {
 			const hasVisibleSettingItem = Array.from(section.querySelectorAll<HTMLElement>(".cna-settings-item.setting-item")).some(
-				(item) => item.style.display !== "none",
+				(item) => !this.isSearchHidden(item),
 			);
-			section.style.display = isEmptyKeyword || hasVisibleSettingItem ? "" : "none";
+			this.setSearchHidden(section, !(isEmptyKeyword || hasVisibleSettingItem));
 		}
 
 		this.syncSearchEmptyState(tabPanelEl, !isEmptyKeyword && !hasAnyVisibleSettingItem);
@@ -191,7 +193,7 @@ export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
 			}
 
 			if (isEmptyKeyword) {
-				node.style.display = "";
+				this.setSearchHidden(node, false);
 				continue;
 			}
 
@@ -206,17 +208,22 @@ export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
 					break;
 				}
 
-				if (nextNode.classList.contains("setting-item") && nextNode.style.display !== "none") {
+				if (nextNode.classList.contains("setting-item") && !this.isSearchHidden(nextNode)) {
 					hasVisibleSettingItem = true;
 					break;
 				}
 			}
 
-			node.style.display = hasVisibleSettingItem ? "" : "none";
+			this.setSearchHidden(node, !hasVisibleSettingItem);
 		}
 	}
 
 	private normalizeSearchPanelLeadingSpace(panelEl: HTMLElement, enable: boolean): void {
+		const firstVisibleTitleClass = "cna-settings-section-title--first-visible";
+		const firstVisibleTitleMarginProp = "--cna-search-first-section-title-margin-top";
+		panelEl.setCssProps({
+			[firstVisibleTitleMarginProp]: enable ? "0px" : "",
+		});
 		const children = Array.from(panelEl.children) as HTMLElement[];
 		for (const child of children) {
 			if (!child) {
@@ -224,7 +231,7 @@ export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
 			}
 
 			if (child.classList.contains("cna-settings-section-title")) {
-				child.style.marginTop = "";
+				child.toggleClass(firstVisibleTitleClass, false);
 			}
 		}
 
@@ -232,10 +239,18 @@ export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
 			return;
 		}
 
-		const firstVisibleNode = children.find((child) => child && child.style.display !== "none");
+		const firstVisibleNode = children.find((child) => child && !this.isSearchHidden(child));
 		if (firstVisibleNode && firstVisibleNode.classList.contains("cna-settings-section-title")) {
-			firstVisibleNode.style.marginTop = "0px";
+			firstVisibleNode.toggleClass(firstVisibleTitleClass, true);
 		}
+	}
+
+	private setSearchHidden(targetEl: HTMLElement, hidden: boolean): void {
+		targetEl.toggleClass(SETTINGS_SEARCH_HIDDEN_CLASS, hidden);
+	}
+
+	private isSearchHidden(targetEl: HTMLElement): boolean {
+		return targetEl.hasClass(SETTINGS_SEARCH_HIDDEN_CLASS);
 	}
 
 	private syncSearchEmptyState(tabPanelEl: HTMLElement, shouldShow: boolean): void {

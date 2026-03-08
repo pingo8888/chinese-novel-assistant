@@ -460,13 +460,17 @@ class StickyNoteFloatingFeature {
 		if (clampToViewport) {
 			x = clamp(x, bounds.left, Math.max(bounds.left, bounds.right - width));
 		}
-		windowEl.style.left = `${x}px`;
-		windowEl.style.top = `${y}px`;
+		windowEl.setCssProps({
+			left: `${x}px`,
+			top: `${y}px`,
+		});
 
 		if (clampToViewport) {
 			const rect = windowEl.getBoundingClientRect();
 			y = clamp(y, bounds.top, Math.max(bounds.top, bounds.bottom - rect.height));
-			windowEl.style.top = `${y}px`;
+			windowEl.setCssProps({
+				top: `${y}px`,
+			});
 		}
 
 		card.floatW = width;
@@ -483,7 +487,9 @@ class StickyNoteFloatingFeature {
 				continue;
 			}
 			surfaceEl.style.minHeight = `${contentHeight}px`;
-			surfaceEl.style.maxHeight = `${contentHeight}px`;
+			surfaceEl.setCssProps({
+				"max-height": `${contentHeight}px`,
+			});
 		}
 	}
 

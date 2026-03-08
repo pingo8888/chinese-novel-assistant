@@ -428,6 +428,10 @@ body:has(.modal-container .modal) .cna-sticky-note-floating-window {
 	color: var(--text-normal);
 }
 
+.cna-sticky-note-card__time-pin.is-hidden {
+	display: none;
+}
+
 .cna-sticky-note-card__time-pin svg {
 	width: 11px;
 	height: 11px;
@@ -1079,6 +1083,10 @@ button.cna-sticky-note-card__image-remove:hover {
 	pointer-events: auto;
 }
 
+.cna-guidebook-preview-popover.is-positioning {
+	visibility: hidden;
+}
+
 .cna-guidebook-preview-popover__header {
 	display: flex;
 	align-items: flex-start;
@@ -1139,6 +1147,10 @@ button.cna-sticky-note-card__image-remove:hover {
 .cna-guidebook-preview-popover__aliases {
 	display: none;
 	margin-top: 8px;
+}
+
+.cna-guidebook-preview-popover__aliases.is-visible {
+	display: block;
 }
 
 .cna-guidebook-preview-popover__alias-label {
@@ -1282,6 +1294,10 @@ button.cna-sticky-note-card__image-remove:hover {
 	padding-bottom: 6px;
 }
 
+.cna-text-menu-category-panel.is-positioning {
+	visibility: hidden;
+}
+
 .cna-text-menu-category-panel .menu-item {
 	margin: 2px 6px;
 	padding: 4px 8px;
@@ -1305,6 +1321,10 @@ button.cna-sticky-note-card__image-remove:hover {
 	gap: 10px;
 }
 
+.cna-settings-search-hidden {
+	display: none !important;
+}
+
 .cna-settings-section-title {
 	color: var(--text-normal);
 	font-size: var(--font-ui-medium);
@@ -1314,6 +1334,10 @@ button.cna-sticky-note-card__image-remove:hover {
 
 .cna-settings-panel .cna-settings-section-title {
 	margin: 0 !important;
+}
+
+.cna-settings-panel .cna-settings-section-title.cna-settings-section-title--first-visible {
+	margin-top: var(--cna-search-first-section-title-margin-top, 0px) !important;
 }
 
 .cna-settings-panel > .cna-settings-section-title,
@@ -1385,6 +1409,10 @@ button.cna-sticky-note-card__image-remove:hover {
 
 .cna-character-count-status {
 	font-variant-numeric: tabular-nums;
+}
+
+.cna-character-count-status.is-hidden {
+	display: none;
 }
 
 .cna-character-count-badge {

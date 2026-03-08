@@ -148,8 +148,10 @@ function positionMenu(menuEl: HTMLElement, anchorRect: DOMRect): void {
 	left = Math.min(Math.max(margin, left), Math.max(margin, viewportWidth - menuRect.width - margin));
 	top = Math.min(Math.max(margin, top), Math.max(margin, viewportHeight - menuRect.height - margin));
 
-	menuEl.style.left = `${left}px`;
-	menuEl.style.top = `${top}px`;
+	menuEl.setCssProps({
+		left: `${left}px`,
+		top: `${top}px`,
+	});
 }
 
 function toRgba(hex: string, alpha: number): string {
