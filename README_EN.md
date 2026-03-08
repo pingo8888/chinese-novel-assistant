@@ -7,7 +7,7 @@
 	<img src="https://img.shields.io/github/stars/pingo8888/chinese-novel-assistant?style=social" alt="GitHub stars" />
 </div>
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 [简体中文](./README.md) | English
 
@@ -15,7 +15,7 @@ An Obsidian plugin designed for Chinese fiction authors, with a set of practical
 
 **Note: all features are desktop-only, and have been fully tested mainly on Windows 11.**
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## ✨ Worldbuilding library and keyword highlight
 
@@ -25,7 +25,7 @@ An Obsidian plugin designed for Chinese fiction authors, with a set of practical
 
 ![](./images/插件全局预览.png)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## ✨ Quick add worldbuilding from right-click menu
 
@@ -34,7 +34,7 @@ An Obsidian plugin designed for Chinese fiction authors, with a set of practical
 
 ![](./images/右键菜单快捷添加设定.png)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## ✨ Quick reference existing worldbuilding in manuscript
 
@@ -43,7 +43,7 @@ An Obsidian plugin designed for Chinese fiction authors, with a set of practical
 
 ![](./images/便捷引用已有设定.gif)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## ✨ Sticky note feature for inspiration
 
@@ -53,7 +53,7 @@ An Obsidian plugin designed for Chinese fiction authors, with a set of practical
 
 ![](./images/灵感便签功能.png)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## ✨ More accurate Chinese character count
 
@@ -62,7 +62,7 @@ An Obsidian plugin designed for Chinese fiction authors, with a set of practical
 
 ![](./images/中文字数统计.png)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## ✨ Sidebar writing milestones (every 500 characters)
 
@@ -70,7 +70,7 @@ An Obsidian plugin designed for Chinese fiction authors, with a set of practical
 
 ![](./images/侧边栏文字里程碑.png)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## ✨ Editor typography: first-line indent, line spacing, paragraph spacing
 
@@ -78,14 +78,14 @@ An Obsidian plugin designed for Chinese fiction authors, with a set of practical
 
 ![](./images/正文排版功能.gif)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## ✨ Common English punctuation detection and fix
 
 - Automatically detects incorrect English punctuation in Chinese text.
 - Provides manual commands to batch-fix detected punctuation issues.
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ![](./images/自动检测和手动修复英文标点.gif)
 
@@ -94,7 +94,7 @@ An Obsidian plugin designed for Chinese fiction authors, with a set of practical
 - Supports custom snippets and fast snippet insertion.
 - Snippets are essentially **local Markdown files**, which you can edit directly.
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ![](./images/快捷输入文本片段.gif)
 
@@ -105,7 +105,7 @@ An Obsidian plugin designed for Chinese fiction authors, with a set of practical
 
 ![](./images/错别字和敏感词修复.gif)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 # Usage
 
@@ -164,7 +164,7 @@ Example:
 
 ```
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## Snippet format conventions
 
@@ -189,7 +189,7 @@ Example:
 
 ```
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## Custom typo and sensitive-word dictionary format
 
@@ -206,7 +206,7 @@ Example:
 
 ```
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## 📝 Commands
 
@@ -215,7 +215,7 @@ Access these commands with `Ctrl/Cmd+P`:
 - **Auto-fix punctuation issues in current document** - Auto-fixes English punctuation and unmatched paired Chinese punctuation.
 - **Auto-fix typos and sensitive words in current document** - Auto-fixes typos and sensitive words in current document (requires your custom dictionary).
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## 🤝 Support
 
@@ -224,12 +224,12 @@ If Chinese Novel Assistant helps you, please consider supporting the project:
 - [⭐ Star the project on GitHub](https://github.com/pingo8888/chinese-novel-assistant)
 - [🐛 Report issues or request features](https://github.com/pingo8888/chinese-novel-assistant/issues)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## 📄 License
 
 MIT License - free to use and modify.
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 **Made with ❤️ by [pingo8888](https://github.com/pingo8888)**

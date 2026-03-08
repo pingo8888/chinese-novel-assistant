@@ -7,7 +7,7 @@
 	<img src="https://img.shields.io/github/stars/pingo8888/chinese-novel-assistant?style=social" alt="GitHub stars" />
 </div>
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 简体中文 | [English](./README-EN.md)
 
@@ -15,7 +15,7 @@
 
 **注意：所有功能仅支持桌面版，且仅在Win11下充分测试。**
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## ✨设定库及关键字高亮功能
 
@@ -25,7 +25,7 @@
 
 ![](./images/插件全局预览.png)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## ✨右键菜单快速添加设定
 
@@ -34,7 +34,7 @@
 
 ![](./images/右键菜单快捷添加设定.png)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## ✨正文中快速引用现有设定
 
@@ -43,7 +43,7 @@
 
 ![](./images/便捷引用已有设定.gif)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## ✨灵感便签功能
 
@@ -53,7 +53,7 @@
 
 ![](./images/灵感便签功能.png)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 
 ## ✨更准确的中文字数统计
@@ -63,7 +63,7 @@
 
 ![](./images/中文字数统计.png)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## ✨侧边栏字数里程碑（每500字）
 
@@ -71,7 +71,7 @@
 
 ![](./images/侧边栏文字里程碑.png)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## ✨编辑区排版功能：行首缩进、行间距、段间距
 
@@ -79,14 +79,14 @@
 
 ![](./images/正文排版功能.gif)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## ✨常见英文标点检测与修复
 
 - 提供中文文本中，自动检测错误英文标点的功能
 - 提供手动修复英文标点错误命令，可批量手动修复检测出的英文标点
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ![](./images/自动检测和手动修复英文标点.gif)
 
@@ -95,7 +95,7 @@
 - 可自定义文本片段，并提供快速输入片段功能
 - 文本片段本质上只是**本地的md文件**，可自己打开编辑
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ![](./images/快捷输入文本片段.gif)
 
@@ -106,7 +106,7 @@
 
 ![](./images/错别字和敏感词修复.gif)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 # 使用方法
 
@@ -165,7 +165,7 @@
 
 ```
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## 文本片段格式约定
 
@@ -190,7 +190,7 @@
 
 ```
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## 自定义错别字与敏感词词典格式约定
 
@@ -207,7 +207,7 @@
 
 ```
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## 📝 命令列表
 
@@ -216,7 +216,7 @@
 - **自动修正当前文档标点问题** - 自动修正当前文档的英文标点和中文标点不配对问题
 - **自动修正当前文档错别字和敏感词** - 自动修正当前文档的错别字和敏感词（错别字和敏感词需自定义）
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## 🤝 支持
 
@@ -225,12 +225,12 @@
 - [⭐ 在 GitHub 上给项目加星](https://github.com/pingo8888/chinese-novel-assistant)
 - [🐛 报告问题或建议功能](https://github.com/pingo8888/chinese-novel-assistant/issues)
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 ## 📄 许可证
 
 MIT License - 可自由使用和修改。
 
-<hr style="border-top: 2px dashed #ccc;">
+---
 
 **Made with ❤️ by [pingo8888](https://github.com/pingo8888)**
