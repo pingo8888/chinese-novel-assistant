@@ -748,7 +748,6 @@ function resolveMarkdownCaretIndexFromDisplayPoint(
 function resolveCaretPointByClientPosition(clientX: number, clientY: number): { node: Node; offset: number } | null {
 	const docWithCaret = document as Document & {
 		caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null;
-		caretRangeFromPoint?: (x: number, y: number) => Range | null;
 	};
 	if (typeof docWithCaret.caretPositionFromPoint === "function") {
 		const caretPosition = docWithCaret.caretPositionFromPoint(clientX, clientY);
@@ -756,15 +755,6 @@ function resolveCaretPointByClientPosition(clientX: number, clientY: number): { 
 			return {
 				node: caretPosition.offsetNode,
 				offset: caretPosition.offset,
-			};
-		}
-	}
-	if (typeof docWithCaret.caretRangeFromPoint === "function") {
-		const caretRange = docWithCaret.caretRangeFromPoint(clientX, clientY);
-		if (caretRange) {
-			return {
-				node: caretRange.startContainer,
-				offset: caretRange.startOffset,
 			};
 		}
 	}
