@@ -1,9 +1,9 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
-import { IDS, UI } from "../../constants";
-import type { SidebarViewRenderContext } from "./guidebook/types";
-import { renderStickyNoteSidebarPanel } from "./sticky-note/sidebar-panel";
+import { IDS, UI } from "../../../constants";
+import type { SidebarViewRenderContext } from "../sidebar/types";
+import { renderStickyNoteSidebarPanel } from "./sidebar-panel";
 
-export class ChineseNovelAssistantStickyNoteSidebarView extends ItemView {
+export class StickyNoteSidebarView extends ItemView {
 	private activeTabDispose: (() => void) | null = null;
 
 	constructor(

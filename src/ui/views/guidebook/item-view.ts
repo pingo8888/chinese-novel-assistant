@@ -1,9 +1,9 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
-import { IDS, UI } from "../../constants";
-import type { SidebarViewRenderContext } from "./guidebook/types";
-import { renderGuidebookSidebarPanel } from "./guidebook/sidebar-panel";
+import { IDS, UI } from "../../../constants";
+import type { SidebarViewRenderContext } from "../sidebar/types";
+import { renderGuidebookSidebarPanel } from "./sidebar-panel";
 
-export class ChineseNovelAssistantGuidebookSidebarView extends ItemView {
+export class GuidebookSidebarView extends ItemView {
 	private activeTabDispose: (() => void) | null = null;
 
 	constructor(

@@ -1,76 +1,25 @@
 import type { Plugin } from "obsidian";
-import { IDS, UI } from "../../constants";
-import type { PluginContext } from "../../core/context";
-import { buildGuidebookTreeData } from "./tree-builder";
-import { ChineseNovelAssistantGuidebookSidebarView } from "../../ui/views/guidebook-item-view";
-import type { SidebarViewRenderContext } from "../../ui/views/guidebook";
-import {
-	detachStickyNoteSidebars,
-	registerStickyNoteFloatingWindows,
-	registerStickyNoteSidebarView,
-	syncStickyNoteSidebarWithGuidebook,
-} from "../sticky-note";
+import { IDS } from "../../constants";
+import { GuidebookSidebarView } from "../../ui/views/guidebook/item-view";
+import type { SidebarViewRenderContext } from "../../ui/views/sidebar/types";
 
-export function registerGuidebookSidebarFeature(plugin: Plugin, ctx: PluginContext): void {
-	const getTabTooltipText = () => ctx.t("feature.right_sidebar.guidebook.tab.tooltip");
-	const getRibbonTooltipText = () => ctx.t("feature.right_sidebar.guidebook.tooltip");
-	const renderContext: SidebarViewRenderContext = {
-		app: plugin.app,
-		t: (key) => ctx.t(key),
-		getSettings: () => ctx.settings,
-		setSettings: (patch) => ctx.setSettings(patch),
-		onSettingsChange: (listener) => ctx.onSettingsChange(listener),
-		loadGuidebookTreeData: (activeFilePath) =>
-			buildGuidebookTreeData(plugin.app, {
-				locale: ctx.settings.locale,
-				novelLibraries: ctx.settings.novelLibraries,
-				guidebookDirName: ctx.settings.guidebookDirName,
-				guidebookCollectionOrders: ctx.settings.guidebookCollectionOrders,
-			}, activeFilePath),
-	};
+interface RegisterGuidebookSidebarViewOptions {
+	getTabTooltipText: () => string;
+	renderContext: SidebarViewRenderContext;
+}
+
+export function registerGuidebookSidebarView(
+	plugin: Plugin,
+	options: RegisterGuidebookSidebarViewOptions,
+): void {
 	plugin.registerView(
 		IDS.view.guidebookSidebar,
-		(leaf) => new ChineseNovelAssistantGuidebookSidebarView(leaf, getTabTooltipText, renderContext),
+		(leaf) => new GuidebookSidebarView(leaf, options.getTabTooltipText, options.renderContext),
 	);
-	registerStickyNoteSidebarView(plugin, renderContext);
-	registerStickyNoteFloatingWindows(plugin, ctx);
-	plugin.addRibbonIcon(UI.icon.plugin, getRibbonTooltipText(), () => {
-		void openGuidebookSidebarWithStickyNote(plugin, ctx);
-	});
-	plugin.app.workspace.onLayoutReady(() => {
-		void openGuidebookSidebarWithStickyNote(plugin, ctx, {
-			focusGuidebook: false,
-			revealGuidebook: false,
-		});
-	});
-
-	plugin.register(() => {
-		for (const leaf of plugin.app.workspace.getLeavesOfType(IDS.view.guidebookSidebar)) {
-			leaf.detach();
-		}
-		detachStickyNoteSidebars(plugin);
-	});
 }
 
-interface OpenGuidebookSidebarOptions {
-	focusGuidebook?: boolean;
-	revealGuidebook?: boolean;
-}
-
-async function openGuidebookSidebarWithStickyNote(
-	plugin: Plugin,
-	ctx: PluginContext,
-	options?: OpenGuidebookSidebarOptions,
-): Promise<void> {
-	const focusGuidebook = options?.focusGuidebook ?? true;
-	const revealGuidebook = options?.revealGuidebook ?? true;
-	const guidebookLeaf = await plugin.app.workspace.ensureSideLeaf(IDS.view.guidebookSidebar, "right", {
-		active: focusGuidebook,
-		reveal: revealGuidebook,
-		split: false,
-	});
-
-	await syncStickyNoteSidebarWithGuidebook(plugin, ctx, guidebookLeaf);
-
-	plugin.app.workspace.setActiveLeaf(guidebookLeaf, false, focusGuidebook);
+export function detachGuidebookSidebars(plugin: Plugin): void {
+	for (const leaf of plugin.app.workspace.getLeavesOfType(IDS.view.guidebookSidebar)) {
+		leaf.detach();
+	}
 }

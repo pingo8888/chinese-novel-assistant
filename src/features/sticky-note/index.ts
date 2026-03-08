@@ -1,8 +1,8 @@
 import type { Plugin, WorkspaceLeaf } from "obsidian";
 import { IDS } from "../../constants";
 import type { PluginContext } from "../../core/context";
-import type { SidebarViewRenderContext } from "../../ui/views/guidebook";
-import { ChineseNovelAssistantStickyNoteSidebarView } from "../../ui/views/sticky-note-item-view";
+import type { SidebarViewRenderContext } from "../../ui/views/sidebar/types";
+import { StickyNoteSidebarView } from "../../ui/views/sticky-note/item-view";
 import { registerStickyNoteFloatingFeature } from "./floating-manager";
 
 export function registerStickyNoteSidebarView(
@@ -11,7 +11,7 @@ export function registerStickyNoteSidebarView(
 ): void {
 	plugin.registerView(
 		IDS.view.stickyNoteSidebar,
-		(leaf) => new ChineseNovelAssistantStickyNoteSidebarView(leaf, renderContext),
+		(leaf) => new StickyNoteSidebarView(leaf, renderContext),
 	);
 }
 

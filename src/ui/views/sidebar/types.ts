@@ -1,6 +1,6 @@
-import type { TranslationKey } from "../../../lang";
 import type { App } from "obsidian";
 import type { SettingsChangeListener } from "../../../core/context";
+import type { TranslationKey } from "../../../lang";
 import type { ChineseNovelAssistantSettings } from "../../../settings/settings";
 import type { GuidebookTreeData } from "../../../features/guidebook/tree-builder";
 

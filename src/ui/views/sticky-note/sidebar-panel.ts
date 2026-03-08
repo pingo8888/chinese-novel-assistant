@@ -1,4 +1,4 @@
-import type { SidebarViewRenderContext } from "../guidebook/types";
+import type { SidebarViewRenderContext } from "../sidebar/types";
 import { MarkdownView, Notice, TFile, TFolder, setIcon, type EventRef, type TAbstractFile } from "obsidian";
 import { UI } from "../../../constants";
 import { ClearableInputComponent } from "../../componets/clearable-input";

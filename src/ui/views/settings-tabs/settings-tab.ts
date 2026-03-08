@@ -1,7 +1,7 @@
 import { App, Plugin, PluginSettingTab } from "obsidian";
-import type { PluginContext } from "../../core/context";
-import { ClearableInputComponent } from "../componets/clearable-input";
-import { TabsComponent, type TabDefinition } from "../componets/tabs";
+import type { PluginContext } from "../../../core/context";
+import { ClearableInputComponent } from "../../componets/clearable-input";
+import { TabsComponent, type TabDefinition } from "../../componets/tabs";
 import {
 	type SettingsTabRenderContext,
 	renderGlobalSettings,
@@ -11,7 +11,7 @@ import {
 	renderProofreadSettings,
 	renderSnippetSettings,
 	renderTypesetSettings,
-} from "./settings-tabs";
+} from "./index";
 
 export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
 	private ctx: PluginContext;

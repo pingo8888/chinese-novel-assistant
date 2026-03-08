@@ -1,4 +1,4 @@
-import type { SidebarViewRenderContext } from "./types";
+import type { SidebarViewRenderContext } from "../sidebar/types";
 import { MarkdownView, setIcon, TFile, TFolder } from "obsidian";
 import { UI } from "../../../constants";
 import { NovelLibraryService } from "../../../services/novel-library-service";
