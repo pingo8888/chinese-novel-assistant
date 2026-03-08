@@ -9,6 +9,8 @@
 
 <hr style="border-top: 2px dashed #ccc;">
 
+简体中文 | [English](./README-EN.md)
+
 一款辅助中文小说作者写作的 Obsidian 插件，提供一系列开箱即用的便捷功能。
 
 **注意：所有功能仅支持桌面版，且仅在Win11下充分测试。**
