@@ -437,7 +437,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 		}
 		evt.preventDefault();
 		const text = evt.clipboardData?.getData("text/plain") ?? "";
-		void document.execCommand("insertText", false, text);
+		insertPlainTextAtSelection(tagsEditorEl, text);
 	});
 	tagsEditorEl.addEventListener("blur", () => {
 		commitTagsEditorValue();
@@ -687,6 +687,38 @@ function placeCaretAtEnd(targetEl: HTMLElement): void {
 	range.collapse(false);
 	selection.removeAllRanges();
 	selection.addRange(range);
+}
+
+function insertPlainTextAtSelection(targetEl: HTMLElement, text: string): void {
+	if (text.length === 0) {
+		return;
+	}
+	targetEl.focus();
+	const selection = window.getSelection();
+	if (!selection) {
+		targetEl.append(document.createTextNode(text));
+		placeCaretAtEnd(targetEl);
+		return;
+	}
+	let activeRange: Range | null = null;
+	if (selection.rangeCount > 0) {
+		const candidateRange = selection.getRangeAt(0);
+		if (targetEl.contains(candidateRange.commonAncestorContainer)) {
+			activeRange = candidateRange;
+		}
+	}
+	if (!activeRange) {
+		activeRange = document.createRange();
+		activeRange.selectNodeContents(targetEl);
+		activeRange.collapse(false);
+	}
+	activeRange.deleteContents();
+	const textNode = document.createTextNode(text);
+	activeRange.insertNode(textNode);
+	activeRange.setStartAfter(textNode);
+	activeRange.collapse(true);
+	selection.removeAllRanges();
+	selection.addRange(activeRange);
 }
 
 function normalizeMarkdownValue(source: string): string {
