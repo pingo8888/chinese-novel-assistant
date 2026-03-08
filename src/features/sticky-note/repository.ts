@@ -155,7 +155,7 @@ export class StickyNoteRepository {
 				floatW: asNumber(parsed.data["floatw"], STICKY_NOTE_FLOAT_DEFAULT_WIDTH),
 				floatH: asNumber(parsed.data["floath"], defaultFloatHeight),
 			};
-		} catch (_error) {
+		} catch {
 			return null;
 		}
 	}
@@ -269,7 +269,7 @@ function parseStickyNoteData(source: string): StickyNoteFileData {
 	try {
 		const parsed = JSON.parse(source);
 		return isRecord(parsed) ? parsed : {};
-	} catch (_error) {
+	} catch {
 		return {};
 	}
 }

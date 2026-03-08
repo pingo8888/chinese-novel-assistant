@@ -214,7 +214,7 @@ export class TextMenuGuidebookController {
 		try {
 			menuItemAny.setSubmenu(submenu);
 			return true;
-		} catch (_error) {
+		} catch {
 			return false;
 		}
 	}
@@ -235,7 +235,7 @@ export class TextMenuGuidebookController {
 				onResolvedSubmenu?.(menuItemAny.submenu);
 				return true;
 			}
-		} catch (_error) {
+		} catch {
 			// Fall through and try legacy signature.
 		}
 		const legacySubmenu = new Menu();

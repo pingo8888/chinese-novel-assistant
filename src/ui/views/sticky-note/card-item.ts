@@ -147,7 +147,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 		contentDisplayEl.empty();
 		try {
 			await MarkdownRenderer.render(deps.app, card.contentMarkdown, contentDisplayEl, "", markdownRenderComponent);
-		} catch (_error) {
+		} catch {
 			contentDisplayEl.empty();
 			contentDisplayEl.setText(card.contentMarkdown);
 			return;
@@ -628,7 +628,7 @@ async function resolveVaultImagePreview(app: App, file: TFile): Promise<{ src: s
 			src: URL.createObjectURL(blob),
 			revokeOnDestroy: true,
 		};
-	} catch (_error) {
+	} catch {
 		return {
 			src: app.vault.getResourcePath(file),
 			revokeOnDestroy: false,
