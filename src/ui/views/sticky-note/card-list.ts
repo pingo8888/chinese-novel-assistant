@@ -97,7 +97,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 				return;
 			}
 			console.error("[Chinese Novel Assistant] Failed to load sticky notes.", error);
-			new Notice("便签加载失败，请检查控制台日志。");
+			new Notice(deps.t("feature.right_sidebar.sticky_note.notice.load_failed"));
 		}
 	};
 
@@ -182,7 +182,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 				return;
 			}
 			console.error("[Chinese Novel Assistant] Failed to save sticky note.", error);
-			new Notice("便签保存失败，请检查控制台日志。");
+			new Notice(deps.t("feature.right_sidebar.sticky_note.notice.save_failed"));
 		}
 	};
 
@@ -193,7 +193,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 		} catch (error) {
 			if (!isDestroyed) {
 				console.error("[Chinese Novel Assistant] Failed to delete sticky note.", error);
-				new Notice("便签删除失败，请检查控制台日志。");
+				new Notice(deps.t("feature.right_sidebar.sticky_note.notice.delete_failed"));
 			}
 			return false;
 		}

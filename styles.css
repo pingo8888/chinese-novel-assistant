@@ -308,12 +308,17 @@ body:has(.modal-container .modal) .cna-sticky-note-floating-window {
 	box-shadow:
 		0 6px 16px rgba(0, 0, 0, 0.16),
 		0 18px 36px rgba(0, 0, 0, 0.12);
-	overflow: hidden;
+	overflow: visible;
 }
 
 .cna-sticky-note-floating-window > .cna-sticky-note-card {
 	margin: 0;
 	box-sizing: border-box;
+	overflow: visible;
+}
+
+.tooltip {
+	z-index: 10000 !important;
 }
 
 .cna-sticky-note-floating-window__resize-handle {

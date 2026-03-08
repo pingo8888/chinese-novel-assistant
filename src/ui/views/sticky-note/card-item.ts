@@ -44,7 +44,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 			"aria-hidden": "true",
 		},
 	});
-	setIcon(timeDragIndicatorEl, "grip-vertical");
+	setIcon(timeDragIndicatorEl, UI.icon.gripVertical);
 	const timeTextEl = timeEl.createSpan({ cls: "cna-sticky-note-card__time-text" });
 	const timePinEl = timeEl.createSpan({
 		cls: "cna-sticky-note-card__time-pin is-hidden",
@@ -290,7 +290,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 				removeButtonEl.style.setProperty("background", "rgba(0, 0, 0, 0.56)", "important");
 				removeButtonEl.style.setProperty("background-color", "rgba(0, 0, 0, 0.56)", "important");
 			});
-			setIcon(removeButtonEl, "x");
+			setIcon(removeButtonEl, UI.icon.close);
 			removeButtonEl.addEventListener("click", () => {
 				const nextImages = card.images.filter((item) => item.id !== image.id);
 				if (nextImages.length === card.images.length) {
@@ -314,7 +314,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 				"aria-label": deps.t("feature.right_sidebar.sticky_note.card.image.add.tooltip"),
 			},
 		});
-		setIcon(addButtonEl, "plus");
+		setIcon(addButtonEl, UI.icon.plus);
 		addButtonEl.addEventListener("click", () => {
 			void addImageFromVault();
 		});

@@ -44,6 +44,7 @@ class TextDetectionFeature {
 		this.guidebookPreviewController = new GuidebookPreviewController(plugin, {
 			getSettings: () => this.ctx.settings,
 			resolveKeywordPreviewItem: (view, keyword) => this.guidebookKeywordHighlightController.getPreviewItemByEditorView(view, keyword),
+			t: (key) => this.ctx.t(key),
 		});
 		this.textMenuGuidebookController = new TextMenuGuidebookController(plugin, {
 			getSettings: () => this.ctx.settings,

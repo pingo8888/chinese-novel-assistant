@@ -1,5 +1,5 @@
 import { App, TFolder } from "obsidian";
-import { translate, type SupportedLocale } from "../lang";
+import type { SupportedLocale } from "../lang";
 import type { ChineseNovelAssistantSettings } from "../settings/settings";
 
 export class NovelLibraryService {
@@ -223,10 +223,7 @@ export class NovelLibraryService {
 	}
 
 	private resolveFeatureLibraryDirName(locale: SupportedLocale): string {
-		const localized = this.normalizeVaultPath(translate(locale, "novel_library.feature_dir_name"));
-		if (localized) {
-			return localized;
-		}
-		return this.normalizeVaultPath(translate("zh_cn", "novel_library.feature_dir_name"));
+		void locale;
+		return this.normalizeVaultPath("功能库");
 	}
 }

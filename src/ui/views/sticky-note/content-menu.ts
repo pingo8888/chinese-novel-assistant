@@ -1,4 +1,5 @@
 import type { TranslationKey } from "../../../lang";
+import { UI } from "../../../constants";
 import { showContextMenuAtMouseEvent } from "../../componets/context-menu";
 import type { StickyNoteRichTextCommand } from "../../../features/sticky-note/menu-actions";
 
@@ -26,22 +27,22 @@ const CONTENT_MENU_ITEMS: StickyNoteContentMenuOption[] = [
 	{
 		command: "bold",
 		labelKey: "feature.right_sidebar.sticky_note.card.rich_menu.bold",
-		icon: "bold",
+		icon: UI.icon.bold,
 	},
 	{
 		command: "italic",
 		labelKey: "feature.right_sidebar.sticky_note.card.rich_menu.italic",
-		icon: "italic",
+		icon: UI.icon.italic,
 	},
 	{
 		command: "strikethrough",
 		labelKey: "feature.right_sidebar.sticky_note.card.rich_menu.strikethrough",
-		icon: "strikethrough",
+		icon: UI.icon.strikethrough,
 	},
 	{
 		command: "highlight",
 		labelKey: "feature.right_sidebar.sticky_note.card.rich_menu.highlight",
-		icon: "highlighter",
+		icon: UI.icon.highlighter,
 	},
 	{
 		kind: "separator",
@@ -49,12 +50,12 @@ const CONTENT_MENU_ITEMS: StickyNoteContentMenuOption[] = [
 	{
 		command: "unordered",
 		labelKey: "feature.right_sidebar.sticky_note.card.rich_menu.unordered",
-		icon: "list",
+		icon: UI.icon.list,
 	},
 	{
 		command: "ordered",
 		labelKey: "feature.right_sidebar.sticky_note.card.rich_menu.ordered",
-		icon: "list-ordered",
+		icon: UI.icon.listOrdered,
 	},
 	{
 		kind: "separator",
@@ -62,7 +63,7 @@ const CONTENT_MENU_ITEMS: StickyNoteContentMenuOption[] = [
 	{
 		command: "clear_format",
 		labelKey: "feature.right_sidebar.sticky_note.card.rich_menu.clear_format",
-		icon: "eraser",
+		icon: UI.icon.eraser,
 		warning: true,
 	},
 ];

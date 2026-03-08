@@ -3,10 +3,12 @@ import { MarkdownView, TFile, type Plugin } from "obsidian";
 import type { ChineseNovelAssistantSettings } from "../../settings/settings";
 import type { GuidebookKeywordPreviewItem } from "../text-detection/rules/guidebook-keyword";
 import { GuidebookPreviewPopover } from "../../ui/views/guidebook/preview-popover";
+import type { TranslationKey } from "../../lang";
 
 interface GuidebookPreviewControllerOptions {
 	getSettings: () => ChineseNovelAssistantSettings;
 	resolveKeywordPreviewItem: (view: EditorView, keyword: string) => GuidebookKeywordPreviewItem | null;
+	t: (key: TranslationKey) => string;
 }
 
 const GUIDEBOOK_KEYWORD_HIT_CLASS = "cna-guidebook-keyword-hit";
@@ -47,6 +49,8 @@ export class GuidebookPreviewController {
 		}, {
 			app: this.plugin.app,
 			component: this.plugin,
+		}, {
+			t: options.t,
 		});
 	}
 

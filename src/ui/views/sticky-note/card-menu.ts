@@ -41,7 +41,6 @@ export function showStickyNoteCardMenu(args: ShowStickyNoteCardMenuArgs): void {
 			cls: "cna-sticky-note-card-menu__color",
 			attr: {
 				type: "button",
-				"aria-label": `${args.t("feature.right_sidebar.sticky_note.card.menu.color")} ${colorHex}`,
 			},
 		});
 		colorButtonEl.style.setProperty("--cna-sticky-note-card-menu-color", colorHex);

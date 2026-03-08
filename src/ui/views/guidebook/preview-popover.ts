@@ -1,5 +1,7 @@
 import { Component, type App, MarkdownRenderer, setIcon } from "obsidian";
 import type { GuidebookKeywordPreviewItem } from "../../../features/text-detection/rules/guidebook-keyword";
+import { UI } from "../../../constants";
+import type { TranslationKey } from "../../../lang";
 
 export interface GuidebookPreviewDisplayOptions {
 	width: number;
@@ -14,6 +16,10 @@ export interface GuidebookPreviewPopoverActions {
 export interface GuidebookPreviewPopoverRenderContext {
 	app: App;
 	component: Component;
+}
+
+export interface GuidebookPreviewPopoverI18n {
+	t: (key: TranslationKey) => string;
 }
 
 const PREVIEW_MIN_WIDTH = 200;
@@ -35,6 +41,7 @@ export class GuidebookPreviewPopover {
 	private readonly openButtonEl: HTMLButtonElement;
 	private readonly actions: GuidebookPreviewPopoverActions;
 	private readonly renderContext?: GuidebookPreviewPopoverRenderContext;
+	private readonly t: (key: TranslationKey) => string;
 	private currentPreviewItem: GuidebookKeywordPreviewItem | null = null;
 	private currentDisplayOptions: Pick<GuidebookPreviewDisplayOptions, "maxLines"> | null = null;
 	private visible = false;
@@ -44,9 +51,11 @@ export class GuidebookPreviewPopover {
 		hostEl?: HTMLElement,
 		actions?: GuidebookPreviewPopoverActions,
 		renderContext?: GuidebookPreviewPopoverRenderContext,
+		i18n?: GuidebookPreviewPopoverI18n,
 	) {
 		this.actions = actions ?? {};
 		this.renderContext = renderContext;
+		this.t = i18n?.t ?? ((key) => key);
 		this.rootEl = (hostEl ?? document.body).createDiv({ cls: "cna-guidebook-preview-popover" });
 		this.rootEl.hide();
 		const headerEl = this.rootEl.createDiv({ cls: "cna-guidebook-preview-popover__header" });
@@ -58,30 +67,30 @@ export class GuidebookPreviewPopover {
 			cls: "cna-guidebook-preview-popover__action-button",
 			attr: {
 				type: "button",
-				"aria-label": "Locate",
+				"aria-label": this.t("feature.right_sidebar.guidebook.preview.action.locate"),
 			},
 		});
-		setIcon(this.locateButtonEl, "search");
+		setIcon(this.locateButtonEl, UI.icon.search);
 		this.openButtonEl = actionGroupEl.createEl("button", {
 			cls: "cna-guidebook-preview-popover__action-button",
 			attr: {
 				type: "button",
-				"aria-label": "Open",
+				"aria-label": this.t("feature.right_sidebar.guidebook.preview.action.open"),
 			},
 		});
-		setIcon(this.openButtonEl, "pencil");
+		setIcon(this.openButtonEl, UI.icon.pencil);
 
 		this.aliasSectionEl = this.rootEl.createDiv({ cls: "cna-guidebook-preview-popover__aliases" });
 		this.aliasLabelEl = this.aliasSectionEl.createDiv({
 			cls: "cna-guidebook-preview-popover__alias-label",
-			text: "别名",
+			text: this.t("feature.right_sidebar.guidebook.preview.alias_label"),
 		});
 		this.aliasValueEl = this.aliasSectionEl.createDiv({ cls: "cna-guidebook-preview-popover__alias-value" });
 		this.contentEl = this.rootEl.createDiv({ cls: "cna-guidebook-preview-popover__content" });
 		this.contentEl.addClass("markdown-rendered");
 		this.emptyEl = this.rootEl.createDiv({
 			cls: "cna-guidebook-preview-popover__empty",
-			text: "(无设定内容)",
+			text: this.t("feature.right_sidebar.guidebook.preview.empty_content"),
 		});
 		this.locateButtonEl.addEventListener("click", () => {
 			if (!this.currentPreviewItem) {

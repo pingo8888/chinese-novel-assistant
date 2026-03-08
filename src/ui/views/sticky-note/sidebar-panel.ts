@@ -187,7 +187,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 	const createStickyNote = async (): Promise<void> => {
 		const stickyRootPath = resolveTargetStickyNoteRootPath(ctx, novelLibraryService);
 		if (!stickyRootPath) {
-			new Notice("未配置小说库，无法新增便签。");
+			new Notice(ctx.t("command.sticky_note.create.no_library"));
 			return;
 		}
 		try {
@@ -195,7 +195,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 			cardList.applyVaultFileCreateOrModify(file.path);
 		} catch (error) {
 			console.error("[Chinese Novel Assistant] Failed to create sticky note.", error);
-			new Notice("新增便签失败，请检查控制台日志。");
+			new Notice(ctx.t("command.sticky_note.create.failed"));
 		}
 	};
 

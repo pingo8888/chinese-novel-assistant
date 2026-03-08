@@ -12,7 +12,8 @@ import {
 } from "../sticky-note";
 
 export function registerGuidebookSidebarFeature(plugin: Plugin, ctx: PluginContext): void {
-	const getTooltipText = () => ctx.t("feature.right_sidebar.guidebook.tooltip");
+	const getTabTooltipText = () => ctx.t("feature.right_sidebar.guidebook.tab.tooltip");
+	const getRibbonTooltipText = () => ctx.t("feature.right_sidebar.guidebook.tooltip");
 	const renderContext: SidebarViewRenderContext = {
 		app: plugin.app,
 		t: (key) => ctx.t(key),
@@ -29,11 +30,11 @@ export function registerGuidebookSidebarFeature(plugin: Plugin, ctx: PluginConte
 	};
 	plugin.registerView(
 		IDS.view.guidebookSidebar,
-		(leaf) => new ChineseNovelAssistantGuidebookSidebarView(leaf, getTooltipText, renderContext),
+		(leaf) => new ChineseNovelAssistantGuidebookSidebarView(leaf, getTabTooltipText, renderContext),
 	);
 	registerStickyNoteSidebarView(plugin, renderContext);
 	registerStickyNoteFloatingWindows(plugin, ctx);
-	plugin.addRibbonIcon(UI.icon.plugin, getTooltipText(), () => {
+	plugin.addRibbonIcon(UI.icon.plugin, getRibbonTooltipText(), () => {
 		void openGuidebookSidebarWithStickyNote(plugin, ctx);
 	});
 	plugin.app.workspace.onLayoutReady(() => {

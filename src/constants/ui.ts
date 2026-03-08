@@ -30,5 +30,16 @@ export const UI={
     ellipsis:"ellipsis",
     folderPlus:"folder-plus",
     pencil:"pencil",
+    search:"search",
+    gripVertical:"grip-vertical",
+    close:"x",
+    plus:"plus",
+    bold:"bold",
+    italic:"italic",
+    strikethrough:"strikethrough",
+    highlighter:"highlighter",
+    list:"list",
+    listOrdered:"list-ordered",
+    eraser:"eraser",
   }
 } as const;

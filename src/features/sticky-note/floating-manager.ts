@@ -300,7 +300,7 @@ class StickyNoteFloatingFeature {
 			this.imageExpandedByPath.delete(card.sourcePath);
 		} catch (error) {
 			console.error("[Chinese Novel Assistant] Failed to delete floating sticky note.", error);
-			new Notice("便签删除失败，请检查控制台日志。");
+			new Notice(this.ctx.t("feature.right_sidebar.sticky_note.notice.delete_failed"));
 		} finally {
 			this.removeFloatingWindow(card.sourcePath);
 		}
@@ -329,7 +329,7 @@ class StickyNoteFloatingFeature {
 			await this.repository.saveCard(card);
 		} catch (error) {
 			console.error("[Chinese Novel Assistant] Failed to save floating sticky note.", error);
-			new Notice("便签保存失败，请检查控制台日志。");
+			new Notice(this.ctx.t("feature.right_sidebar.sticky_note.notice.save_failed"));
 		}
 	}
 
