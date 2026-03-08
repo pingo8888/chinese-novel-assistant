@@ -34,7 +34,7 @@
 	"settings.global.subdir.sticky_note.name": "便签库目录名",
 	"settings.global.subdir.snippet.name": "片段库目录名",
 	"settings.global.subdir.proofread.name": "错别字和敏感词库目录名",
-	"novel_library.feature_dir_name": "功能库",
+	"novel_library.feature_dir_name": "00_功能库",
 	"settings.common.add": "添加",
 	"settings.common.sync": "同步",
 	"settings.common.delete": "删除",

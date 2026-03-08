@@ -224,6 +224,6 @@ export class NovelLibraryService {
 
 	private resolveFeatureLibraryDirName(locale: SupportedLocale): string {
 		void locale;
-		return this.normalizeVaultPath("功能库");
+		return this.normalizeVaultPath("00_功能库");
 	}
 }

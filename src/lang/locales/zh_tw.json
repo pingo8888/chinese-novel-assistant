@@ -34,7 +34,7 @@
 	"settings.global.subdir.sticky_note.name": "便箋庫目錄名稱",
 	"settings.global.subdir.snippet.name": "片段庫目錄名稱",
 	"settings.global.subdir.proofread.name": "錯別字與敏感詞庫目錄名稱",
-	"novel_library.feature_dir_name": "功能庫",
+	"novel_library.feature_dir_name": "00_功能庫",
 	"settings.common.add": "新增",
 	"settings.common.sync": "同步",
 	"settings.common.delete": "刪除",
