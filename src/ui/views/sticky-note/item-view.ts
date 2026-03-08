@@ -25,16 +25,18 @@ export class StickyNoteSidebarView extends ItemView {
 		return UI.icon.stickyNote;
 	}
 
-	async onOpen(): Promise<void> {
+	onOpen(): Promise<void> {
 		const { contentEl } = this;
 		contentEl.empty();
 		const rootEl = contentEl.createDiv({ cls: "cna-right-sidebar" });
 		this.activeTabDispose?.();
 		this.activeTabDispose = renderStickyNoteSidebarPanel(rootEl, this.ctx) ?? null;
+		return Promise.resolve();
 	}
 
-	async onClose(): Promise<void> {
+	onClose(): Promise<void> {
 		this.activeTabDispose?.();
 		this.activeTabDispose = null;
+		return Promise.resolve();
 	}
 }

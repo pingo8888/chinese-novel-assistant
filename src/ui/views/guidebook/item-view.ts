@@ -26,16 +26,18 @@ export class GuidebookSidebarView extends ItemView {
 		return UI.icon.plugin;
 	}
 
-	async onOpen(): Promise<void> {
+	onOpen(): Promise<void> {
 		const { contentEl } = this;
 		contentEl.empty();
 		const rootEl = contentEl.createDiv({ cls: "cna-right-sidebar" });
 		this.activeTabDispose?.();
 		this.activeTabDispose = renderGuidebookSidebarPanel(rootEl, this.ctx) ?? null;
+		return Promise.resolve();
 	}
 
-	async onClose(): Promise<void> {
+	onClose(): Promise<void> {
 		this.activeTabDispose?.();
 		this.activeTabDispose = null;
+		return Promise.resolve();
 	}
 }
