@@ -1,14 +1,12 @@
 import { Setting } from "obsidian";
 import { IDS } from "../../../constants";
+import { createSettingsSectionHeading } from "./heading";
 import type { SettingsTabRenderContext } from "./types";
 
 export function renderStickyNoteSettings(containerEl: HTMLElement, deps: SettingsTabRenderContext): void {
 	const { app, ctx, refresh } = deps;
 	const panelEl = containerEl.createDiv({ cls: "cna-settings-panel" });
-	panelEl.createEl("h4", {
-		cls: "cna-settings-section-title",
-		text: ctx.t("settings.sticky_note.section.main"),
-	});
+	createSettingsSectionHeading(panelEl, ctx.t("settings.sticky_note.section.main"));
 
 	new Setting(panelEl)
 		.setName(ctx.t("settings.sticky_note.enable.name"))

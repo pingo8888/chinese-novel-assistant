@@ -1,4 +1,4 @@
-import { MarkdownView, Notice, Plugin } from "obsidian";
+import { Notice, Plugin, type Editor } from "obsidian";
 import {
 	IDS,
 	resolveStickyNoteFloatDefaultHeightByRows,
@@ -27,37 +27,14 @@ function registerProofreadCommands(plugin: Plugin, ctx: PluginContext): void {
 	plugin.addCommand({
 		id: IDS.command.fixDetectedPunctuationErrors,
 		name: ctx.t("command.proofread.fix_punctuation_errors.name"),
-		checkCallback: (checking) => {
+		editorCheckCallback: (checking, editor) => {
 			if (!ctx.settings.proofreadCommonPunctuationEnabled) {
 				return false;
 			}
 			if (checking) {
 				return true;
 			}
-
-			const activeView = ctx.app.workspace.getActiveViewOfType(MarkdownView);
-			if (!activeView) {
-				new Notice(ctx.t("command.proofread.fix_punctuation_errors.no_active_editor"));
-				return true;
-			}
-
-			const sourceText = activeView.editor.getValue();
-			const enFixResult = fixEnPunctuationErrors(sourceText, ctx.settings);
-			const pairFixResult = fixPairPunctuationErrors(enFixResult.text, ctx.settings);
-			const fixedText = pairFixResult.text;
-			const fixedCount = enFixResult.replacedCount + pairFixResult.replacedCount;
-
-			if (fixedText === sourceText || fixedCount <= 0) {
-				new Notice(ctx.t("command.proofread.fix_punctuation_errors.no_changes"));
-				return true;
-			}
-
-			const editor = activeView.editor;
-			const cursorOffset = editor.posToOffset(editor.getCursor());
-			editor.setValue(fixedText);
-			const nextCursorOffset = Math.max(0, Math.min(cursorOffset, fixedText.length));
-			editor.setCursor(editor.offsetToPos(nextCursorOffset));
-			new Notice(`${ctx.t("command.proofread.fix_punctuation_errors.done")} ${fixedCount}`);
+			runFixPunctuationCommand(ctx, editor);
 			return true;
 		},
 	});
@@ -65,7 +42,7 @@ function registerProofreadCommands(plugin: Plugin, ctx: PluginContext): void {
 	plugin.addCommand({
 		id: IDS.command.fixDetectedProofreadDictErrors,
 		name: ctx.t("command.proofread.fix_proofread_dict_errors.name"),
-		checkCallback: (checking) => {
+		editorCheckCallback: (checking, editor) => {
 			if (!ctx.settings.proofreadCustomDictionaryEnabled) {
 				return false;
 			}
@@ -73,7 +50,7 @@ function registerProofreadCommands(plugin: Plugin, ctx: PluginContext): void {
 				return true;
 			}
 
-			void runFixProofreadDictCommand(ctx);
+			void runFixProofreadDictCommand(ctx, editor);
 			return true;
 		},
 	});
@@ -99,12 +76,26 @@ function registerStickyNoteCommands(plugin: Plugin, ctx: PluginContext): void {
 	});
 }
 
-async function runFixProofreadDictCommand(ctx: PluginContext): Promise<void> {
-	const activeView = ctx.app.workspace.getActiveViewOfType(MarkdownView);
-	if (!activeView) {
-		new Notice(ctx.t("command.proofread.fix_proofread_dict_errors.no_active_editor"));
+function runFixPunctuationCommand(ctx: PluginContext, editor: Editor): void {
+	const sourceText = editor.getValue();
+	const enFixResult = fixEnPunctuationErrors(sourceText, ctx.settings);
+	const pairFixResult = fixPairPunctuationErrors(enFixResult.text, ctx.settings);
+	const fixedText = pairFixResult.text;
+	const fixedCount = enFixResult.replacedCount + pairFixResult.replacedCount;
+
+	if (fixedText === sourceText || fixedCount <= 0) {
+		new Notice(ctx.t("command.proofread.fix_punctuation_errors.no_changes"));
 		return;
 	}
+
+	const cursorOffset = editor.posToOffset(editor.getCursor());
+	editor.setValue(fixedText);
+	const nextCursorOffset = Math.max(0, Math.min(cursorOffset, fixedText.length));
+	editor.setCursor(editor.offsetToPos(nextCursorOffset));
+	new Notice(`${ctx.t("command.proofread.fix_punctuation_errors.done")} ${fixedCount}`);
+}
+
+async function runFixProofreadDictCommand(ctx: PluginContext, editor: Editor): Promise<void> {
 	if (!ctx.settings.proofreadCustomDictionaryEnabled) {
 		new Notice(ctx.t("command.proofread.fix_proofread_dict_errors.no_changes"));
 		return;
@@ -120,14 +111,13 @@ async function runFixProofreadDictCommand(ctx: PluginContext): Promise<void> {
 	}
 
 	const dictionary = proofreadDictService.getSnapshot();
-	const sourceText = activeView.editor.getValue();
+	const sourceText = editor.getValue();
 	const fixResult = fixProofreadDictErrors(sourceText, dictionary.replacements, dictionary.wrongWordsDesc);
 	if (fixResult.replacedCount <= 0 || fixResult.text === sourceText) {
 		new Notice(ctx.t("command.proofread.fix_proofread_dict_errors.no_changes"));
 		return;
 	}
 
-	const editor = activeView.editor;
 	const cursorOffset = editor.posToOffset(editor.getCursor());
 	editor.setValue(fixResult.text);
 	const nextCursorOffset = Math.max(0, Math.min(cursorOffset, fixResult.text.length));

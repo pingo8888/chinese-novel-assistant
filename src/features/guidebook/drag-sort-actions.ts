@@ -134,8 +134,8 @@ async function handleH1Move(
 		if (!moved) {
 			return false;
 		}
-		await context.app.vault.modify(sourceFile, moved.sourceContent);
-		await context.app.vault.modify(targetFile, moved.targetContent);
+		await context.app.vault.process(sourceFile, () => moved.sourceContent);
+		await context.app.vault.process(targetFile, () => moved.targetContent);
 		return true;
 	} catch (error) {
 		console.error(error);
@@ -172,8 +172,8 @@ async function handleH2Move(
 		if (!moved) {
 			return false;
 		}
-		await context.app.vault.modify(sourceFile, moved.sourceContent);
-		await context.app.vault.modify(targetFile, moved.targetContent);
+		await context.app.vault.process(sourceFile, () => moved.sourceContent);
+		await context.app.vault.process(targetFile, () => moved.targetContent);
 		return true;
 	} catch (error) {
 		console.error(error);

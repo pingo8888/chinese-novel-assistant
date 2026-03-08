@@ -1,13 +1,11 @@
 import { Setting } from "obsidian";
+import { createSettingsSectionHeading } from "./heading";
 import type { SettingsTabRenderContext } from "./types";
 
 export function renderTypesetSettings(containerEl: HTMLElement, deps: SettingsTabRenderContext): void {
 	const { ctx, refresh } = deps;
 	const panelEl = containerEl.createDiv({ cls: "cna-settings-panel" });
-	panelEl.createEl("h4", {
-		cls: "cna-settings-section-title",
-		text: ctx.t("settings.typeset.section.typeset"),
-	});
+	createSettingsSectionHeading(panelEl, ctx.t("settings.typeset.section.typeset"));
 
 	new Setting(panelEl)
 		.setName(ctx.t("settings.typeset.enable.name"))
@@ -68,10 +66,7 @@ export function renderTypesetSettings(containerEl: HTMLElement, deps: SettingsTa
 				}),
 		);
 
-	panelEl.createEl("h4", {
-		cls: "cna-settings-section-title",
-		text: ctx.t("settings.typeset.section.beautify"),
-	});
+	createSettingsSectionHeading(panelEl, ctx.t("settings.typeset.section.beautify"));
 
 	new Setting(panelEl)
 		.setName(ctx.t("settings.typeset.beautify.heading_icon.name"))

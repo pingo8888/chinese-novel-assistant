@@ -2,6 +2,7 @@ import { Notice, Setting, TFolder } from "obsidian";
 import { NovelLibraryService } from "../../../services/novel-library-service";
 import { attachFolderSuggest } from "../../componets/folder-suggest";
 import { askForConfirmation } from "../../modals/confirm-modal";
+import { createSettingsSectionHeading } from "./heading";
 import type { SettingsTabRenderContext } from "./types";
 
 interface SubdirSyncSettingOptions {
@@ -15,10 +16,7 @@ export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTab
 	const { app, ctx, refresh } = deps;
 	const novelLibraryService = new NovelLibraryService(app);
 	const panelEl = containerEl.createDiv({ cls: "cna-settings-panel" });
-	panelEl.createEl("h4", {
-		cls: "cna-settings-section-title",
-		text: ctx.t("settings.global.section.novel_library"),
-	});
+	createSettingsSectionHeading(panelEl, ctx.t("settings.global.section.novel_library"));
 
 	for (const libraryPath of ctx.settings.novelLibraries) {
 		const normalizedLibraryPath = novelLibraryService.normalizeVaultPath(libraryPath);
@@ -99,10 +97,7 @@ export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTab
 		attachFolderSuggest(app, pendingInputEl);
 	}
 
-	panelEl.createEl("h4", {
-		cls: "cna-settings-section-title",
-		text: ctx.t("settings.global.section.novel_subdir"),
-	});
+	createSettingsSectionHeading(panelEl, ctx.t("settings.global.section.novel_subdir"));
 
 	new Setting(panelEl)
 		.setName(ctx.t("settings.global.subdir.enable.name"))

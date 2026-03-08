@@ -1,13 +1,11 @@
 import { Setting } from "obsidian";
+import { createSettingsSectionHeading } from "./heading";
 import type { SettingsTabRenderContext } from "./types";
 
 export function renderProofreadSettings(containerEl: HTMLElement, deps: SettingsTabRenderContext): void {
 	const { ctx, refresh } = deps;
 	const panelEl = containerEl.createDiv({ cls: "cna-settings-panel" });
-	panelEl.createEl("h4", {
-		cls: "cna-settings-section-title",
-		text: ctx.t("settings.proofread.section.common"),
-	});
+	createSettingsSectionHeading(panelEl, ctx.t("settings.proofread.section.common"));
 
 	new Setting(panelEl)
 		.setName(ctx.t("settings.proofread.common.enable.name"))
@@ -140,10 +138,7 @@ export function renderProofreadSettings(containerEl: HTMLElement, deps: Settings
 				}),
 		);
 
-	panelEl.createEl("h4", {
-		cls: "cna-settings-section-title",
-		text: ctx.t("settings.proofread.section.custom"),
-	});
+	createSettingsSectionHeading(panelEl, ctx.t("settings.proofread.section.custom"));
 
 	new Setting(panelEl)
 		.setName(ctx.t("settings.proofread.custom.enable.name"))

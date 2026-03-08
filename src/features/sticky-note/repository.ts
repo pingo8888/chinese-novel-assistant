@@ -89,7 +89,7 @@ export class StickyNoteRepository {
 			throw new Error(`Sticky note file not found: ${card.sourcePath}`);
 		}
 		const nextContent = serializeStickyNoteFile(card, this.novelLibraryService);
-		await this.app.vault.modify(entry, nextContent);
+		await this.app.vault.process(entry, () => nextContent);
 		const latest = this.app.vault.getAbstractFileByPath(card.sourcePath);
 		if (latest instanceof TFile) {
 			card.createdAt = latest.stat.ctime;

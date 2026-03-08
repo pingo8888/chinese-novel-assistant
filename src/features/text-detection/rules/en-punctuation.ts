@@ -26,8 +26,8 @@ const PUNCTUATION_RULE_CONFIGS: EnPunctuationRuleConfig[] = [
 	{
 		char: ".",
 		enabled: (settings) => settings.proofreadEnglishPeriodEnabled,
-		// 1.2
-		allowContextRegex: /^\d\.\d.$/,
+		// 1.2 / 1. 
+		allowContextRegex: /^(?:\d\.\d.|\d\. .)$/,
 	},
 	{
 		char: ":",
@@ -42,6 +42,8 @@ const PUNCTUATION_RULE_CONFIGS: EnPunctuationRuleConfig[] = [
 	{
 		char: "!",
 		enabled: (settings) => settings.proofreadEnglishExclamationEnabled,
+		// [!a
+		allowContextRegex: /^\[![A-Za-z0-9].$/,
 	},
 	{
 		char: "?",

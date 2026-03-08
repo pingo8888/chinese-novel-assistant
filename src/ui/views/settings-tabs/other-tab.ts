@@ -1,14 +1,12 @@
 import { Setting } from "obsidian";
 import type { SupportedLocale } from "../../../lang";
+import { createSettingsSectionHeading } from "./heading";
 import type { SettingsTabRenderContext } from "./types";
 
 export function renderOtherSettings(containerEl: HTMLElement, deps: SettingsTabRenderContext): void {
 	const { ctx, refresh } = deps;
 	const panelEl = containerEl.createDiv({ cls: "cna-settings-panel" });
-	panelEl.createEl("h4", {
-		cls: "cna-settings-section-title",
-		text: ctx.t("settings.other.section.common"),
-	});
+	createSettingsSectionHeading(panelEl, ctx.t("settings.other.section.common"));
 
 	new Setting(panelEl)
 		.setName(ctx.t("settings.language.name"))
@@ -39,10 +37,7 @@ export function renderOtherSettings(containerEl: HTMLElement, deps: SettingsTabR
 			}),
 		);
 
-	panelEl.createEl("h4", {
-		cls: "cna-settings-section-title",
-		text: ctx.t("settings.other.section.word_count"),
-	});
+	createSettingsSectionHeading(panelEl, ctx.t("settings.other.section.word_count"));
 
 	new Setting(panelEl)
 		.setName(ctx.t("settings.other.enable_character_count.name"))

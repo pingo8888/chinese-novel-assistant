@@ -17,9 +17,3 @@ export function registerGuidebookSidebarView(
 		(leaf) => new GuidebookSidebarView(leaf, options.getTabTooltipText, options.renderContext),
 	);
 }
-
-export function detachGuidebookSidebars(plugin: Plugin): void {
-	for (const leaf of plugin.app.workspace.getLeavesOfType(IDS.view.guidebookSidebar)) {
-		leaf.detach();
-	}
-}

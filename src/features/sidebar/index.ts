@@ -1,10 +1,9 @@
 import type { Plugin } from "obsidian";
 import { IDS, UI } from "../../constants";
 import type { PluginContext } from "../../core/context";
-import { detachGuidebookSidebars, registerGuidebookSidebarView } from "../guidebook";
+import { registerGuidebookSidebarView } from "../guidebook";
 import { buildGuidebookTreeData } from "../guidebook/tree-builder";
 import {
-	detachStickyNoteSidebars,
 	registerStickyNoteFloatingWindows,
 	registerStickyNoteSidebarView,
 	syncStickyNoteSidebarWithGuidebook,
@@ -37,11 +36,6 @@ export function registerSidebarFeature(plugin: Plugin, ctx: PluginContext): void
 			focusGuidebook: false,
 			revealGuidebook: false,
 		});
-	});
-
-	plugin.register(() => {
-		detachGuidebookSidebars(plugin);
-		detachStickyNoteSidebars(plugin);
 	});
 }
 

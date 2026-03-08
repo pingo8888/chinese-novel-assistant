@@ -1,13 +1,11 @@
 import { Setting } from "obsidian";
+import { createSettingsSectionHeading } from "./heading";
 import type { SettingsTabRenderContext } from "./types";
 
 export function renderGuidebookSettings(containerEl: HTMLElement, deps: SettingsTabRenderContext): void {
 	const { ctx } = deps;
 	const panelEl = containerEl.createDiv({ cls: "cna-settings-panel" });
-	panelEl.createEl("h4", {
-		cls: "cna-settings-section-title",
-		text: ctx.t("settings.guidebook.section.keyword_highlight"),
-	});
+	createSettingsSectionHeading(panelEl, ctx.t("settings.guidebook.section.keyword_highlight"));
 
 	new Setting(panelEl)
 		.setName(ctx.t("settings.guidebook.keyword.mode.name"))
@@ -125,10 +123,7 @@ export function renderGuidebookSettings(containerEl: HTMLElement, deps: Settings
 			}),
 		);
 
-	panelEl.createEl("h4", {
-		cls: "cna-settings-section-title",
-		text: ctx.t("settings.guidebook.section.preview"),
-	});
+	createSettingsSectionHeading(panelEl, ctx.t("settings.guidebook.section.preview"));
 
 	new Setting(panelEl)
 		.setName(ctx.t("settings.guidebook.preview.main_hover.name"))

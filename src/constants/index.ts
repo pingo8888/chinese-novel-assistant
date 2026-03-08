@@ -4,7 +4,6 @@ export {
 	GUIDEBOOK_KEYWORD_DEFAULT_COLORS,
 	STICKY_NOTE_CARD_COLORS,
 	STICKY_NOTE_DEFAULT_COLOR,
-	STICKY_NOTE_IMAGE_REMOVE_BUTTON_COLORS,
 } from "./colors";
 export {
 	resolveStickyNoteFloatDefaultHeightByRows,

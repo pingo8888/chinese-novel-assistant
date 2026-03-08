@@ -1,13 +1,11 @@
 import { Setting } from "obsidian";
+import { createSettingsSectionHeading } from "./heading";
 import type { SettingsTabRenderContext } from "./types";
 
 export function renderSnippetSettings(containerEl: HTMLElement, deps: SettingsTabRenderContext): void {
 	const { ctx, refresh } = deps;
 	const panelEl = containerEl.createDiv({ cls: "cna-settings-panel" });
-	panelEl.createEl("h4", {
-		cls: "cna-settings-section-title",
-		text: ctx.t("settings.snippet.section.punctuation"),
-	});
+	createSettingsSectionHeading(panelEl, ctx.t("settings.snippet.section.punctuation"));
 
 	new Setting(panelEl)
 		.setName(ctx.t("settings.snippet.punctuation.auto_complete_pair.name"))
@@ -19,10 +17,7 @@ export function renderSnippetSettings(containerEl: HTMLElement, deps: SettingsTa
 			}),
 		);
 
-	panelEl.createEl("h4", {
-		cls: "cna-settings-section-title",
-		text: ctx.t("settings.snippet.section.main"),
-	});
+	createSettingsSectionHeading(panelEl, ctx.t("settings.snippet.section.main"));
 
 	new Setting(panelEl)
 		.setName(ctx.t("settings.snippet.quick_insert.enable.name"))
