@@ -191,7 +191,9 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 			return;
 		}
 		try {
-			const file = await repository.createCardFile(stickyRootPath);
+			const file = await repository.createCardFile(stickyRootPath, {
+				defaultRows: ctx.getSettings().stickyNoteDefaultRows,
+			});
 			cardList.applyVaultFileCreateOrModify(file.path);
 		} catch (error) {
 			console.error("[Chinese Novel Assistant] Failed to create sticky note.", error);

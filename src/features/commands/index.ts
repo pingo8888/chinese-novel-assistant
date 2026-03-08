@@ -1,5 +1,10 @@
 import { MarkdownView, Notice, Plugin } from "obsidian";
-import { IDS, STICKY_NOTE_FLOAT_DEFAULT_HEIGHT, STICKY_NOTE_FLOAT_DEFAULT_WIDTH, STICKY_NOTE_FLOAT_LEFT_GAP } from "../../constants";
+import {
+	IDS,
+	resolveStickyNoteFloatDefaultHeightByRows,
+	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
+	STICKY_NOTE_FLOAT_LEFT_GAP,
+} from "../../constants";
 import type { PluginContext } from "../../core/context";
 import { StickyNoteRepository } from "../sticky-note/repository";
 import { NovelLibraryService } from "../../services/novel-library-service";
@@ -143,7 +148,7 @@ async function runCreateStickyNoteCommand(
 
 	try {
 		const width = STICKY_NOTE_FLOAT_DEFAULT_WIDTH;
-		const contentHeight = STICKY_NOTE_FLOAT_DEFAULT_HEIGHT;
+		const contentHeight = resolveStickyNoteFloatDefaultHeightByRows(ctx.settings.stickyNoteDefaultRows);
 		const position = resolveCommandCreatedFloatingPosition(width);
 		const file = await repository.createCardFile(stickyRootPath, {
 			isFloating: true,

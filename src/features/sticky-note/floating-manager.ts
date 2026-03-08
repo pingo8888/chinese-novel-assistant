@@ -1,10 +1,10 @@
 import { Notice, TFile, type Plugin } from "obsidian";
 import {
 	IDS,
-	STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
 	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
 	STICKY_NOTE_FLOAT_MIN_HEIGHT,
 	STICKY_NOTE_FLOAT_MIN_WIDTH,
+	resolveStickyNoteFloatDefaultHeightByRows,
 } from "../../constants";
 import type { PluginContext } from "../../core/context";
 import { NovelLibraryService } from "../../services/novel-library-service";
@@ -180,6 +180,7 @@ class StickyNoteFloatingFeature {
 
 		const cards = await this.repository.listCards(this.ctx.settings, {
 			imageAutoExpand: this.ctx.settings.stickyNoteImageAutoExpand,
+			defaultRows: this.ctx.settings.stickyNoteDefaultRows,
 		});
 		if (this.isUnloaded || this.refreshVersion !== currentRefreshVersion) {
 			return;
@@ -210,6 +211,7 @@ class StickyNoteFloatingFeature {
 		}
 		const card = await this.repository.getCardByPath(path, {
 			imageAutoExpand: this.ctx.settings.stickyNoteImageAutoExpand,
+			defaultRows: this.ctx.settings.stickyNoteDefaultRows,
 		});
 		if (this.isUnloaded) {
 			return;
@@ -443,8 +445,9 @@ class StickyNoteFloatingFeature {
 		const maxWidth = Math.max(1, viewportWidth - 8);
 		const minWidth = Math.min(STICKY_NOTE_FLOAT_MIN_WIDTH, maxWidth);
 		const width = clamp(normalizeSize(card.floatW, STICKY_NOTE_FLOAT_DEFAULT_WIDTH), minWidth, maxWidth);
+		const defaultContentHeight = resolveStickyNoteFloatDefaultHeightByRows(this.ctx.settings.stickyNoteDefaultRows);
 		const contentHeight = clamp(
-			normalizeSize(card.floatH, STICKY_NOTE_FLOAT_DEFAULT_HEIGHT),
+			normalizeSize(card.floatH, defaultContentHeight),
 			STICKY_NOTE_FLOAT_MIN_HEIGHT,
 			Math.max(STICKY_NOTE_FLOAT_MIN_HEIGHT, viewportHeight - 56),
 		);

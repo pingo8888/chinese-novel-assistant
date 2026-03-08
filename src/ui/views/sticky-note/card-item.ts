@@ -1,11 +1,11 @@
 import { Component, MarkdownRenderer, Notice, setIcon, TextAreaComponent, type App, type TFile } from "obsidian";
 import {
-	STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
 	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
 	STICKY_NOTE_FLOAT_LEFT_GAP,
 	STICKY_NOTE_FLOAT_MIN_HEIGHT,
 	STICKY_NOTE_FLOAT_MIN_WIDTH,
 	UI,
+	resolveStickyNoteFloatDefaultHeightByRows,
 } from "../../../constants";
 import type { TranslationKey } from "../../../lang";
 import type { StickyNoteCardModel, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
@@ -466,6 +466,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 	pinButtonEl.addEventListener("click", () => {
 		card.isFloating = !card.isFloating;
 		if (card.isFloating) {
+			const defaultFloatHeight = resolveStickyNoteFloatDefaultHeightByRows(deps.viewOptions.defaultRows);
 			const cardRect = rootEl.getBoundingClientRect();
 			const contentSurfaceEl = contentSectionEl.querySelector<HTMLElement>(".cna-sticky-note-card__surface");
 			const contentRect = contentSurfaceEl?.getBoundingClientRect();
@@ -474,10 +475,10 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 			} else {
 				card.floatW = normalizeFloatSize(card.floatW, STICKY_NOTE_FLOAT_DEFAULT_WIDTH, STICKY_NOTE_FLOAT_MIN_WIDTH);
 			}
-			if (shouldUseDefaultFloatMetric(card.floatH, STICKY_NOTE_FLOAT_DEFAULT_HEIGHT)) {
-				card.floatH = normalizeFloatSize(contentRect?.height ?? cardRect.height, STICKY_NOTE_FLOAT_DEFAULT_HEIGHT, STICKY_NOTE_FLOAT_MIN_HEIGHT);
+			if (shouldUseDefaultFloatMetric(card.floatH, defaultFloatHeight)) {
+				card.floatH = normalizeFloatSize(contentRect?.height ?? cardRect.height, defaultFloatHeight, STICKY_NOTE_FLOAT_MIN_HEIGHT);
 			} else {
-				card.floatH = normalizeFloatSize(card.floatH, STICKY_NOTE_FLOAT_DEFAULT_HEIGHT, STICKY_NOTE_FLOAT_MIN_HEIGHT);
+				card.floatH = normalizeFloatSize(card.floatH, defaultFloatHeight, STICKY_NOTE_FLOAT_MIN_HEIGHT);
 			}
 			if (!isFiniteNumber(card.floatX) && !isFiniteNumber(card.floatY)) {
 				card.floatX = 0;

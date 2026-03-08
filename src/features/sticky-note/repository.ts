@@ -1,8 +1,8 @@
 import { TFile, TFolder, type App } from "obsidian";
 import {
 	STICKY_NOTE_CARD_COLORS,
-	STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
 	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
+	resolveStickyNoteFloatDefaultHeightByRows,
 } from "../../constants";
 import type { ChineseNovelAssistantSettings } from "../../settings/settings";
 import { NovelLibraryService } from "../../services/novel-library-service";
@@ -22,6 +22,7 @@ interface ParseStickyNoteResult {
 interface ListStickyNotesOptions {
 	imageAutoExpand: boolean;
 	rootPaths?: string[];
+	defaultRows?: number;
 }
 
 interface CreateStickyNoteFileOptions {
@@ -30,6 +31,7 @@ interface CreateStickyNoteFileOptions {
 	floatY?: number;
 	floatW?: number;
 	floatH?: number;
+	defaultRows?: number;
 }
 
 export class StickyNoteRepository {
@@ -50,7 +52,7 @@ export class StickyNoteRepository {
 			.getMarkdownFiles()
 			.filter((file) => stickyRoots.some((root) => this.novelLibraryService.isSameOrChildPath(file.path, root)));
 		const cards = await Promise.all(
-			markdownFiles.map((file) => this.readCardFromFile(file, options.imageAutoExpand)),
+			markdownFiles.map((file) => this.readCardFromFile(file, options.imageAutoExpand, options.defaultRows)),
 		);
 		return cards.filter((card): card is StickyNoteCardModel => card !== null);
 	}
@@ -60,7 +62,7 @@ export class StickyNoteRepository {
 		if (!(entry instanceof TFile) || !entry.path.toLowerCase().endsWith(".md")) {
 			return null;
 		}
-		return this.readCardFromFile(entry, options.imageAutoExpand);
+		return this.readCardFromFile(entry, options.imageAutoExpand, options.defaultRows);
 	}
 
 	async createCardFile(stickyRootPath: string, options?: CreateStickyNoteFileOptions): Promise<TFile> {
@@ -125,13 +127,14 @@ export class StickyNoteRepository {
 		return Array.from(new Set(roots));
 	}
 
-	private async readCardFromFile(file: TFile, imageAutoExpand: boolean): Promise<StickyNoteCardModel | null> {
+	private async readCardFromFile(file: TFile, imageAutoExpand: boolean, defaultRows?: number): Promise<StickyNoteCardModel | null> {
 		try {
 			const raw = await this.app.vault.cachedRead(file);
 			const parsed = parseStickyNoteFile(raw);
 			const imagePaths = parseCsvPaths(parsed.data["images"], (value) => this.novelLibraryService.normalizeVaultPath(value));
 			const images = this.resolveImageModels(file.path, imagePaths);
 			const contentMarkdown = normalizeMarkdownLineEndings(parsed.contentMarkdown);
+			const defaultFloatHeight = resolveStickyNoteFloatDefaultHeightByRows(defaultRows ?? Number.NaN);
 			return {
 				id: file.path,
 				sourcePath: file.path,
@@ -149,7 +152,7 @@ export class StickyNoteRepository {
 				floatX: asNumber(parsed.data["floatx"], 0),
 				floatY: asNumber(parsed.data["floaty"], 0),
 				floatW: asNumber(parsed.data["floatw"], STICKY_NOTE_FLOAT_DEFAULT_WIDTH),
-				floatH: asNumber(parsed.data["floath"], STICKY_NOTE_FLOAT_DEFAULT_HEIGHT),
+				floatH: asNumber(parsed.data["floath"], defaultFloatHeight),
 			};
 		} catch (_error) {
 			return null;
@@ -214,6 +217,7 @@ function pad2(value: number): string {
 }
 
 function buildDefaultStickyNoteFileContent(options?: CreateStickyNoteFileOptions): string {
+	const defaultFloatHeight = resolveStickyNoteFloatDefaultHeightByRows(options?.defaultRows ?? Number.NaN);
 	const data: StickyNoteFileData = {
 		warning: STICKY_NOTE_WARNING_TEXT,
 		ispinned: false,
@@ -224,7 +228,7 @@ function buildDefaultStickyNoteFileContent(options?: CreateStickyNoteFileOptions
 		floatx: Number.isFinite(options?.floatX) ? Math.round(options?.floatX ?? 0) : 0,
 		floaty: Number.isFinite(options?.floatY) ? Math.round(options?.floatY ?? 0) : 0,
 		floatw: Number.isFinite(options?.floatW) ? Math.round(options?.floatW ?? STICKY_NOTE_FLOAT_DEFAULT_WIDTH) : STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
-		floath: Number.isFinite(options?.floatH) ? Math.round(options?.floatH ?? STICKY_NOTE_FLOAT_DEFAULT_HEIGHT) : STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
+		floath: Number.isFinite(options?.floatH) ? Math.round(options?.floatH ?? defaultFloatHeight) : defaultFloatHeight,
 	};
 	return `<!---cw-data\n${JSON.stringify(data, null, 2)}\n--->\n`;
 }

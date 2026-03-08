@@ -83,6 +83,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 			const cards = await repository.listCards(deps.getSettings(), {
 				imageAutoExpand: state.viewOptions.imageAutoExpand,
 				rootPaths: deps.getStickyNoteRootPaths(),
+				defaultRows: state.viewOptions.defaultRows,
 			});
 			if (isDestroyed || currentLoadVersion !== loadVersion) {
 				for (const card of cards) {
@@ -147,6 +148,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 		try {
 			const nextCard = await repository.getCardByPath(path, {
 				imageAutoExpand: state.viewOptions.imageAutoExpand,
+				defaultRows: state.viewOptions.defaultRows,
 			});
 			if (isDestroyed) {
 				if (nextCard) {
