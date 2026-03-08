@@ -81,5 +81,7 @@ async function openGuidebookSidebarWithStickyNote(
 	);
 
 	await syncStickyNoteSidebarWithGuidebook(plugin, ctx, guidebookLeaf);
-	plugin.app.workspace.setActiveLeaf(guidebookLeaf, false, focusGuidebook);
+	plugin.app.workspace.setActiveLeaf(guidebookLeaf, {
+		focus: focusGuidebook,
+	});
 }

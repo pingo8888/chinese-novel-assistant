@@ -318,7 +318,9 @@ export class GuidebookPreviewController {
 			await searchLeaf.setViewState({ type: "search", active: true });
 		}
 
-		workspace.setActiveLeaf(searchLeaf, false, true);
+		workspace.setActiveLeaf(searchLeaf, {
+			focus: true,
+		});
 		const searchView = searchLeaf.view as unknown as {
 			setQuery?: (query: string) => void;
 			searchComponent?: { setValue?: (query: string) => void; inputEl?: HTMLInputElement };
