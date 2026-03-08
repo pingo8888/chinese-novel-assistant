@@ -9,7 +9,7 @@
 
 ---
 
-简体中文 | [English](./README-EN.md)
+简体中文 | [English](./README_EN.md)
 
 一款辅助中文小说作者写作的 Obsidian 插件，提供一系列开箱即用的便捷功能。
 
