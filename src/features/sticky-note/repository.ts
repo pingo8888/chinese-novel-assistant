@@ -102,7 +102,7 @@ export class StickyNoteRepository {
 		if (!(entry instanceof TFile)) {
 			return;
 		}
-		await this.app.vault.delete(entry, true);
+		await this.app.fileManager.trashFile(entry);
 	}
 
 	private resolveStickyRoots(settings: ChineseNovelAssistantSettings, preferredRootPaths?: string[]): string[] {
@@ -267,7 +267,7 @@ function parseStickyNoteData(source: string): StickyNoteFileData {
 		return {};
 	}
 	try {
-		const parsed = JSON.parse(source);
+		const parsed: unknown = JSON.parse(source);
 		return isRecord(parsed) ? parsed : {};
 	} catch {
 		return {};

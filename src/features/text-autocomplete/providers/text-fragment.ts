@@ -1,6 +1,6 @@
 import { EditorSelection, Prec, type Extension } from "@codemirror/state";
 import { EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
-import { MarkdownView, type Plugin } from "obsidian";
+import { type Plugin } from "obsidian";
 import { translate } from "../../../lang";
 import type { ChineseNovelAssistantSettings } from "../../../settings/settings";
 import { SnippetFragmentService, type SnippetFragment } from "../../../services/snippet-fragment-service";
