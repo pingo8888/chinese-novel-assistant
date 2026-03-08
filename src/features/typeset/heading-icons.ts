@@ -4,8 +4,7 @@ import { setIcon } from "obsidian";
 import { UI } from "../../constants/ui";
 
 const TYPESET_HEADING_ICON_EL_CLASS = "cna-typeset-heading-icon";
-const HEADING_LEVELS = [1, 2, 3, 4, 5, 6] as const;
-type HeadingLevel = (typeof HEADING_LEVELS)[number];
+type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
 const HEADING_ICON_BY_LEVEL: Record<HeadingLevel, string> = {
 	1: UI.icon.h1,
 	2: UI.icon.h2,
