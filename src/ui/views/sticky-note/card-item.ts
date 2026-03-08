@@ -501,6 +501,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 				}
 				if (result === "updated") {
 					applyCardTone(rootEl, card.colorHex);
+					renderHeader();
 					deps.onCardTouched();
 				}
 			},
