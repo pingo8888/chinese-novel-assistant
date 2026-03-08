@@ -32,6 +32,7 @@ interface GuidebookActionContext {
 	app: App;
 	t: (key: TranslationKey) => string;
 	treeData: GuidebookTreeData | null;
+	openFileInNewTab?: boolean;
 }
 
 const guidebookMarkdownParser = new GuidebookMarkdownParser();
@@ -272,7 +273,11 @@ export async function handleGuidebookH2ContextAction(
 				return true;
 			}
 			case "edit_setting":
-				await app.workspace.openLinkText(`${file.path}#${h2Node.title}`, file.path, false);
+				await app.workspace.openLinkText(
+					`${file.path}#${h2Node.title}`,
+					file.path,
+					context.openFileInNewTab ?? false,
+				);
 				return false;
 			case "rename_setting": {
 				const renamed = await promptSettingName(app, t, file, treeData, {

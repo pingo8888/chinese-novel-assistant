@@ -82,7 +82,12 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 		onFileContextAction: (action, fileNode) => {
 			void (async () => {
 				const changed = await handleGuidebookFileContextAction(
-					{ app: ctx.app, t: (key) => ctx.t(key), treeData: latestTreeData },
+					{
+						app: ctx.app,
+						t: (key) => ctx.t(key),
+						treeData: latestTreeData,
+						openFileInNewTab: ctx.getSettings().openFileInNewTab,
+					},
 					action,
 					fileNode,
 				);
@@ -94,7 +99,12 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 		onH1ContextAction: (action, fileNode, h1Node) => {
 			void (async () => {
 				const changed = await handleGuidebookH1ContextAction(
-					{ app: ctx.app, t: (key) => ctx.t(key), treeData: latestTreeData },
+					{
+						app: ctx.app,
+						t: (key) => ctx.t(key),
+						treeData: latestTreeData,
+						openFileInNewTab: ctx.getSettings().openFileInNewTab,
+					},
 					action,
 					fileNode,
 					h1Node,
@@ -107,7 +117,12 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 		onH2ContextAction: (action, fileNode, h1Node, h2Node) => {
 			void (async () => {
 				const changed = await handleGuidebookH2ContextAction(
-					{ app: ctx.app, t: (key) => ctx.t(key), treeData: latestTreeData },
+					{
+						app: ctx.app,
+						t: (key) => ctx.t(key),
+						treeData: latestTreeData,
+						openFileInNewTab: ctx.getSettings().openFileInNewTab,
+					},
 					action,
 					fileNode,
 					h1Node,
@@ -124,6 +139,7 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 					app: ctx.app,
 					t: (key) => ctx.t(key),
 					treeData: latestTreeData,
+					openFileInNewTab: ctx.getSettings().openFileInNewTab,
 				});
 				if (changed) {
 					void refreshGuidebook();
