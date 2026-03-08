@@ -1,7 +1,7 @@
 {
 	"id": "chinese-novel-assistant",
 	"name": "Chinese Novel Assistant",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"minAppVersion": "0.15.0",
 	"description": "A set of small features designed to make writing Chinese novels more convenient.",
 	"author": "pingo888",
