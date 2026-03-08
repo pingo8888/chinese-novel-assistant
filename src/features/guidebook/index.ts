@@ -6,6 +6,7 @@ import { ChineseNovelAssistantGuidebookSidebarView } from "../../ui/views/guideb
 import type { SidebarViewRenderContext } from "../../ui/views/guidebook";
 import {
 	detachStickyNoteSidebars,
+	registerStickyNoteFloatingWindows,
 	registerStickyNoteSidebarView,
 	syncStickyNoteSidebarWithGuidebook,
 } from "../sticky-note";
@@ -31,6 +32,7 @@ export function registerGuidebookSidebarFeature(plugin: Plugin, ctx: PluginConte
 		(leaf) => new ChineseNovelAssistantGuidebookSidebarView(leaf, getTooltipText, renderContext),
 	);
 	registerStickyNoteSidebarView(plugin, renderContext);
+	registerStickyNoteFloatingWindows(plugin, ctx);
 	plugin.addRibbonIcon(UI.icon.plugin, getTooltipText(), () => {
 		void openGuidebookSidebarWithStickyNote(plugin, ctx);
 	});

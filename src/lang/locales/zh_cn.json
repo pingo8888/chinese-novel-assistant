@@ -207,6 +207,8 @@
 	"feature.right_sidebar.sticky_note.sort.modified_asc": "按编辑时间升序",
 	"feature.right_sidebar.sticky_note.list.empty": "没有符合条件的便签",
 	"feature.right_sidebar.sticky_note.card.action.pin.tooltip": "悬浮便签（开发中）",
+	"feature.right_sidebar.sticky_note.card.action.float.tooltip": "悬浮便签",
+	"feature.right_sidebar.sticky_note.card.action.unfloat.tooltip": "取消悬浮",
 	"feature.right_sidebar.sticky_note.card.action.menu.tooltip": "更多操作（开发中）",
 	"feature.right_sidebar.sticky_note.card.content.editor.aria_label": "编辑便签内容",
 	"feature.right_sidebar.sticky_note.card.content.placeholder": "点击输入便签内容",

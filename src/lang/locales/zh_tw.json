@@ -207,6 +207,8 @@
 	"feature.right_sidebar.sticky_note.sort.modified_asc": "按編輯時間升序",
 	"feature.right_sidebar.sticky_note.list.empty": "沒有符合條件的便箋",
 	"feature.right_sidebar.sticky_note.card.action.pin.tooltip": "懸浮便箋（開發中）",
+	"feature.right_sidebar.sticky_note.card.action.float.tooltip": "懸浮便箋",
+	"feature.right_sidebar.sticky_note.card.action.unfloat.tooltip": "取消懸浮",
 	"feature.right_sidebar.sticky_note.card.action.menu.tooltip": "更多操作（開發中）",
 	"feature.right_sidebar.sticky_note.card.content.editor.aria_label": "編輯便箋內容",
 	"feature.right_sidebar.sticky_note.card.content.placeholder": "點擊輸入便箋內容",

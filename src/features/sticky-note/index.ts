@@ -3,6 +3,7 @@ import { IDS } from "../../constants";
 import type { PluginContext } from "../../core/context";
 import type { SidebarViewRenderContext } from "../../ui/views/guidebook";
 import { ChineseNovelAssistantStickyNoteSidebarView } from "../../ui/views/sticky-note-item-view";
+import { registerStickyNoteFloatingFeature } from "./floating-manager";
 
 export function registerStickyNoteSidebarView(
 	plugin: Plugin,
@@ -12,6 +13,10 @@ export function registerStickyNoteSidebarView(
 		IDS.view.stickyNoteSidebar,
 		(leaf) => new ChineseNovelAssistantStickyNoteSidebarView(leaf, renderContext),
 	);
+}
+
+export function registerStickyNoteFloatingWindows(plugin: Plugin, ctx: PluginContext): void {
+	registerStickyNoteFloatingFeature(plugin, ctx);
 }
 
 export async function syncStickyNoteSidebarWithGuidebook(

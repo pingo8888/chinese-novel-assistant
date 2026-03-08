@@ -1,4 +1,5 @@
 import { MarkdownView, Notice, Plugin } from "obsidian";
+import { IDS, STICKY_NOTE_FLOAT_DEFAULT_HEIGHT, STICKY_NOTE_FLOAT_DEFAULT_WIDTH, STICKY_NOTE_FLOAT_LEFT_GAP } from "../../constants";
 import type { PluginContext } from "../../core/context";
 import { StickyNoteRepository } from "../sticky-note/repository";
 import { NovelLibraryService } from "../../services/novel-library-service";
@@ -141,7 +142,16 @@ async function runCreateStickyNoteCommand(
 	}
 
 	try {
-		const file = await repository.createCardFile(stickyRootPath);
+		const width = STICKY_NOTE_FLOAT_DEFAULT_WIDTH;
+		const contentHeight = STICKY_NOTE_FLOAT_DEFAULT_HEIGHT;
+		const position = resolveCommandCreatedFloatingPosition(width);
+		const file = await repository.createCardFile(stickyRootPath, {
+			isFloating: true,
+			floatX: position.x,
+			floatY: position.y,
+			floatW: width,
+			floatH: contentHeight,
+		});
 		new Notice(`${ctx.t("command.sticky_note.create.done")} ${file.basename}`);
 	} catch (error) {
 		console.error("[Chinese Novel Assistant] Failed to create sticky note.", error);
@@ -171,4 +181,45 @@ function resolveTargetStickyNoteRootPath(ctx: PluginContext, novelLibraryService
 	);
 	const normalizedStickyRootPath = novelLibraryService.normalizeVaultPath(stickyRootPath);
 	return normalizedStickyRootPath.length > 0 ? normalizedStickyRootPath : null;
+}
+
+function resolveCommandCreatedFloatingPosition(width: number): { x: number; y: number } {
+	const firstCardRect = queryStickySidebarFirstCardRect();
+	if (firstCardRect) {
+		return {
+			x: Math.max(0, Math.round(firstCardRect.left - width - STICKY_NOTE_FLOAT_LEFT_GAP)),
+			y: Math.max(0, Math.round(firstCardRect.top)),
+		};
+	}
+
+	const rightSplitRect = queryRightSplitRect();
+	if (rightSplitRect) {
+		return {
+			x: Math.max(0, Math.round(rightSplitRect.left - width - STICKY_NOTE_FLOAT_LEFT_GAP)),
+			y: Math.max(0, Math.round(rightSplitRect.top + 72)),
+		};
+	}
+
+	return {
+		x: Math.max(0, Math.round(window.innerWidth - width - 24)),
+		y: 120,
+	};
+}
+
+function queryStickySidebarFirstCardRect(): DOMRect | null {
+	const selector =
+		`.workspace-split.mod-right-split .workspace-leaf.mod-active .workspace-leaf-content[data-type="${IDS.view.stickyNoteSidebar}"] .cna-sticky-note-card-list .cna-sticky-note-card`;
+	const cardEl = document.querySelector<HTMLElement>(selector);
+	if (!cardEl) {
+		return null;
+	}
+	return cardEl.getBoundingClientRect();
+}
+
+function queryRightSplitRect(): DOMRect | null {
+	const rightSplitEl = document.querySelector<HTMLElement>(".workspace-split.mod-right-split");
+	if (!rightSplitEl) {
+		return null;
+	}
+	return rightSplitEl.getBoundingClientRect();
 }

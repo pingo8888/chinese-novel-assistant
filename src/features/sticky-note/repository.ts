@@ -1,13 +1,15 @@
 import { TFile, TFolder, type App } from "obsidian";
-import { STICKY_NOTE_CARD_COLORS } from "../../constants";
+import {
+	STICKY_NOTE_CARD_COLORS,
+	STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
+	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
+} from "../../constants";
 import type { ChineseNovelAssistantSettings } from "../../settings/settings";
 import { NovelLibraryService } from "../../services/novel-library-service";
 import type { StickyNoteCardModel, StickyNoteImageModel } from "../../ui/views/sticky-note/types";
 import { extractPlainTextFromMarkdown, normalizeMarkdownLineEndings } from "./markdown-utils";
 
 const STICKY_NOTE_WARNING_TEXT = "数据由灵感便签管理，请勿删除或手动修改";
-const STICKY_NOTE_FLOAT_WIDTH_DEFAULT = 292;
-const STICKY_NOTE_FLOAT_HEIGHT_DEFAULT = 119;
 const MISSING_IMAGE_PLACEHOLDER_DATA_URI = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
 
 type StickyNoteFileData = Record<string, unknown>;
@@ -20,6 +22,14 @@ interface ParseStickyNoteResult {
 interface ListStickyNotesOptions {
 	imageAutoExpand: boolean;
 	rootPaths?: string[];
+}
+
+interface CreateStickyNoteFileOptions {
+	isFloating?: boolean;
+	floatX?: number;
+	floatY?: number;
+	floatW?: number;
+	floatH?: number;
 }
 
 export class StickyNoteRepository {
@@ -53,7 +63,7 @@ export class StickyNoteRepository {
 		return this.readCardFromFile(entry, options.imageAutoExpand);
 	}
 
-	async createCardFile(stickyRootPath: string): Promise<TFile> {
+	async createCardFile(stickyRootPath: string, options?: CreateStickyNoteFileOptions): Promise<TFile> {
 		const normalizedRootPath = this.novelLibraryService.normalizeVaultPath(stickyRootPath);
 		if (!normalizedRootPath) {
 			throw new Error("Invalid sticky note root path.");
@@ -65,7 +75,7 @@ export class StickyNoteRepository {
 			if (this.app.vault.getAbstractFileByPath(filePath)) {
 				continue;
 			}
-			return this.app.vault.create(filePath, buildDefaultStickyNoteFileContent());
+			return this.app.vault.create(filePath, buildDefaultStickyNoteFileContent(options));
 		}
 		throw new Error("Failed to create unique sticky note file name.");
 	}
@@ -138,8 +148,8 @@ export class StickyNoteRepository {
 				isFloating: asBoolean(parsed.data["isfloating"], false),
 				floatX: asNumber(parsed.data["floatx"], 0),
 				floatY: asNumber(parsed.data["floaty"], 0),
-				floatW: asNumber(parsed.data["floatw"], STICKY_NOTE_FLOAT_WIDTH_DEFAULT),
-				floatH: asNumber(parsed.data["floath"], STICKY_NOTE_FLOAT_HEIGHT_DEFAULT),
+				floatW: asNumber(parsed.data["floatw"], STICKY_NOTE_FLOAT_DEFAULT_WIDTH),
+				floatH: asNumber(parsed.data["floath"], STICKY_NOTE_FLOAT_DEFAULT_HEIGHT),
 			};
 		} catch (_error) {
 			return null;
@@ -203,18 +213,18 @@ function pad2(value: number): string {
 	return `${value}`.padStart(2, "0");
 }
 
-function buildDefaultStickyNoteFileContent(): string {
+function buildDefaultStickyNoteFileContent(options?: CreateStickyNoteFileOptions): string {
 	const data: StickyNoteFileData = {
 		warning: STICKY_NOTE_WARNING_TEXT,
 		ispinned: false,
 		color: pickRandomStickyNoteColor(),
 		tags: "",
 		images: "",
-		isfloating: false,
-		floatx: 0,
-		floaty: 0,
-		floatw: STICKY_NOTE_FLOAT_WIDTH_DEFAULT,
-		floath: STICKY_NOTE_FLOAT_HEIGHT_DEFAULT,
+		isfloating: options?.isFloating ?? false,
+		floatx: Number.isFinite(options?.floatX) ? Math.round(options?.floatX ?? 0) : 0,
+		floaty: Number.isFinite(options?.floatY) ? Math.round(options?.floatY ?? 0) : 0,
+		floatw: Number.isFinite(options?.floatW) ? Math.round(options?.floatW ?? STICKY_NOTE_FLOAT_DEFAULT_WIDTH) : STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
+		floath: Number.isFinite(options?.floatH) ? Math.round(options?.floatH ?? STICKY_NOTE_FLOAT_DEFAULT_HEIGHT) : STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
 	};
 	return `<!---cw-data\n${JSON.stringify(data, null, 2)}\n--->\n`;
 }

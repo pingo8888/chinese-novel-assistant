@@ -8,6 +8,8 @@ interface ShowStickyNoteCardMenuArgs {
 	t: (key: TranslationKey) => string;
 	activeColorHex?: string;
 	isPinned: boolean;
+	allowPinToggle?: boolean;
+	allowDelete?: boolean;
 	onCommand: (command: StickyNoteCardMenuCommand) => void;
 }
 
@@ -28,6 +30,8 @@ export function closeStickyNoteCardMenu(): void {
 
 export function showStickyNoteCardMenu(args: ShowStickyNoteCardMenuArgs): void {
 	closeStickyNoteCardMenu();
+	const allowPinToggle = args.allowPinToggle ?? true;
+	const allowDelete = args.allowDelete ?? true;
 
 	const rootEl = document.body.createDiv({ cls: "cna-sticky-note-card-menu" });
 
@@ -56,10 +60,14 @@ export function showStickyNoteCardMenu(args: ShowStickyNoteCardMenuArgs): void {
 	const pinItemEl = createMenuItemButton(rootEl, UI.icon.pin, args.isPinned
 		? args.t("feature.right_sidebar.sticky_note.card.menu.unpin")
 		: args.t("feature.right_sidebar.sticky_note.card.menu.pin"));
-	pinItemEl.addEventListener("click", () => {
-		args.onCommand({ type: "toggle_pin" });
-		closeStickyNoteCardMenu();
-	});
+	if (!allowPinToggle) {
+		pinItemEl.addClass("is-disabled");
+	} else {
+		pinItemEl.addEventListener("click", () => {
+			args.onCommand({ type: "toggle_pin" });
+			closeStickyNoteCardMenu();
+		});
+	}
 
 	const deleteItemEl = createMenuItemButton(
 		rootEl,
@@ -67,10 +75,14 @@ export function showStickyNoteCardMenu(args: ShowStickyNoteCardMenuArgs): void {
 		args.t("feature.right_sidebar.sticky_note.card.menu.delete"),
 		true,
 	);
-	deleteItemEl.addEventListener("click", () => {
-		args.onCommand({ type: "delete" });
-		closeStickyNoteCardMenu();
-	});
+	if (!allowDelete) {
+		deleteItemEl.addClass("is-disabled");
+	} else {
+		deleteItemEl.addEventListener("click", () => {
+			args.onCommand({ type: "delete" });
+			closeStickyNoteCardMenu();
+		});
+	}
 
 	positionMenu(rootEl, args.anchorEl.getBoundingClientRect());
 

@@ -1,5 +1,12 @@
 import { Component, MarkdownRenderer, Notice, setIcon, TextAreaComponent, type App, type TFile } from "obsidian";
-import { UI } from "../../../constants";
+import {
+	STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
+	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
+	STICKY_NOTE_FLOAT_LEFT_GAP,
+	STICKY_NOTE_FLOAT_MIN_HEIGHT,
+	STICKY_NOTE_FLOAT_MIN_WIDTH,
+	UI,
+} from "../../../constants";
 import type { TranslationKey } from "../../../lang";
 import type { StickyNoteCardModel, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
 import { showStickyNoteContentMenu } from "./content-menu";
@@ -17,6 +24,7 @@ interface StickyNoteCardItemDeps {
 	viewOptions: StickyNoteViewOptions;
 	t: (key: TranslationKey) => string;
 	onCardTouched: () => void;
+	onImageExpandedChange?: (isExpanded: boolean) => void;
 	onCardDelete: () => void;
 }
 
@@ -30,6 +38,13 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 
 	const headerEl = rootEl.createDiv({ cls: "cna-sticky-note-card__header" });
 	const timeEl = headerEl.createDiv({ cls: "cna-sticky-note-card__time" });
+	const timeDragIndicatorEl = timeEl.createSpan({
+		cls: "cna-sticky-note-card__time-drag-indicator",
+		attr: {
+			"aria-hidden": "true",
+		},
+	});
+	setIcon(timeDragIndicatorEl, "grip-vertical");
 	const timeTextEl = timeEl.createSpan({ cls: "cna-sticky-note-card__time-text" });
 	const timePinEl = timeEl.createSpan({
 		cls: "cna-sticky-note-card__time-pin is-hidden",
@@ -38,10 +53,10 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 	const actionsEl = headerEl.createDiv({ cls: "cna-sticky-note-card__actions" });
 
 	const pinButtonEl = actionsEl.createEl("button", {
-		cls: "cna-sticky-note-card__action-button",
+		cls: "cna-sticky-note-card__action-button cna-sticky-note-card__action-button--float",
 		attr: {
 			type: "button",
-			"aria-label": deps.t("feature.right_sidebar.sticky_note.card.action.pin.tooltip"),
+			"aria-label": deps.t("feature.right_sidebar.sticky_note.card.action.float.tooltip"),
 		},
 	});
 	setIcon(pinButtonEl, UI.icon.send);
@@ -93,7 +108,18 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 	let contentRenderVersion = 0;
 	let isDestroyed = false;
 
+	const updateFloatingActionButton = (): void => {
+		pinButtonEl.toggleClass("is-unfloat", !card.isFloating);
+		pinButtonEl.setAttr(
+			"aria-label",
+			card.isFloating
+				? deps.t("feature.right_sidebar.sticky_note.card.action.unfloat.tooltip")
+				: deps.t("feature.right_sidebar.sticky_note.card.action.float.tooltip"),
+		);
+	};
+
 	const renderHeader = (): void => {
+		timeDragIndicatorEl.toggleClass("is-visible", card.isFloating);
 		timeTextEl.setText(formatDateTime(resolveHeaderTimestamp(card, deps.sortMode)));
 		timePinEl.style.display = card.isPinned ? "inline-flex" : "none";
 		timePinEl.setAttr("aria-label", deps.t("feature.right_sidebar.sticky_note.card.menu.pin"));
@@ -319,6 +345,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 		renderHeader();
 		renderImageToggle();
 		renderImages();
+		deps.onImageExpandedChange?.(true);
 		deps.onCardTouched();
 	};
 
@@ -351,6 +378,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 
 	setContentEditing(false);
 	isEditingTags = false;
+	updateFloatingActionButton();
 	renderHeader();
 	renderContentDisplay();
 	renderTagsDisplay();
@@ -432,6 +460,39 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 		card.isImageExpanded = !card.isImageExpanded;
 		renderImageToggle();
 		renderImages();
+		deps.onImageExpandedChange?.(card.isImageExpanded);
+	});
+
+	pinButtonEl.addEventListener("click", () => {
+		card.isFloating = !card.isFloating;
+		if (card.isFloating) {
+			const cardRect = rootEl.getBoundingClientRect();
+			const contentSurfaceEl = contentSectionEl.querySelector<HTMLElement>(".cna-sticky-note-card__surface");
+			const contentRect = contentSurfaceEl?.getBoundingClientRect();
+			if (shouldUseDefaultFloatMetric(card.floatW, STICKY_NOTE_FLOAT_DEFAULT_WIDTH)) {
+				card.floatW = normalizeFloatSize(cardRect.width, STICKY_NOTE_FLOAT_DEFAULT_WIDTH, STICKY_NOTE_FLOAT_MIN_WIDTH);
+			} else {
+				card.floatW = normalizeFloatSize(card.floatW, STICKY_NOTE_FLOAT_DEFAULT_WIDTH, STICKY_NOTE_FLOAT_MIN_WIDTH);
+			}
+			if (shouldUseDefaultFloatMetric(card.floatH, STICKY_NOTE_FLOAT_DEFAULT_HEIGHT)) {
+				card.floatH = normalizeFloatSize(contentRect?.height ?? cardRect.height, STICKY_NOTE_FLOAT_DEFAULT_HEIGHT, STICKY_NOTE_FLOAT_MIN_HEIGHT);
+			} else {
+				card.floatH = normalizeFloatSize(card.floatH, STICKY_NOTE_FLOAT_DEFAULT_HEIGHT, STICKY_NOTE_FLOAT_MIN_HEIGHT);
+			}
+			if (!isFiniteNumber(card.floatX) && !isFiniteNumber(card.floatY)) {
+				card.floatX = 0;
+				card.floatY = 0;
+			}
+			if (Math.round(card.floatX) === 0 && Math.round(card.floatY) === 0) {
+				const initialPosition = resolveInitialFloatingPosition(cardRect, card.floatW);
+				card.floatX = initialPosition.x;
+				card.floatY = initialPosition.y;
+			}
+		}
+		card.updatedAt = Date.now();
+		updateFloatingActionButton();
+		renderHeader();
+		deps.onCardTouched();
 	});
 
 	menuButtonEl.addEventListener("click", (event) => {
@@ -442,6 +503,8 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 			t: (key) => deps.t(key),
 			activeColorHex: card.colorHex,
 			isPinned: card.isPinned,
+			allowPinToggle: !card.isFloating,
+			allowDelete: true,
 			onCommand: (command) => {
 				const result = applyStickyNoteCardMenuCommand(command, card);
 				if (result === "deleted") {
@@ -500,6 +563,47 @@ function formatDateTime(timestamp: number): string {
 
 function padNumber(value: number): string {
 	return `${value}`.padStart(2, "0");
+}
+
+function normalizeFloatSize(value: number, fallback: number, min: number): number {
+	if (isFiniteNumber(value) && value >= min) {
+		return Math.round(value);
+	}
+	return fallback;
+}
+
+function isFiniteNumber(value: number): boolean {
+	return Number.isFinite(value);
+}
+
+function shouldUseDefaultFloatMetric(value: number, defaultValue: number): boolean {
+	if (!Number.isFinite(value) || value <= 0) {
+		return true;
+	}
+	return Math.abs(value - defaultValue) <= 1;
+}
+
+function resolveInitialFloatingPosition(cardRect: DOMRect, floatingWidth: number): { x: number; y: number } {
+	const viewportWidth = Math.max(1, window.innerWidth);
+	const width = Math.max(STICKY_NOTE_FLOAT_MIN_WIDTH, Math.round(floatingWidth));
+	const preferredLeftX = Math.round(cardRect.left - width - STICKY_NOTE_FLOAT_LEFT_GAP);
+	if (preferredLeftX >= 0) {
+		return {
+			x: preferredLeftX,
+			y: Math.max(0, Math.round(cardRect.top)),
+		};
+	}
+	const fallbackRightX = Math.round(cardRect.right + STICKY_NOTE_FLOAT_LEFT_GAP);
+	if (fallbackRightX + width <= viewportWidth) {
+		return {
+			x: fallbackRightX,
+			y: Math.max(0, Math.round(cardRect.top)),
+		};
+	}
+	return {
+		x: Math.max(0, Math.round(cardRect.left)),
+		y: Math.max(0, Math.round(cardRect.top)),
+	};
 }
 
 function parseTags(source: string): string[] {

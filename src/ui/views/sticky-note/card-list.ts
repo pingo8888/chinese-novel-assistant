@@ -50,24 +50,26 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 	let loadVersion = 0;
 	let cardItemDisposers: Array<() => void> = [];
 	const fileReadVersionByPath = new Map<string, number>();
+	const imageExpandedByPath = new Map<string, boolean>();
+
+	const rememberImageExpandedState = (card: StickyNoteCardModel): void => {
+		imageExpandedByPath.set(card.sourcePath, card.isImageExpanded);
+	};
 
 	const replaceCards = (nextCards: StickyNoteCardModel[]): void => {
 		for (const card of state.cards) {
+			rememberImageExpandedState(card);
 			revokeImageUrls(card.images);
 		}
 		state.cards = nextCards;
 	};
 
 	const preserveImageExpandedState = (nextCards: StickyNoteCardModel[]): StickyNoteCardModel[] => {
-		if (state.cards.length === 0 || nextCards.length === 0) {
+		if (nextCards.length === 0) {
 			return nextCards;
 		}
-		const expandedByCardId = new Map<string, boolean>();
-		for (const card of state.cards) {
-			expandedByCardId.set(card.id, card.isImageExpanded);
-		}
 		for (const card of nextCards) {
-			const preserved = expandedByCardId.get(card.id);
+			const preserved = imageExpandedByPath.get(card.sourcePath);
 			if (typeof preserved === "boolean") {
 				card.isImageExpanded = preserved;
 			}
@@ -102,10 +104,12 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 	const removeCardByPath = (path: string, shouldRender: boolean): boolean => {
 		const index = state.cards.findIndex((item) => item.sourcePath === path);
 		if (index < 0) {
+			imageExpandedByPath.delete(path);
 			return false;
 		}
 		const [removed] = state.cards.splice(index, 1);
 		if (removed) {
+			imageExpandedByPath.delete(path);
 			revokeImageUrls(removed.images);
 		}
 		if (shouldRender) {
@@ -116,6 +120,10 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 
 	const upsertCard = (nextCard: StickyNoteCardModel): void => {
 		const index = state.cards.findIndex((item) => item.sourcePath === nextCard.sourcePath);
+		const preservedExpanded = imageExpandedByPath.get(nextCard.sourcePath);
+		if (typeof preservedExpanded === "boolean") {
+			nextCard.isImageExpanded = preservedExpanded;
+		}
 		if (index < 0) {
 			state.cards.push(nextCard);
 			render();
@@ -127,8 +135,8 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 			render();
 			return;
 		}
-		nextCard.isImageExpanded = previous.isImageExpanded;
 		state.cards[index] = nextCard;
+		rememberImageExpandedState(nextCard);
 		revokeImageUrls(previous.images);
 		render();
 	};
@@ -224,6 +232,9 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 					void persistCard(card);
 					render();
 				},
+				onImageExpandedChange: (isExpanded) => {
+					imageExpandedByPath.set(card.sourcePath, isExpanded);
+				},
 				onCardDelete: () => {
 					void (async () => {
 						const deleted = await deleteCardFromVault(card);
@@ -260,8 +271,10 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 			const previous = state.viewOptions;
 			state.viewOptions = nextOptions;
 			if (previous.imageAutoExpand !== nextOptions.imageAutoExpand) {
+				imageExpandedByPath.clear();
 				for (const card of state.cards) {
 					card.isImageExpanded = nextOptions.imageAutoExpand;
+					imageExpandedByPath.set(card.sourcePath, nextOptions.imageAutoExpand);
 				}
 			}
 			render();
@@ -303,6 +316,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 			isDestroyed = true;
 			loadVersion += 1;
 			fileReadVersionByPath.clear();
+			imageExpandedByPath.clear();
 			for (const dispose of cardItemDisposers) {
 				dispose();
 			}
@@ -317,9 +331,10 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 
 function getVisibleCards(state: StickyNoteCardListState): StickyNoteCardModel[] {
 	const keyword = state.searchKeyword.trim().toLowerCase();
+	const nonFloatingCards = state.cards.filter((card) => !card.isFloating);
 	const matched = keyword.length === 0
-		? state.cards
-		: state.cards.filter((card) => isCardMatched(card, keyword));
+		? nonFloatingCards
+		: nonFloatingCards.filter((card) => isCardMatched(card, keyword));
 	return [...matched].sort((left, right) => compareCards(left, right, state.sortMode));
 }
 
