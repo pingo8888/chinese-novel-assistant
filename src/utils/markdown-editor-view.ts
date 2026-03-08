@@ -1,16 +1,19 @@
-import type { EditorView } from "@codemirror/view";
+import { EditorView } from "@codemirror/view";
 import { type App, MarkdownView } from "obsidian";
 
-export function resolveEditorViewFromMarkdownView(view: MarkdownView): EditorView | null {
+type MaybeEditorView = ReturnType<typeof EditorView.findFromDOM>;
+type ResolvedEditorView = NonNullable<MaybeEditorView>;
+
+export function resolveEditorViewFromMarkdownView(view: MarkdownView): MaybeEditorView {
 	const cmHost = view as unknown as {
 		editor?: {
-			cm?: EditorView;
-			editor?: { cm?: EditorView };
+			cm?: ResolvedEditorView;
+			editor?: { cm?: ResolvedEditorView };
 		};
 		sourceMode?: {
 			cmEditor?: {
-				cm?: EditorView;
-				editor?: { cm?: EditorView };
+				cm?: ResolvedEditorView;
+				editor?: { cm?: ResolvedEditorView };
 			};
 		};
 	};
@@ -23,7 +26,7 @@ export function resolveEditorViewFromMarkdownView(view: MarkdownView): EditorVie
 	);
 }
 
-export function resolveMarkdownViewByEditorView(app: App, editorView: EditorView): MarkdownView | null {
+export function resolveMarkdownViewByEditorView(app: App, editorView: ResolvedEditorView): MarkdownView | null {
 	const leaves = app.workspace.getLeavesOfType("markdown");
 	for (const leaf of leaves) {
 		const view = leaf.view;

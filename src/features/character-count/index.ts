@@ -17,6 +17,8 @@ const CHARACTER_MILESTONE_GUTTER_CLASS = "cna-character-milestone-gutter";
 const CHARACTER_MILESTONE_ENABLED_CLASS = "cna-character-milestone-enabled";
 const CHARACTER_MILESTONE_FORCE_REFRESH = Annotation.define<boolean>();
 const CHARACTER_MILESTONE_STEP = 500;
+type MaybeEditorView = ReturnType<typeof EditorView.findFromDOM>;
+type ResolvedEditorView = NonNullable<MaybeEditorView>;
 
 interface FolderStats {
 	fileCount: number;
@@ -598,10 +600,10 @@ function createCharacterMilestoneGutterExtension(
 	return [pluginExtension, Prec.low(gutterExtension)];
 }
 
-function resolveEditorViewFromMarkdownView(view: MarkdownView): EditorView | null {
+function resolveEditorViewFromMarkdownView(view: MarkdownView): MaybeEditorView {
 	const editorAny = view.editor as unknown as {
-		cm?: EditorView;
-		editor?: { cm?: EditorView };
+		cm?: ResolvedEditorView;
+		editor?: { cm?: ResolvedEditorView };
 	};
 	return editorAny.cm ?? editorAny.editor?.cm ?? null;
 }

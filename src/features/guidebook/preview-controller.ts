@@ -291,7 +291,7 @@ export class GuidebookPreviewController {
 		}
 	}
 
-	private resolveEditorView(keywordEl: HTMLElement): EditorView | null {
+	private resolveEditorView(keywordEl: HTMLElement): ReturnType<typeof EditorView.findFromDOM> {
 		const editorEl = keywordEl.closest(".cm-editor");
 		if (!(editorEl instanceof HTMLElement)) {
 			return null;
