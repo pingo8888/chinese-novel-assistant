@@ -25,7 +25,7 @@ function registerTypesetCommands(_plugin: Plugin, _ctx: PluginContext): void {
 
 function registerProofreadCommands(plugin: Plugin, ctx: PluginContext): void {
 	plugin.addCommand({
-		id: "fix-detected-punctuation-errors",
+		id: IDS.command.fixDetectedPunctuationErrors,
 		name: ctx.t("command.proofread.fix_punctuation_errors.name"),
 		checkCallback: (checking) => {
 			if (!ctx.settings.proofreadCommonPunctuationEnabled) {
@@ -63,7 +63,7 @@ function registerProofreadCommands(plugin: Plugin, ctx: PluginContext): void {
 	});
 
 	plugin.addCommand({
-		id: "fix-detected-proofread-dict-errors",
+		id: IDS.command.fixDetectedProofreadDictErrors,
 		name: ctx.t("command.proofread.fix_proofread_dict_errors.name"),
 		checkCallback: (checking) => {
 			if (!ctx.settings.proofreadCustomDictionaryEnabled) {
@@ -84,7 +84,7 @@ function registerStickyNoteCommands(plugin: Plugin, ctx: PluginContext): void {
 	const novelLibraryService = new NovelLibraryService(ctx.app);
 
 	plugin.addCommand({
-		id: "create-sticky-note",
+		id: IDS.command.createStickyNote,
 		name: ctx.t("command.sticky_note.create.name"),
 		checkCallback: (checking) => {
 			if (!ctx.settings.stickyNoteEnabled) {

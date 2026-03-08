@@ -4,6 +4,7 @@ import {
 	STICKY_NOTE_FLOAT_LEFT_GAP,
 	STICKY_NOTE_FLOAT_MIN_HEIGHT,
 	STICKY_NOTE_FLOAT_MIN_WIDTH,
+	STICKY_NOTE_IMAGE_REMOVE_BUTTON_COLORS,
 	UI,
 	resolveStickyNoteFloatDefaultHeightByRows,
 } from "../../../constants";
@@ -277,18 +278,18 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 					"aria-label": deps.t("feature.right_sidebar.sticky_note.card.image.remove.tooltip"),
 				},
 			});
-			removeButtonEl.style.setProperty("background", "rgba(0, 0, 0, 0.56)", "important");
-			removeButtonEl.style.setProperty("background-color", "rgba(0, 0, 0, 0.56)", "important");
+			removeButtonEl.style.setProperty("background", STICKY_NOTE_IMAGE_REMOVE_BUTTON_COLORS.backgroundDefault, "important");
+			removeButtonEl.style.setProperty("background-color", STICKY_NOTE_IMAGE_REMOVE_BUTTON_COLORS.backgroundDefault, "important");
 			removeButtonEl.style.setProperty("background-image", "none", "important");
-			removeButtonEl.style.setProperty("color", "#ffffff", "important");
+			removeButtonEl.style.setProperty("color", STICKY_NOTE_IMAGE_REMOVE_BUTTON_COLORS.text, "important");
 			removeButtonEl.style.setProperty("border", "none", "important");
 			removeButtonEl.addEventListener("mouseenter", () => {
-				removeButtonEl.style.setProperty("background", "rgba(0, 0, 0, 0.74)", "important");
-				removeButtonEl.style.setProperty("background-color", "rgba(0, 0, 0, 0.74)", "important");
+				removeButtonEl.style.setProperty("background", STICKY_NOTE_IMAGE_REMOVE_BUTTON_COLORS.backgroundHover, "important");
+				removeButtonEl.style.setProperty("background-color", STICKY_NOTE_IMAGE_REMOVE_BUTTON_COLORS.backgroundHover, "important");
 			});
 			removeButtonEl.addEventListener("mouseleave", () => {
-				removeButtonEl.style.setProperty("background", "rgba(0, 0, 0, 0.56)", "important");
-				removeButtonEl.style.setProperty("background-color", "rgba(0, 0, 0, 0.56)", "important");
+				removeButtonEl.style.setProperty("background", STICKY_NOTE_IMAGE_REMOVE_BUTTON_COLORS.backgroundDefault, "important");
+				removeButtonEl.style.setProperty("background-color", STICKY_NOTE_IMAGE_REMOVE_BUTTON_COLORS.backgroundDefault, "important");
 			});
 			setIcon(removeButtonEl, UI.icon.close);
 			removeButtonEl.addEventListener("click", () => {

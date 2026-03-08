@@ -1,4 +1,5 @@
 import type { SupportedLocale } from "../lang";
+import { GUIDEBOOK_KEYWORD_DEFAULT_COLORS } from "../constants";
 
 export interface ChineseNovelAssistantSettings {
 	locale: SupportedLocale;
@@ -62,13 +63,13 @@ export function createDefaultSettings(locale: SupportedLocale): ChineseNovelAssi
 			guidebookTreeExpandedStates: {},
 			guidebookTreeAllExpanded: true,
 			guidebookKeywordHighlightMode: "first",
-		guidebookKeywordHighlightBackgroundColor: "#FFFFFF00",
+		guidebookKeywordHighlightBackgroundColor: GUIDEBOOK_KEYWORD_DEFAULT_COLORS.highlightBackground,
 		guidebookKeywordUnderlineStyle: "dotted",
 		guidebookKeywordUnderlineWidth: 2,
-		guidebookKeywordUnderlineColor: "#4A86E9",
+		guidebookKeywordUnderlineColor: GUIDEBOOK_KEYWORD_DEFAULT_COLORS.underline,
 		guidebookKeywordFontWeight: "normal",
 		guidebookKeywordFontStyle: "normal",
-		guidebookKeywordTextColor: "#4A86E9",
+		guidebookKeywordTextColor: GUIDEBOOK_KEYWORD_DEFAULT_COLORS.text,
 		guidebookPreviewMainHoverEnabled: true,
 		guidebookPreviewSidebarHoverEnabled: false,
 		guidebookPreviewWidth: 320,
