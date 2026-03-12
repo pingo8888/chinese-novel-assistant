@@ -1,15 +1,16 @@
-import { EditorView, type ViewUpdate } from "@codemirror/view";
 import { Plugin } from "obsidian";
+import { EditorView, type ViewUpdate } from "@codemirror/view";
+
 import type { PluginContext } from "../../core/context";
 import { createHeadingIconExtension } from "./heading-icons";
 
-const TYPESET_ENABLED_CLASS = "cna-typeset-enabled";
-const TYPESET_HEADING_ICONS_CLASS = "cna-typeset-heading-icons";
-const TYPESET_JUSTIFY_CLASS = "cna-typeset-justify";
+const TYPESET_ENABLED_ATTR = "data-cna-typeset";
+const TYPESET_HEADING_ICONS_ATTR = "data-cna-heading-icons";
+const TYPESET_JUSTIFY_ATTR = "data-cna-justify";
 
-const INDENT_CHARS_VAR = "--cna-typeset-indent-chars";
-const LINE_SPACING_VAR = "--cna-typeset-line-spacing";
-const PARAGRAPH_SPACING_VAR = "--cna-typeset-paragraph-spacing";
+const INDENT_CHARS_VAR = "--cna-indent-chars";
+const LINE_SPACING_VAR = "--cna-line-spacing";
+const PARAGRAPH_SPACING_VAR = "--cna-paragraph-spacing";
 
 export function registerTypesetFeature(plugin: Plugin, ctx: PluginContext): void {
 	const feature = new TypesetFeature(plugin, ctx);
@@ -93,9 +94,9 @@ class TypesetFeature {
 		const settings = this.ctx.settings;
 		const rootEl = this.getRootEl();
 
-		rootEl.classList.toggle(TYPESET_ENABLED_CLASS, settings.typesetEnabled);
-		rootEl.classList.toggle(TYPESET_HEADING_ICONS_CLASS, settings.typesetShowHeadingIcons);
-		rootEl.classList.toggle(TYPESET_JUSTIFY_CLASS, settings.typesetJustifyText);
+		rootEl.setAttribute(TYPESET_ENABLED_ATTR, settings.typesetEnabled ? "on" : "off");
+		rootEl.setAttribute(TYPESET_HEADING_ICONS_ATTR, settings.typesetShowHeadingIcons ? "on" : "off");
+		rootEl.setAttribute(TYPESET_JUSTIFY_ATTR, settings.typesetJustifyText ? "on" : "off");
 
 		rootEl.style.setProperty(INDENT_CHARS_VAR, String(Math.max(0, settings.typesetIndentChars)));
 		rootEl.style.setProperty(LINE_SPACING_VAR, String(Math.max(0, settings.typesetLineSpacing)));
@@ -104,7 +105,9 @@ class TypesetFeature {
 
 	private clear(): void {
 		const rootEl = this.getRootEl();
-		rootEl.classList.remove(TYPESET_ENABLED_CLASS, TYPESET_HEADING_ICONS_CLASS, TYPESET_JUSTIFY_CLASS);
+		rootEl.removeAttribute(TYPESET_ENABLED_ATTR);
+		rootEl.removeAttribute(TYPESET_HEADING_ICONS_ATTR);
+		rootEl.removeAttribute(TYPESET_JUSTIFY_ATTR);
 		rootEl.style.removeProperty(INDENT_CHARS_VAR);
 		rootEl.style.removeProperty(LINE_SPACING_VAR);
 		rootEl.style.removeProperty(PARAGRAPH_SPACING_VAR);
