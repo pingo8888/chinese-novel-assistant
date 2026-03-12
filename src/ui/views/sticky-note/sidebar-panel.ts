@@ -5,7 +5,7 @@ import { ClearableInputComponent } from "../../componets/clearable-input";
 import { showContextMenuAtMouseEvent } from "../../componets/context-menu";
 import { createStickyNoteCardList } from "./card-list";
 import type { StickyNoteSortMode, StickyNoteViewOptions } from "./types";
-import { NovelLibraryService } from "../../../services/novel-library-service";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../../services/novel-library-service";
 import { StickyNoteRepository } from "../../../features/sticky-note/repository";
 type StickyNoteSparklesTooltipKey = "feature.right_sidebar.sticky_note.action.sparkles.tooltip";
 type StickyNoteSortTooltipKey =
@@ -318,7 +318,7 @@ function resolveStickyNoteRootPaths(
 			novelLibraryService.resolveNovelLibrarySubdirPath(
 				settings,
 				libraryPath,
-				settings.stickyNoteDirName,
+				NOVEL_LIBRARY_SUBDIR_NAMES.stickyNote,
 			),
 		)
 		.map((path) => novelLibraryService.normalizeVaultPath(path))
@@ -349,7 +349,7 @@ function resolveScopedStickyNoteRootPaths(
 	const stickyRootPath = novelLibraryService.resolveNovelLibrarySubdirPath(
 		settings,
 		matchedLibraryRoot,
-		settings.stickyNoteDirName,
+		NOVEL_LIBRARY_SUBDIR_NAMES.stickyNote,
 	);
 	const normalizedStickyRootPath = novelLibraryService.normalizeVaultPath(stickyRootPath);
 	return normalizedStickyRootPath ? [normalizedStickyRootPath] : allRoots;
@@ -387,7 +387,7 @@ function resolveTargetStickyNoteRootPath(
 	const stickyRootPath = novelLibraryService.resolveNovelLibrarySubdirPath(
 		settings,
 		targetLibraryRoot,
-		settings.stickyNoteDirName,
+		NOVEL_LIBRARY_SUBDIR_NAMES.stickyNote,
 	);
 	const normalizedStickyRootPath = novelLibraryService.normalizeVaultPath(stickyRootPath);
 	return normalizedStickyRootPath.length > 0 ? normalizedStickyRootPath : null;

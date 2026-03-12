@@ -1,6 +1,6 @@
 import { App, Plugin } from "obsidian";
 import { MarkdownParseService } from "./markdown-parse-service";
-import { NovelLibraryService } from "./novel-library-service";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "./novel-library-service";
 import type { ChineseNovelAssistantSettings } from "../settings/settings";
 import { bindVaultChangeWatcher } from "./vault-change-watcher";
 
@@ -229,7 +229,7 @@ export class ProofreadDictService {
 			const dictionaryRoot = this.novelLibraryService.resolveNovelLibrarySubdirPath(
 				{ locale: settings.locale },
 				libraryPath,
-				settings.proofreadDictionaryDirName,
+				NOVEL_LIBRARY_SUBDIR_NAMES.proofreadDictionary,
 			);
 			if (!dictionaryRoot) {
 				continue;

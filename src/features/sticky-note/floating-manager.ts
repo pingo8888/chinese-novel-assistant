@@ -7,7 +7,7 @@ import {
 	resolveStickyNoteFloatDefaultHeightByRows,
 } from "../../constants";
 import type { PluginContext } from "../../core/context";
-import { NovelLibraryService } from "../../services/novel-library-service";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
 import { StickyNoteRepository } from "./repository";
 import { bindVaultChangeWatcher } from "../../services/vault-change-watcher";
 import { renderStickyNoteCardItem } from "../../ui/views/sticky-note/card-item";
@@ -566,7 +566,7 @@ function resolveStickyRootPaths(
 			novelLibraryService.resolveNovelLibrarySubdirPath(
 				settings,
 				libraryPath,
-				settings.stickyNoteDirName,
+				NOVEL_LIBRARY_SUBDIR_NAMES.stickyNote,
 			),
 		)
 		.map((path) => novelLibraryService.normalizeVaultPath(path))

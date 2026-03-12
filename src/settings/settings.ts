@@ -24,11 +24,6 @@ export interface ChineseNovelAssistantSettings {
 	stickyNoteTagHintTextEnabled: boolean;
 	stickyNotePath: string;
 	novelLibraries: string[];
-	customDirNamesEnabled: boolean;
-	guidebookDirName: string;
-	stickyNoteDirName: string;
-	snippetDirName: string;
-	proofreadDictionaryDirName: string;
 	snippetQuickInsertEnabled: boolean;
 	snippetQuickInsertPageSize: number;
 	snippetTextFragmentEnabled: boolean;
@@ -80,11 +75,6 @@ export function createDefaultSettings(locale: SupportedLocale): ChineseNovelAssi
 		stickyNoteTagHintTextEnabled: true,
 		stickyNotePath: "",
 		novelLibraries: [],
-		customDirNamesEnabled: false,
-		guidebookDirName: "设定库",
-		stickyNoteDirName: "便签库",
-		snippetDirName: "片段库",
-		proofreadDictionaryDirName: "纠错词库",
 		snippetQuickInsertEnabled: true,
 		snippetQuickInsertPageSize: 8,
 		snippetTextFragmentEnabled: true,

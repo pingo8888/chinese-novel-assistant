@@ -1,7 +1,7 @@
 import type { EditorView } from "@codemirror/view";
 import { MarkdownView, TFile, type Plugin } from "obsidian";
 import { GuidebookMarkdownParser } from "../../guidebook/markdown-parser";
-import { NovelLibraryService } from "../../../services/novel-library-service";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../../services/novel-library-service";
 import type { ChineseNovelAssistantSettings } from "../../../settings/settings";
 import { resolveMarkdownViewByEditorView } from "../../../utils/markdown-editor-view";
 import type { TextDetectionRange, TextDetectionRule } from "../engine";
@@ -280,7 +280,7 @@ export class GuidebookKeywordHighlightController {
 		const guidebookRootPath = this.novelLibraryService.resolveNovelLibrarySubdirPath(
 			{ locale: settings.locale },
 			libraryRootPath,
-			settings.guidebookDirName,
+			NOVEL_LIBRARY_SUBDIR_NAMES.guidebook,
 		);
 		if (!guidebookRootPath) {
 			return {
@@ -372,7 +372,7 @@ export class GuidebookKeywordHighlightController {
 				this.novelLibraryService.resolveNovelLibrarySubdirPath(
 					{ locale: settings.locale },
 					libraryPath,
-					settings.guidebookDirName,
+					NOVEL_LIBRARY_SUBDIR_NAMES.guidebook,
 				),
 			)
 			.filter((path) => path.length > 0);

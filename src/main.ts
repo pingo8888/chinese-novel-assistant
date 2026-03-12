@@ -29,9 +29,13 @@ export default class ChineseNovelAssistantPlugin extends Plugin {
 		await this.loadSettings();
 
 		this.ctx = createPluginContext(this.createContextHost());
-		registerSidebarFeature(this, this.ctx);
-		registerNovelLibraryFeature(this, this.ctx);
+
+		// 界面
 		this.ctx.addSettingTab(new ChineseNovelAssistantSettingTab(this.app, this, this.ctx));
+		registerSidebarFeature(this, this.ctx);
+		
+		// 功能
+		registerNovelLibraryFeature(this, this.ctx);
 		registerCommandsFeature(this, this.ctx);
 		registerCharacterCountFeature(this, this.ctx);
 		registerTextDetectionFeature(this, this.ctx);

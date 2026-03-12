@@ -1,5 +1,5 @@
 import type { App, TFile } from "obsidian";
-import { NovelLibraryService } from "../../services/novel-library-service";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
 import type { ChineseNovelAssistantSettings } from "../../settings/settings";
 import { GuidebookMarkdownParser } from "./markdown-parser";
 
@@ -36,7 +36,7 @@ export interface GuidebookTreeData {
 
 type GuidebookTreeBuildSettings = Pick<
 	ChineseNovelAssistantSettings,
-	"locale" | "novelLibraries" | "guidebookDirName" | "guidebookCollectionOrders"
+	"locale" | "novelLibraries" | "guidebookCollectionOrders"
 >;
 
 interface GuidebookTreeFileBucket extends GuidebookTreeFileNode {
@@ -77,7 +77,7 @@ export async function buildGuidebookTreeData(
 	const guidebookRootPath = libraryService.resolveNovelLibrarySubdirPath(
 		{ locale: settings.locale },
 		containingLibraryRoot,
-		settings.guidebookDirName,
+		NOVEL_LIBRARY_SUBDIR_NAMES.guidebook,
 	);
 	if (!guidebookRootPath) {
 		return {

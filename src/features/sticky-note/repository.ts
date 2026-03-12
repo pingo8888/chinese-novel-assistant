@@ -6,7 +6,7 @@ import {
 	resolveStickyNoteFloatDefaultHeightByRows,
 } from "../../constants";
 import type { ChineseNovelAssistantSettings } from "../../settings/settings";
-import { NovelLibraryService } from "../../services/novel-library-service";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
 import type { StickyNoteCardModel, StickyNoteImageModel } from "../../ui/views/sticky-note/types";
 import { extractPlainTextFromMarkdown, normalizeMarkdownLineEndings } from "./markdown-utils";
 
@@ -120,7 +120,7 @@ export class StickyNoteRepository {
 				this.novelLibraryService.resolveNovelLibrarySubdirPath(
 					settings,
 					libraryPath,
-					settings.stickyNoteDirName,
+					NOVEL_LIBRARY_SUBDIR_NAMES.stickyNote,
 				),
 			)
 			.map((path) => this.novelLibraryService.normalizeVaultPath(path))

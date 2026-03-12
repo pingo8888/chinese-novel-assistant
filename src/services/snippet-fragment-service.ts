@@ -1,6 +1,6 @@
 import { type App, type Plugin } from "obsidian";
 import type { ChineseNovelAssistantSettings } from "../settings/settings";
-import { NovelLibraryService } from "./novel-library-service";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "./novel-library-service";
 import { bindVaultChangeWatcher } from "./vault-change-watcher";
 
 export interface SnippetFragment {
@@ -13,7 +13,7 @@ interface SnippetLibrarySnapshot {
 }
 
 interface QuerySnippetFragmentsOptions {
-	settings: Pick<ChineseNovelAssistantSettings, "locale" | "novelLibraries" | "snippetDirName">;
+	settings: Pick<ChineseNovelAssistantSettings, "locale" | "novelLibraries">;
 	libraryPath: string;
 	query: string;
 }
@@ -85,7 +85,7 @@ export class SnippetFragmentService {
 	}
 
 	private async ensureLibrarySnapshot(
-		settings: Pick<ChineseNovelAssistantSettings, "locale" | "novelLibraries" | "snippetDirName">,
+		settings: Pick<ChineseNovelAssistantSettings, "locale" | "novelLibraries">,
 		libraryPath: string,
 	): Promise<SnippetLibrarySnapshot> {
 		const normalizedLibraryPath = this.novelLibraryService.normalizeVaultPath(libraryPath);
@@ -105,13 +105,13 @@ export class SnippetFragmentService {
 	}
 
 	private async buildLibrarySnapshot(
-		settings: Pick<ChineseNovelAssistantSettings, "locale" | "novelLibraries" | "snippetDirName">,
+		settings: Pick<ChineseNovelAssistantSettings, "locale" | "novelLibraries">,
 		libraryPath: string,
 	): Promise<SnippetLibrarySnapshot> {
 		const snippetRoot = this.novelLibraryService.resolveNovelLibrarySubdirPath(
 			{ locale: settings.locale },
 			libraryPath,
-			settings.snippetDirName,
+			NOVEL_LIBRARY_SUBDIR_NAMES.snippet,
 		);
 		if (!snippetRoot) {
 			return this.createEmptySnapshot();
@@ -197,7 +197,7 @@ export class SnippetFragmentService {
 
 	private isSnippetMarkdownPath(
 		path: string,
-		settings: Pick<ChineseNovelAssistantSettings, "locale" | "novelLibraries" | "snippetDirName">,
+		settings: Pick<ChineseNovelAssistantSettings, "locale" | "novelLibraries">,
 	): boolean {
 		const normalizedPath = this.novelLibraryService.normalizeVaultPath(path);
 		if (!normalizedPath || !normalizedPath.toLowerCase().endsWith(".md")) {
@@ -209,14 +209,14 @@ export class SnippetFragmentService {
 	}
 
 	private resolveSnippetRoots(
-		settings: Pick<ChineseNovelAssistantSettings, "locale" | "novelLibraries" | "snippetDirName">,
+		settings: Pick<ChineseNovelAssistantSettings, "locale" | "novelLibraries">,
 	): string[] {
 		const roots: string[] = [];
 		for (const libraryPath of settings.novelLibraries) {
 			const snippetRoot = this.novelLibraryService.resolveNovelLibrarySubdirPath(
 				{ locale: settings.locale },
 				libraryPath,
-				settings.snippetDirName,
+				NOVEL_LIBRARY_SUBDIR_NAMES.snippet,
 			);
 			if (!snippetRoot) {
 				continue;
@@ -227,10 +227,10 @@ export class SnippetFragmentService {
 	}
 
 	private createCacheKey(
-		settings: Pick<ChineseNovelAssistantSettings, "locale" | "snippetDirName">,
+		settings: Pick<ChineseNovelAssistantSettings, "locale">,
 		normalizedLibraryPath: string,
 	): string {
-		const normalizedSnippetDirName = this.novelLibraryService.normalizeVaultPath(settings.snippetDirName);
+		const normalizedSnippetDirName = this.novelLibraryService.normalizeVaultPath(NOVEL_LIBRARY_SUBDIR_NAMES.snippet);
 		return `${settings.locale}::${normalizedLibraryPath}::${normalizedSnippetDirName}`;
 	}
 

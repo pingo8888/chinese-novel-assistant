@@ -55,7 +55,6 @@ function createSidebarRenderContext(
 				{
 					locale: ctx.settings.locale,
 					novelLibraries: ctx.settings.novelLibraries,
-					guidebookDirName: ctx.settings.guidebookDirName,
 					guidebookCollectionOrders: ctx.settings.guidebookCollectionOrders,
 				},
 				activeFilePath,

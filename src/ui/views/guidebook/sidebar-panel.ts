@@ -1,7 +1,7 @@
 import type { SidebarViewRenderContext } from "../sidebar/types";
 import { MarkdownView, setIcon, TFile, TFolder } from "obsidian";
 import { UI } from "../../../constants";
-import { NovelLibraryService } from "../../../services/novel-library-service";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../../services/novel-library-service";
 import { type VaultChangeEvent, watchVaultChanges } from "../../../services/vault-change-watcher";
 import { ToggleButtonComponent } from "../../componets/toggle-button";
 import { createGuidebookTreeViewComponent, type GuidebookTreeExpandedStateSnapshot } from "./outline-tree";
@@ -333,7 +333,7 @@ function shouldRefreshForVaultEvent(
 		novelLibraryService.resolveNovelLibrarySubdirPath(
 			{ locale: settings.locale },
 			activeLibraryRoot,
-			settings.guidebookDirName,
+			NOVEL_LIBRARY_SUBDIR_NAMES.guidebook,
 		);
 	if (!guidebookRootPath) {
 		return false;

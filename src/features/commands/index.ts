@@ -7,7 +7,7 @@ import {
 } from "../../constants";
 import type { PluginContext } from "../../core/context";
 import { StickyNoteRepository } from "../sticky-note/repository";
-import { NovelLibraryService } from "../../services/novel-library-service";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
 import { ProofreadDictService } from "../../services/proofread-dict-service";
 import { fixProofreadDictErrors } from "../text-detection/rules/proofread-dict";
 import { fixEnPunctuationErrors } from "../text-detection/rules/en-punctuation";
@@ -172,7 +172,7 @@ function resolveTargetStickyNoteRootPath(ctx: PluginContext, novelLibraryService
 	const stickyRootPath = novelLibraryService.resolveNovelLibrarySubdirPath(
 		ctx.settings,
 		targetLibraryRoot,
-		ctx.settings.stickyNoteDirName,
+		NOVEL_LIBRARY_SUBDIR_NAMES.stickyNote,
 	);
 	const normalizedStickyRootPath = novelLibraryService.normalizeVaultPath(stickyRootPath);
 	return normalizedStickyRootPath.length > 0 ? normalizedStickyRootPath : null;

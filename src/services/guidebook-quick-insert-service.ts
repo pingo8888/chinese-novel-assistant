@@ -1,7 +1,7 @@
 import { type App, type Plugin } from "obsidian";
 import { buildGuidebookTreeData } from "../features/guidebook/tree-builder";
 import type { ChineseNovelAssistantSettings } from "../settings/settings";
-import { NovelLibraryService } from "./novel-library-service";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "./novel-library-service";
 import { bindVaultChangeWatcher } from "./vault-change-watcher";
 
 export interface GuidebookQuickInsertCandidate {
@@ -16,7 +16,7 @@ interface GuidebookQuickInsertSnapshot {
 interface QueryGuidebookQuickInsertOptions {
 	settings: Pick<
 		ChineseNovelAssistantSettings,
-		"locale" | "novelLibraries" | "guidebookDirName" | "guidebookCollectionOrders"
+		"locale" | "novelLibraries" | "guidebookCollectionOrders"
 	>;
 	filePath: string;
 	query: string;
@@ -159,7 +159,7 @@ export class GuidebookQuickInsertService {
 
 	private tryCollectGuidebookLibraryRoot(
 		path: string,
-		settings: Pick<ChineseNovelAssistantSettings, "locale" | "novelLibraries" | "guidebookDirName">,
+		settings: Pick<ChineseNovelAssistantSettings, "locale" | "novelLibraries">,
 		target: Set<string>,
 	): void {
 		const normalizedPath = this.novelLibraryService.normalizeVaultPath(path);
@@ -176,7 +176,7 @@ export class GuidebookQuickInsertService {
 		const guidebookRoot = this.novelLibraryService.resolveNovelLibrarySubdirPath(
 			{ locale: settings.locale },
 			libraryRoot,
-			settings.guidebookDirName,
+			NOVEL_LIBRARY_SUBDIR_NAMES.guidebook,
 		);
 		if (!guidebookRoot) {
 			return;
@@ -187,7 +187,7 @@ export class GuidebookQuickInsertService {
 	}
 
 	private invalidateByLibraryRoot(
-		settings: Pick<ChineseNovelAssistantSettings, "locale" | "guidebookDirName">,
+		settings: Pick<ChineseNovelAssistantSettings, "locale">,
 		libraryRoot: string,
 	): void {
 		const key = this.createCacheKey(settings, libraryRoot);
@@ -196,10 +196,10 @@ export class GuidebookQuickInsertService {
 	}
 
 	private createCacheKey(
-		settings: Pick<ChineseNovelAssistantSettings, "locale" | "guidebookDirName">,
+		settings: Pick<ChineseNovelAssistantSettings, "locale">,
 		normalizedLibraryPath: string,
 	): string {
-		const normalizedGuidebookDirName = this.novelLibraryService.normalizeVaultPath(settings.guidebookDirName);
+		const normalizedGuidebookDirName = this.novelLibraryService.normalizeVaultPath(NOVEL_LIBRARY_SUBDIR_NAMES.guidebook);
 		return `${settings.locale}::${normalizedLibraryPath}::${normalizedGuidebookDirName}`;
 	}
 
