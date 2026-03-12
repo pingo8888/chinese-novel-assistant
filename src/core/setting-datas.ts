@@ -1,5 +1,10 @@
 import type { SupportedLocale } from "../lang";
-import { GUIDEBOOK_KEYWORD_DEFAULT_COLORS } from "../constants";
+
+const KEYWORD_COLORS = {
+	background: "#FFFFFF00",
+	underline: "#4A86E9",
+	text: "#4A86E9",
+} as const;
 
 export interface SettingDatas {
 	// 全局
@@ -71,13 +76,13 @@ export function createDefaultSettings(locale: SupportedLocale): SettingDatas {
 		novelLibraries: [],
 
 		guidebookKeywordHighlightMode: "first",
-		guidebookKeywordHighlightBackgroundColor: GUIDEBOOK_KEYWORD_DEFAULT_COLORS.highlightBackground,
+		guidebookKeywordHighlightBackgroundColor: KEYWORD_COLORS.background,
 		guidebookKeywordUnderlineStyle: "dotted",
 		guidebookKeywordUnderlineWidth: 2,
-		guidebookKeywordUnderlineColor: GUIDEBOOK_KEYWORD_DEFAULT_COLORS.underline,
+		guidebookKeywordUnderlineColor: KEYWORD_COLORS.underline,
 		guidebookKeywordFontWeight: "normal",
 		guidebookKeywordFontStyle: "normal",
-		guidebookKeywordTextColor: GUIDEBOOK_KEYWORD_DEFAULT_COLORS.text,
+		guidebookKeywordTextColor: KEYWORD_COLORS.text,
 		guidebookPreviewMainHoverEnabled: true,
 		guidebookPreviewSidebarHoverEnabled: false,
 		guidebookPreviewWidth: 320,

@@ -1,17 +1,17 @@
 import { TFile, TFolder, type App } from "obsidian";
-import {
-	STICKY_NOTE_CARD_COLORS,
-	STICKY_NOTE_DEFAULT_COLOR,
-	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
-	resolveStickyNoteFloatDefaultHeightByRows,
-} from "../../constants";
 import type { SettingDatas } from "../../core/setting-datas";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
 import type { StickyNoteCardModel, StickyNoteImageModel } from "../../ui/views/sticky-note/types";
 import { extractPlainTextFromMarkdown, normalizeMarkdownLineEndings } from "./markdown-utils";
+import {
+	STICKY_NOTE_COLORS,
+	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
+	resolveStickyNoteFloatDefaultHeightByRows,
+} from "./index";
 
 const STICKY_NOTE_WARNING_TEXT = "数据由灵感便签管理，请勿删除或手动修改";
 const MISSING_IMAGE_PLACEHOLDER_DATA_URI = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+const STICKY_NOTE_DEFAULT_COLOR = "#9CA3AF";
 
 type StickyNoteFileData = Record<string, unknown>;
 
@@ -235,8 +235,8 @@ function buildDefaultStickyNoteFileContent(options?: CreateStickyNoteFileOptions
 }
 
 function pickRandomStickyNoteColor(): string {
-	const index = Math.floor(Math.random() * STICKY_NOTE_CARD_COLORS.length);
-	return STICKY_NOTE_CARD_COLORS[index] ?? STICKY_NOTE_DEFAULT_COLOR;
+	const index = Math.floor(Math.random() * STICKY_NOTE_COLORS.length);
+	return STICKY_NOTE_COLORS[index] ?? STICKY_NOTE_DEFAULT_COLOR;
 }
 
 function parseStickyNoteFile(source: string): ParseStickyNoteResult {

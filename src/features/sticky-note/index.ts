@@ -1,22 +1,39 @@
 import type { Plugin, WorkspaceLeaf } from "obsidian";
-import { IDS } from "../../constants";
 import type { PluginContext } from "../../core/context";
 import type { SidebarViewRenderContext } from "../../ui/views/sidebar/types";
 import { StickyNoteSidebarView } from "../../ui/views/sticky-note/item-view";
-import { registerStickyNoteFloatingFeature } from "./floating-manager";
+
+export const STICKY_NOTE_COLORS = [
+	"#4A86E9",
+	"#7B61FF",
+	"#47B881",
+	"#F6C445",
+	"#F59E0B",
+	"#F05D6C",
+	"#9CA3AF",
+] as const;
+
+export const STICKY_NOTE_FLOAT_DEFAULT_WIDTH = 292;
+export const STICKY_NOTE_FLOAT_DEFAULT_HEIGHT = 119;
+export const STICKY_NOTE_FLOAT_MIN_WIDTH = 220;
+export const STICKY_NOTE_FLOAT_MIN_HEIGHT = 100;
+export const STICKY_NOTE_FLOAT_LEFT_GAP = 14;
+const STICKY_NOTE_FLOAT_BASE_ROWS = 6;
+const STICKY_NOTE_FLOAT_HEIGHT_PER_ROW = STICKY_NOTE_FLOAT_DEFAULT_HEIGHT / STICKY_NOTE_FLOAT_BASE_ROWS;
+
+export function resolveStickyNoteFloatDefaultHeightByRows(rows: number): number {
+	const normalizedRows = Number.isFinite(rows) ? Math.max(1, Math.round(rows)) : STICKY_NOTE_FLOAT_BASE_ROWS;
+	return Math.max(STICKY_NOTE_FLOAT_MIN_HEIGHT, Math.round(normalizedRows * STICKY_NOTE_FLOAT_HEIGHT_PER_ROW));
+}
 
 export function registerStickyNoteSidebarView(
 	plugin: Plugin,
 	renderContext: SidebarViewRenderContext,
 ): void {
 	plugin.registerView(
-		IDS.view.stickyNoteSidebar,
+		"sticky-note-sidebar",
 		(leaf) => new StickyNoteSidebarView(leaf, renderContext),
 	);
-}
-
-export function registerStickyNoteFloatingWindows(plugin: Plugin, ctx: PluginContext): void {
-	registerStickyNoteFloatingFeature(plugin, ctx);
 }
 
 export async function syncStickyNoteSidebarWithGuidebook(
@@ -25,7 +42,7 @@ export async function syncStickyNoteSidebarWithGuidebook(
 	guidebookLeaf: WorkspaceLeaf,
 ): Promise<void> {
 	if (ctx.settings.stickyNoteEnabled) {
-		const stickyLeaves = plugin.app.workspace.getLeavesOfType(IDS.view.stickyNoteSidebar);
+		const stickyLeaves = plugin.app.workspace.getLeavesOfType("sticky-note-sidebar");
 		const hasStickySibling = stickyLeaves.some((leaf) => leaf.parent === guidebookLeaf.parent);
 		if (!hasStickySibling) {
 			for (const leaf of stickyLeaves) {
@@ -33,7 +50,7 @@ export async function syncStickyNoteSidebarWithGuidebook(
 			}
 		}
 
-		await plugin.app.workspace.ensureSideLeaf(IDS.view.stickyNoteSidebar, "right", {
+		await plugin.app.workspace.ensureSideLeaf("sticky-note-sidebar", "right", {
 			active: false,
 			reveal: false,
 			split: false,
@@ -45,7 +62,7 @@ export async function syncStickyNoteSidebarWithGuidebook(
 }
 
 export function detachStickyNoteSidebars(plugin: Plugin): void {
-	for (const leaf of plugin.app.workspace.getLeavesOfType(IDS.view.stickyNoteSidebar)) {
+	for (const leaf of plugin.app.workspace.getLeavesOfType("sticky-note-sidebar")) {
 		leaf.detach();
 	}
 }

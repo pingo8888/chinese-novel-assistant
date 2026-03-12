@@ -1,5 +1,5 @@
 import { setIcon } from "obsidian";
-import { UI } from "../../../constants";
+import { UI } from "../../../core/constants";
 import type { GuidebookTreeDragMoveRequest } from "../../../features/guidebook/drag-sort-actions";
 import type {
 	GuidebookTreeData,
@@ -174,7 +174,7 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 				fileBranchEl,
 				{
 					label: fileNode.fileName,
-					icon: UI.icon.file,
+					icon: UI.ICON.FILE,
 					count: fileNode.h2Count,
 					levelClass: "cna-guidebook-tree__row--file",
 					onContextMenu: (event) => {
@@ -214,7 +214,7 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 			h1BranchEl,
 			{
 				label: h1Node.title,
-				icon: UI.icon.h1,
+				icon: UI.ICON.H1,
 				count: h1Node.h2List.length,
 				levelClass: "cna-guidebook-tree__row--h1",
 				onContextMenu: (event) => {
@@ -258,7 +258,7 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 		rowEl.createDiv({ cls: "cna-guidebook-tree__row-toggle cna-guidebook-tree__row-toggle--placeholder" });
 
 		const iconEl = rowEl.createSpan({ cls: "cna-guidebook-tree__row-icon" });
-		setIcon(iconEl, UI.icon.h2);
+		setIcon(iconEl, UI.ICON.H2);
 
 		const labelEl = rowEl.createSpan({
 			cls: "cna-guidebook-tree__row-label",
@@ -317,7 +317,7 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 		const applyExpanded = (expanded: boolean, persist: boolean): void => {
 			this.nodeExpandedState.set(stateKey, expanded);
 			branchEl.toggleClass("is-collapsed", !expanded);
-			setIcon(toggleIconEl, expanded ? UI.icon.chevronDown : UI.icon.chevronRight);
+			setIcon(toggleIconEl, expanded ? UI.ICON.CHEVRON_DOWN : UI.ICON.CHEVRON_RIGHT);
 			if (persist) {
 				this.emitExpandedStateChange();
 			}
@@ -572,3 +572,5 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 		return `${libraryRootPath}${STATE_KEY_SCOPE_SEPARATOR}h1:${h1Node.sourcePath}${STATE_KEY_PATH_SEPARATOR}${h1Node.title.trim()}`;
 	}
 }
+
+

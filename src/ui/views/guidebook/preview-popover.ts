@@ -1,6 +1,6 @@
 import { Component, type App, MarkdownRenderer, setIcon } from "obsidian";
 import type { GuidebookKeywordPreviewItem } from "../../../features/text-detection/rules/guidebook-keyword";
-import { UI } from "../../../constants";
+import { UI } from "../../../core/constants";
 import type { TranslationKey } from "../../../lang";
 
 export interface GuidebookPreviewDisplayOptions {
@@ -70,7 +70,7 @@ export class GuidebookPreviewPopover {
 				"aria-label": this.t("feature.right_sidebar.guidebook.preview.action.locate"),
 			},
 		});
-		setIcon(this.locateButtonEl, UI.icon.search);
+		setIcon(this.locateButtonEl, UI.ICON.SEARCH);
 		this.openButtonEl = actionGroupEl.createEl("button", {
 			cls: "cna-guidebook-preview-popover__action-button",
 			attr: {
@@ -78,7 +78,7 @@ export class GuidebookPreviewPopover {
 				"aria-label": this.t("feature.right_sidebar.guidebook.preview.action.open"),
 			},
 		});
-		setIcon(this.openButtonEl, UI.icon.pencil);
+		setIcon(this.openButtonEl, UI.ICON.PENCIL);
 
 		this.aliasSectionEl = this.rootEl.createDiv({ cls: "cna-guidebook-preview-popover__aliases" });
 		this.aliasLabelEl = this.aliasSectionEl.createDiv({
@@ -345,3 +345,5 @@ function formatPreviewTitle(baseTitle: string, status: "死亡" | "失效" | nul
 	}
 	return `${baseTitle}【${status}】`;
 }
+
+

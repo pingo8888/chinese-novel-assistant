@@ -1,4 +1,4 @@
-import { UI } from "../../../constants";
+import { UI } from "../../../core/constants";
 import { showContextMenuAtMouseEvent } from "../../componets/context-menu";
 import type {
 	GuidebookTreeFileNode,
@@ -46,22 +46,22 @@ export function openGuidebookFileContextMenu(
 	showContextMenuAtMouseEvent(event, [
 		{
 			title: menuLabels.createCollection,
-			icon: UI.icon.file,
+			icon: UI.ICON.FILE,
 			onClick: () => onAction?.("create_collection", fileNode),
 		},
 		{
 			title: menuLabels.createCategory,
-			icon: UI.icon.h1,
+			icon: UI.ICON.H1,
 			onClick: () => onAction?.("create_category", fileNode),
 		},
 		{
 			title: menuLabels.renameCollection,
-			icon: UI.icon.pencil,
+			icon: UI.ICON.PENCIL,
 			onClick: () => onAction?.("rename_collection", fileNode),
 		},
 		{
 			title: menuLabels.deleteCollection,
-			icon: UI.icon.delete,
+			icon: UI.ICON.DELETE,
 			warning: true,
 			onClick: () => onAction?.("delete_collection", fileNode),
 		},
@@ -82,22 +82,22 @@ export function openGuidebookH1ContextMenu(
 	showContextMenuAtMouseEvent(event, [
 		{
 			title: menuLabels.createCategory,
-			icon: UI.icon.h1,
+			icon: UI.ICON.H1,
 			onClick: () => onAction?.("create_category", fileNode, h1Node),
 		},
 		{
 			title: menuLabels.createSetting,
-			icon: UI.icon.h2,
+			icon: UI.ICON.H2,
 			onClick: () => onAction?.("create_setting", fileNode, h1Node),
 		},
 		{
 			title: menuLabels.renameCategory,
-			icon: UI.icon.pencil,
+			icon: UI.ICON.PENCIL,
 			onClick: () => onAction?.("rename_category", fileNode, h1Node),
 		},
 		{
 			title: menuLabels.deleteCategory,
-			icon: UI.icon.delete,
+			icon: UI.ICON.DELETE,
 			warning: true,
 			onClick: () => onAction?.("delete_category", fileNode, h1Node),
 		},
@@ -120,22 +120,22 @@ export function openGuidebookH2ContextMenu(
 	showContextMenuAtMouseEvent(event, [
 		{
 			title: menuLabels.createSetting,
-			icon: UI.icon.h2,
+			icon: UI.ICON.H2,
 			onClick: () => onAction?.("create_setting", fileNode, h1Node, h2Node),
 		},
 		{
 			title: menuLabels.editSetting,
-			icon: UI.icon.h2,
+			icon: UI.ICON.H2,
 			onClick: () => onAction?.("edit_setting", fileNode, h1Node, h2Node),
 		},
 		{
 			title: menuLabels.renameSetting,
-			icon: UI.icon.pencil,
+			icon: UI.ICON.PENCIL,
 			onClick: () => onAction?.("rename_setting", fileNode, h1Node, h2Node),
 		},
 		{
 			title: menuLabels.deleteSetting,
-			icon: UI.icon.delete,
+			icon: UI.ICON.DELETE,
 			warning: true,
 			onClick: () => onAction?.("delete_setting", fileNode, h1Node, h2Node),
 		},
@@ -150,8 +150,10 @@ export function openGuidebookBlankContextMenu(
 	showContextMenuAtMouseEvent(event, [
 		{
 			title: menuLabels.createCollection,
-			icon: UI.icon.file,
+			icon: UI.ICON.FILE,
 			onClick: () => onCreateCollection?.(),
 		},
 	]);
 }
+
+

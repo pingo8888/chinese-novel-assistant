@@ -1,5 +1,5 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
-import { IDS, UI } from "../../../constants";
+import { UI } from "../../../core/constants";
 import type { SidebarViewRenderContext } from "../sidebar/types";
 import { renderStickyNoteSidebarPanel } from "./sidebar-panel";
 
@@ -14,7 +14,7 @@ export class StickyNoteSidebarView extends ItemView {
 	}
 
 	getViewType(): string {
-		return IDS.view.stickyNoteSidebar;
+		return "sticky-note-sidebar";
 	}
 
 	getDisplayText(): string {
@@ -22,7 +22,7 @@ export class StickyNoteSidebarView extends ItemView {
 	}
 
 	getIcon(): string {
-		return UI.icon.stickyNote;
+		return UI.ICON.STICKY_NOTE;
 	}
 
 	onOpen(): Promise<void> {
@@ -40,3 +40,5 @@ export class StickyNoteSidebarView extends ItemView {
 		return Promise.resolve();
 	}
 }
+
+

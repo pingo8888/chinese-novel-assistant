@@ -1,17 +1,17 @@
 import { RangeSetBuilder } from "@codemirror/state";
 import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate, WidgetType } from "@codemirror/view";
 import { setIcon } from "obsidian";
-import { UI } from "../../constants/ui";
+import { UI } from "../../core/constants";
 
 const TYPESET_HEADING_ICON_EL_CLASS = "cna-typeset-heading-icon";
 type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
 const HEADING_ICON_BY_LEVEL: Record<HeadingLevel, string> = {
-	1: UI.icon.h1,
-	2: UI.icon.h2,
-	3: UI.icon.h3,
-	4: UI.icon.h4,
-	5: UI.icon.h5,
-	6: UI.icon.h6,
+	1: UI.ICON.H1,
+	2: UI.ICON.H2,
+	3: UI.ICON.H3,
+	4: UI.ICON.H4,
+	5: UI.ICON.H5,
+	6: UI.ICON.H6,
 };
 const HEADING_REGEX = /^\s{0,3}(#{1,6})\s+/;
 
@@ -90,3 +90,5 @@ export function createHeadingIconExtension() {
 		},
 	);
 }
+
+

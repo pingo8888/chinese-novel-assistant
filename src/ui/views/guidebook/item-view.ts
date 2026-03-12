@@ -1,5 +1,5 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
-import { IDS, UI } from "../../../constants";
+import { UI } from "../../../core/constants";
 import type { SidebarViewRenderContext } from "../sidebar/types";
 import { renderGuidebookSidebarPanel } from "./sidebar-panel";
 
@@ -15,7 +15,7 @@ export class GuidebookSidebarView extends ItemView {
 	}
 
 	getViewType(): string {
-		return IDS.view.guidebookSidebar;
+		return "guidebook-sidebar";
 	}
 
 	getDisplayText(): string {
@@ -23,7 +23,7 @@ export class GuidebookSidebarView extends ItemView {
 	}
 
 	getIcon(): string {
-		return UI.icon.plugin;
+		return UI.ICON.PLUGIN;
 	}
 
 	onOpen(): Promise<void> {
@@ -41,3 +41,5 @@ export class GuidebookSidebarView extends ItemView {
 		return Promise.resolve();
 	}
 }
+
+

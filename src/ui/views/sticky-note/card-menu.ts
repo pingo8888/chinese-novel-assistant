@@ -1,5 +1,6 @@
 import { setIcon } from "obsidian";
-import { STICKY_NOTE_CARD_COLORS, UI } from "../../../constants";
+import { UI } from "../../../core/constants";
+import { STICKY_NOTE_COLORS } from "../../../features/sticky-note";
 import type { TranslationKey } from "../../../lang";
 import type { StickyNoteCardMenuCommand } from "../../../features/sticky-note/menu-actions";
 
@@ -36,7 +37,7 @@ export function showStickyNoteCardMenu(args: ShowStickyNoteCardMenuArgs): void {
 	const rootEl = document.body.createDiv({ cls: "cna-sticky-note-card-menu" });
 
 	const paletteEl = rootEl.createDiv({ cls: "cna-sticky-note-card-menu__palette" });
-	for (const colorHex of STICKY_NOTE_CARD_COLORS) {
+	for (const colorHex of STICKY_NOTE_COLORS) {
 		const colorButtonEl = paletteEl.createEl("button", {
 			cls: "cna-sticky-note-card-menu__color",
 			attr: {
@@ -56,7 +57,7 @@ export function showStickyNoteCardMenu(args: ShowStickyNoteCardMenuArgs): void {
 
 	rootEl.createDiv({ cls: "cna-sticky-note-card-menu__divider" });
 
-	const pinItemEl = createMenuItemButton(rootEl, UI.icon.pin, args.isPinned
+	const pinItemEl = createMenuItemButton(rootEl, UI.ICON.PIN, args.isPinned
 		? args.t("feature.right_sidebar.sticky_note.card.menu.unpin")
 		: args.t("feature.right_sidebar.sticky_note.card.menu.pin"));
 	if (!allowPinToggle) {
@@ -70,7 +71,7 @@ export function showStickyNoteCardMenu(args: ShowStickyNoteCardMenuArgs): void {
 
 	const deleteItemEl = createMenuItemButton(
 		rootEl,
-		UI.icon.delete,
+		UI.ICON.DELETE,
 		args.t("feature.right_sidebar.sticky_note.card.menu.delete"),
 		true,
 	);
@@ -165,3 +166,5 @@ function toRgba(hex: string, alpha: number): string {
 	const clampedAlpha = Math.max(0, Math.min(1, alpha));
 	return `rgba(${red}, ${green}, ${blue}, ${clampedAlpha})`;
 }
+
+

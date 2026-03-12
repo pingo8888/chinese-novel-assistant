@@ -1,6 +1,6 @@
 import type { SidebarViewRenderContext } from "../sidebar/types";
 import { MarkdownView, setIcon, TFile, TFolder } from "obsidian";
-import { UI } from "../../../constants";
+import { UI } from "../../../core/constants";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../../services/novel-library-service";
 import { type VaultChangeEvent, watchVaultChanges } from "../../../services/vault-change-watcher";
 import { ToggleButtonComponent } from "../../componets/toggle-button";
@@ -23,7 +23,7 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 
 	const titleEl = headerEl.createDiv({ cls: "cna-right-sidebar-guidebook__title" });
 	const titleIconEl = titleEl.createSpan({ cls: "cna-right-sidebar-guidebook__title-icon" });
-	setIcon(titleIconEl, UI.icon.plugin);
+	setIcon(titleIconEl, UI.ICON.PLUGIN);
 	const titleTextEl = titleEl.createSpan({ cls: "cna-right-sidebar-guidebook__title-text" });
 
 	rootEl.createDiv({ cls: "cna-right-sidebar-guidebook__divider" });
@@ -171,8 +171,8 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 	const toggleButton = new ToggleButtonComponent({
 		containerEl: headerEl,
 		className: "cna-right-sidebar-guidebook__toggle-button",
-		onIcon: UI.icon.collapse,
-		offIcon: UI.icon.expand,
+		onIcon: UI.ICON.COLLAPSE,
+		offIcon: UI.ICON.EXPAND,
 		onTooltip: ctx.t("feature.right_sidebar.guidebook.action.collapse_all"),
 		offTooltip: ctx.t("feature.right_sidebar.guidebook.action.expand_all"),
 		initialOn: initialAllExpanded,
@@ -411,3 +411,5 @@ function filterGuidebookTreeExpandedState(source: Record<string, boolean>): Reco
 	}
 	return next;
 }
+
+

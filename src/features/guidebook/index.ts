@@ -1,5 +1,4 @@
 import type { Plugin } from "obsidian";
-import { IDS } from "../../constants";
 import { GuidebookSidebarView } from "../../ui/views/guidebook/item-view";
 import type { SidebarViewRenderContext } from "../../ui/views/sidebar/types";
 
@@ -13,7 +12,7 @@ export function registerGuidebookSidebarView(
 	options: RegisterGuidebookSidebarViewOptions,
 ): void {
 	plugin.registerView(
-		IDS.view.guidebookSidebar,
+		"guidebook-sidebar",
 		(leaf) => new GuidebookSidebarView(leaf, options.getTabTooltipText, options.renderContext),
 	);
 }

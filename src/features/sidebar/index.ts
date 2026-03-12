@@ -1,13 +1,13 @@
 import type { Plugin } from "obsidian";
-import { IDS, UI } from "../../constants";
+import { UI } from "../../core/constants";
 import type { PluginContext } from "../../core/context";
 import { registerGuidebookSidebarView } from "../guidebook";
 import { buildGuidebookTreeData } from "../guidebook/tree-builder";
 import {
-	registerStickyNoteFloatingWindows,
 	registerStickyNoteSidebarView,
 	syncStickyNoteSidebarWithGuidebook,
 } from "../sticky-note";
+import { registerStickyNoteFloatingFeature } from "../sticky-note/floating-manager";
 import type { SidebarViewRenderContext } from "../../ui/views/sidebar/types";
 
 interface OpenGuidebookSidebarOptions {
@@ -25,9 +25,9 @@ export function registerSidebarFeature(plugin: Plugin, ctx: PluginContext): void
 		renderContext,
 	});
 	registerStickyNoteSidebarView(plugin, renderContext);
-	registerStickyNoteFloatingWindows(plugin, ctx);
+	registerStickyNoteFloatingFeature(plugin, ctx);
 
-	plugin.addRibbonIcon(UI.icon.plugin, getGuidebookRibbonTooltipText(), () => {
+	plugin.addRibbonIcon(UI.ICON.PLUGIN, getGuidebookRibbonTooltipText(), () => {
 		void openGuidebookSidebarWithStickyNote(plugin, ctx);
 	});
 
@@ -70,7 +70,7 @@ async function openGuidebookSidebarWithStickyNote(
 	const focusGuidebook = options?.focusGuidebook ?? true;
 	const revealGuidebook = options?.revealGuidebook ?? true;
 	const guidebookLeaf = await plugin.app.workspace.ensureSideLeaf(
-		IDS.view.guidebookSidebar,
+		"guidebook-sidebar",
 		"right",
 		{
 			active: focusGuidebook,
@@ -84,3 +84,5 @@ async function openGuidebookSidebarWithStickyNote(
 		focus: focusGuidebook,
 	});
 }
+
+

@@ -1,11 +1,10 @@
 import { Notice, Plugin, type Editor } from "obsidian";
+import type { PluginContext } from "../../core/context";
 import {
-	IDS,
 	resolveStickyNoteFloatDefaultHeightByRows,
 	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
 	STICKY_NOTE_FLOAT_LEFT_GAP,
-} from "../../constants";
-import type { PluginContext } from "../../core/context";
+} from "../sticky-note";
 import { StickyNoteRepository } from "../sticky-note/repository";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
 import { ProofreadDictService } from "../../services/proofread-dict-service";
@@ -25,7 +24,7 @@ function registerTypesetCommands(_plugin: Plugin, _ctx: PluginContext): void {
 
 function registerProofreadCommands(plugin: Plugin, ctx: PluginContext): void {
 	plugin.addCommand({
-		id: IDS.command.fixDetectedPunctuationErrors,
+		id: "fix-detected-punctuation-errors",
 		name: ctx.t("command.proofread.fix_punctuation_errors.name"),
 		editorCheckCallback: (checking, editor) => {
 			if (!ctx.settings.proofreadCommonPunctuationEnabled) {
@@ -40,7 +39,7 @@ function registerProofreadCommands(plugin: Plugin, ctx: PluginContext): void {
 	});
 
 	plugin.addCommand({
-		id: IDS.command.fixDetectedProofreadDictErrors,
+		id: "fix-detected-proofread-dict-errors",
 		name: ctx.t("command.proofread.fix_proofread_dict_errors.name"),
 		editorCheckCallback: (checking, editor) => {
 			if (!ctx.settings.proofreadCustomDictionaryEnabled) {
@@ -61,7 +60,7 @@ function registerStickyNoteCommands(plugin: Plugin, ctx: PluginContext): void {
 	const novelLibraryService = new NovelLibraryService(ctx.app);
 
 	plugin.addCommand({
-		id: IDS.command.createStickyNote,
+		id: "create-sticky-note",
 		name: ctx.t("command.sticky_note.create.name"),
 		checkCallback: (checking) => {
 			if (!ctx.settings.stickyNoteEnabled) {
@@ -203,7 +202,7 @@ function resolveCommandCreatedFloatingPosition(width: number): { x: number; y: n
 
 function queryStickySidebarFirstCardRect(): DOMRect | null {
 	const selector =
-		`.workspace-split.mod-right-split .workspace-leaf.mod-active .workspace-leaf-content[data-type="${IDS.view.stickyNoteSidebar}"] .cna-sticky-note-card-list .cna-sticky-note-card`;
+		`.workspace-split.mod-right-split .workspace-leaf.mod-active .workspace-leaf-content[data-type="sticky-note-sidebar"] .cna-sticky-note-card-list .cna-sticky-note-card`;
 	const cardEl = document.querySelector<HTMLElement>(selector);
 	if (!cardEl) {
 		return null;

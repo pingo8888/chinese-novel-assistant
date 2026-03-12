@@ -1,5 +1,4 @@
 import { Setting } from "obsidian";
-import { IDS } from "../../../constants";
 import { createSettingsSectionHeading } from "./heading";
 import type { SettingsTabRenderContext } from "./types";
 
@@ -16,13 +15,13 @@ export function renderStickyNoteSettings(containerEl: HTMLElement, deps: Setting
 			toggle.setValue(ctx.settings.stickyNoteEnabled).onChange(async (value) => {
 				await ctx.setSettings({ stickyNoteEnabled: value });
 				if (!value) {
-					for (const leaf of app.workspace.getLeavesOfType(IDS.view.stickyNoteSidebar)) {
+					for (const leaf of app.workspace.getLeavesOfType("sticky-note-sidebar")) {
 						leaf.detach();
 					}
 					refresh();
 					return;
 				}
-				await app.workspace.ensureSideLeaf(IDS.view.stickyNoteSidebar, "right", {
+				await app.workspace.ensureSideLeaf("sticky-note-sidebar", "right", {
 					active: false,
 					reveal: false,
 					split: false,

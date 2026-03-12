@@ -1,6 +1,6 @@
 import type { SidebarViewRenderContext } from "../sidebar/types";
 import { MarkdownView, Notice, TFile, TFolder, setIcon, type EventRef, type TAbstractFile } from "obsidian";
-import { UI } from "../../../constants";
+import { UI } from "../../../core/constants";
 import { ClearableInputComponent } from "../../componets/clearable-input";
 import { showContextMenuAtMouseEvent } from "../../componets/context-menu";
 import { createStickyNoteCardList } from "./card-list";
@@ -21,7 +21,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 
 	const titleEl = headerEl.createDiv({ cls: "cna-right-sidebar-guidebook__title" });
 	const titleIconEl = titleEl.createSpan({ cls: "cna-right-sidebar-guidebook__title-icon" });
-	setIcon(titleIconEl, UI.icon.stickyNote);
+	setIcon(titleIconEl, UI.ICON.STICKY_NOTE);
 	const titleTextEl = titleEl.createSpan({
 		cls: "cna-right-sidebar-guidebook__title-text",
 	});
@@ -32,7 +32,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 			type: "button",
 		},
 	});
-	setIcon(actionButtonEl, UI.icon.sparkles);
+	setIcon(actionButtonEl, UI.ICON.SPARKLES);
 
 	rootEl.createDiv({ cls: "cna-right-sidebar-guidebook__divider" });
 	const contentEl = rootEl.createDiv({ cls: "cna-right-sidebar-sticky-note__content" });
@@ -169,8 +169,8 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 		sortButtonEl.empty();
 		const iconName =
 			sortMode === "created_desc" || sortMode === "modified_desc"
-				? UI.icon.calendarArrowDown
-				: UI.icon.calendarArrowUp;
+				? UI.ICON.CALENDAR_ARROW_DOWN
+				: UI.ICON.CALENDAR_ARROW_UP;
 		setIcon(sortButtonEl, iconName);
 		sortButtonEl.setAttr("aria-label", ctx.t(getSortDirectionTooltipKey(sortMode)));
 	};
@@ -226,7 +226,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 		showContextMenuAtMouseEvent(event, [
 			{
 				title: ctx.t("feature.right_sidebar.sticky_note.sort.created_desc"),
-				icon: UI.icon.calendarArrowDown,
+				icon: UI.ICON.CALENDAR_ARROW_DOWN,
 				checked: sortMode === "created_desc",
 				section: STICKY_NOTE_SORT_MENU_SECTION,
 				onClick: () => {
@@ -237,7 +237,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 			},
 			{
 				title: ctx.t("feature.right_sidebar.sticky_note.sort.created_asc"),
-				icon: UI.icon.calendarArrowUp,
+				icon: UI.ICON.CALENDAR_ARROW_UP,
 				checked: sortMode === "created_asc",
 				section: STICKY_NOTE_SORT_MENU_SECTION,
 				onClick: () => {
@@ -249,7 +249,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 			{ kind: "separator" },
 			{
 				title: ctx.t("feature.right_sidebar.sticky_note.sort.modified_desc"),
-				icon: UI.icon.calendarArrowDown,
+				icon: UI.ICON.CALENDAR_ARROW_DOWN,
 				checked: sortMode === "modified_desc",
 				section: STICKY_NOTE_SORT_MENU_SECTION,
 				onClick: () => {
@@ -260,7 +260,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 			},
 			{
 				title: ctx.t("feature.right_sidebar.sticky_note.sort.modified_asc"),
-				icon: UI.icon.calendarArrowUp,
+				icon: UI.ICON.CALENDAR_ARROW_UP,
 				checked: sortMode === "modified_asc",
 				section: STICKY_NOTE_SORT_MENU_SECTION,
 				onClick: () => {
@@ -430,3 +430,5 @@ function getSortDirectionTooltipKey(mode: StickyNoteSortMode): StickyNoteSortToo
 			return "feature.right_sidebar.sticky_note.sort.tooltip.desc";
 	}
 }
+
+

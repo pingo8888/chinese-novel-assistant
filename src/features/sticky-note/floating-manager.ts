@@ -1,17 +1,16 @@
 import { Notice, TFile, type Plugin } from "obsidian";
-import {
-	IDS,
-	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
-	STICKY_NOTE_FLOAT_MIN_HEIGHT,
-	STICKY_NOTE_FLOAT_MIN_WIDTH,
-	resolveStickyNoteFloatDefaultHeightByRows,
-} from "../../constants";
 import type { PluginContext } from "../../core/context";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
 import { StickyNoteRepository } from "./repository";
 import { bindVaultChangeWatcher } from "../../services/vault-change-watcher";
 import { renderStickyNoteCardItem } from "../../ui/views/sticky-note/card-item";
 import type { StickyNoteCardModel, StickyNoteViewOptions } from "../../ui/views/sticky-note/types";
+import {
+	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
+	STICKY_NOTE_FLOAT_MIN_HEIGHT,
+	STICKY_NOTE_FLOAT_MIN_WIDTH,
+	resolveStickyNoteFloatDefaultHeightByRows,
+} from "./index";
 
 const FLOAT_LAYER_CLASS = "cna-sticky-note-floating-layer";
 const FLOAT_WINDOW_CLASS = "cna-sticky-note-floating-window";
@@ -624,7 +623,7 @@ function collectContentSurfaceEls(windowEl: HTMLElement): HTMLElement[] {
 }
 
 function queryStickyNoteTabHeadersInRightSidebar(): HTMLElement[] {
-	const selector = `.workspace-split.mod-right-split .workspace-tab-header[data-type="${IDS.view.stickyNoteSidebar}"]`;
+	const selector = `.workspace-split.mod-right-split .workspace-tab-header[data-type="sticky-note-sidebar"]`;
 	const matched = document.querySelectorAll<HTMLElement>(selector);
 	const headers: HTMLElement[] = [];
 	for (let index = 0; index < matched.length; index += 1) {
@@ -637,6 +636,6 @@ function queryStickyNoteTabHeadersInRightSidebar(): HTMLElement[] {
 }
 
 function isStickyNoteTabActiveInRightSidebar(): boolean {
-	const selector = `.workspace-split.mod-right-split .workspace-tab-header.is-active[data-type="${IDS.view.stickyNoteSidebar}"]`;
+	const selector = `.workspace-split.mod-right-split .workspace-tab-header.is-active[data-type="sticky-note-sidebar"]`;
 	return document.querySelector(selector) !== null;
 }

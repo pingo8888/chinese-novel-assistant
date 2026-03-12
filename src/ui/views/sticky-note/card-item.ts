@@ -1,14 +1,16 @@
 import { Component, MarkdownRenderer, Notice, setIcon, TextAreaComponent, type App, type TFile } from "obsidian";
 import {
+	UI,
+} from "../../../core/constants";
+import type { TranslationKey } from "../../../lang";
+import type { StickyNoteCardModel, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
+import {
 	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
 	STICKY_NOTE_FLOAT_LEFT_GAP,
 	STICKY_NOTE_FLOAT_MIN_HEIGHT,
 	STICKY_NOTE_FLOAT_MIN_WIDTH,
-	UI,
 	resolveStickyNoteFloatDefaultHeightByRows,
-} from "../../../constants";
-import type { TranslationKey } from "../../../lang";
-import type { StickyNoteCardModel, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
+} from "../../../features/sticky-note";
 import { showStickyNoteContentMenu } from "./content-menu";
 import { applyStickyNoteCardMenuCommand, applyStickyNoteRichTextCommand } from "../../../features/sticky-note/menu-actions";
 import { promptVaultImageFile } from "../../modals/vault-image-picker-modal";
@@ -44,12 +46,12 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 			"aria-hidden": "true",
 		},
 	});
-	setIcon(timeDragIndicatorEl, UI.icon.gripVertical);
+	setIcon(timeDragIndicatorEl, UI.ICON.GRIP_VERTICAL);
 	const timeTextEl = timeEl.createSpan({ cls: "cna-sticky-note-card__time-text" });
 	const timePinEl = timeEl.createSpan({
 		cls: "cna-sticky-note-card__time-pin is-hidden",
 	});
-	setIcon(timePinEl, UI.icon.pin);
+	setIcon(timePinEl, UI.ICON.PIN);
 	const actionsEl = headerEl.createDiv({ cls: "cna-sticky-note-card__actions" });
 
 	const pinButtonEl = actionsEl.createEl("button", {
@@ -59,7 +61,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 			"aria-label": deps.t("feature.right_sidebar.sticky_note.card.action.float.tooltip"),
 		},
 	});
-	setIcon(pinButtonEl, UI.icon.send);
+	setIcon(pinButtonEl, UI.ICON.SEND);
 
 	const menuButtonEl = actionsEl.createEl("button", {
 		cls: "cna-sticky-note-card__action-button",
@@ -68,7 +70,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 			"aria-label": deps.t("feature.right_sidebar.sticky_note.card.action.menu.tooltip"),
 		},
 	});
-	setIcon(menuButtonEl, UI.icon.ellipsis);
+	setIcon(menuButtonEl, UI.ICON.ELLIPSIS);
 
 	const contentSectionEl = rootEl.createDiv({ cls: "cna-sticky-note-card__content-section" });
 	const contentDisplayEl = contentSectionEl.createDiv({
@@ -233,7 +235,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 
 	const renderImageToggle = (): void => {
 		imageToggleButtonEl.empty();
-		setIcon(imageToggleButtonEl, card.isImageExpanded ? UI.icon.chevronUp : UI.icon.chevronDown);
+		setIcon(imageToggleButtonEl, card.isImageExpanded ? UI.ICON.CHEVRON_UP : UI.ICON.CHEVRON_DOWN);
 		imageToggleButtonEl.setAttr(
 			"aria-label",
 			card.isImageExpanded
@@ -277,7 +279,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 					"aria-label": deps.t("feature.right_sidebar.sticky_note.card.image.remove.tooltip"),
 				},
 			});
-			setIcon(removeButtonEl, UI.icon.close);
+			setIcon(removeButtonEl, UI.ICON.CLOSE);
 			removeButtonEl.addEventListener("click", () => {
 				const nextImages = card.images.filter((item) => item.id !== image.id);
 				if (nextImages.length === card.images.length) {
@@ -301,7 +303,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 				"aria-label": deps.t("feature.right_sidebar.sticky_note.card.image.add.tooltip"),
 			},
 		});
-		setIcon(addButtonEl, UI.icon.plus);
+		setIcon(addButtonEl, UI.ICON.PLUS);
 		addButtonEl.addEventListener("click", () => {
 			void addImageFromVault();
 		});
@@ -884,3 +886,5 @@ function extractPlainTextForCaretMapping(markdown: string): string {
 		.replace(/^\n+/, "")
 		.replace(/\n+$/, "");
 }
+
+

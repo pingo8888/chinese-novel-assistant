@@ -1,6 +1,6 @@
 import type { EditorView } from "@codemirror/view";
 import { Editor, MarkdownFileInfo, MarkdownView, Menu, MenuItem, setIcon, type Plugin } from "obsidian";
-import { UI } from "../../constants";
+import { UI } from "../../core/constants";
 import type { TranslationKey } from "../../lang";
 import type { SettingDatas } from "../../core/setting-datas";
 import { resolveEditorViewFromMarkdownView } from "../../utils/markdown-editor-view";
@@ -126,7 +126,7 @@ export class TextMenuGuidebookController {
 		menu.addItem((item) => {
 			item
 				.setTitle(this.t("feature.editor_menu.add_setting"))
-				.setIcon(UI.icon.addToGuidebook);
+				.setIcon(UI.ICON.ADD_TO_GUIDEBOOK);
 			if (collectionItems.length === 0) {
 				item.setDisabled(true);
 				return;
@@ -186,7 +186,7 @@ export class TextMenuGuidebookController {
 		const submenu = new Menu();
 		for (const collectionItem of collectionItems) {
 			submenu.addItem((item) => {
-				item.setTitle(collectionItem.title).setIcon(UI.icon.file);
+				item.setTitle(collectionItem.title).setIcon(UI.ICON.FILE);
 				this.bindCollectionItemInteractions(item, collectionItem.categories, selectedText);
 			});
 		}
@@ -200,7 +200,7 @@ export class TextMenuGuidebookController {
 	): void {
 		for (const collectionItem of collectionItems) {
 			submenu.addItem((item) => {
-				item.setTitle(collectionItem.title).setIcon(UI.icon.file);
+				item.setTitle(collectionItem.title).setIcon(UI.ICON.FILE);
 				this.bindCollectionItemInteractions(item, collectionItem.categories, selectedText);
 			});
 		}
@@ -330,7 +330,7 @@ export class TextMenuGuidebookController {
 		for (const category of categories) {
 			const itemEl = panelEl.createDiv({ cls: "menu-item" });
 			const iconEl = itemEl.createDiv({ cls: "menu-item-icon" });
-			setIcon(iconEl, UI.icon.h1);
+			setIcon(iconEl, UI.ICON.H1);
 			itemEl.createDiv({ cls: "menu-item-title", text: category.title });
 			itemEl.addEventListener("mouseenter", () => {
 				this.setCategoryPanelActiveItem(itemEl);
@@ -526,5 +526,7 @@ function normalizeSelection(value: string): string {
 	}
 	return normalized;
 }
+
+
 
 
