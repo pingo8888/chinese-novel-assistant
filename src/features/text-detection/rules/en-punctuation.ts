@@ -6,6 +6,7 @@ interface EnPunctuationRuleConfig {
 	char: string;
 	enabled: (settings: ChineseNovelAssistantSettings) => boolean;
 	allowContextRegex?: RegExp;
+	allowPosition?: (docText: string, index: number, targetChar: string) => boolean;
 }
 
 interface EnPunctuationFixState {
@@ -34,6 +35,8 @@ const PUNCTUATION_RULE_CONFIGS: EnPunctuationRuleConfig[] = [
 		enabled: (settings) => settings.proofreadEnglishColonEnabled,
 		// 12:34
 		allowContextRegex: /^[0-9]{1,2}:[0-9]{2}$/,
+		// [^note]:
+		allowPosition: isMarkdownFootnoteDefinitionColon,
 	},
 	{
 		char: ";",
@@ -88,7 +91,24 @@ function isAllowedByContext(docText: string, index: number, targetChar: string, 
 	return allowContextRegex.test(context);
 }
 
-function findCharErrorIndicesInDoc(docText: string, targetChar: string, allowContextRegex?: RegExp): number[] {
+function isAllowedByPosition(
+	docText: string,
+	index: number,
+	targetChar: string,
+	allowPosition?: (docText: string, index: number, targetChar: string) => boolean,
+): boolean {
+	if (!allowPosition) {
+		return false;
+	}
+	return allowPosition(docText, index, targetChar);
+}
+
+function findCharErrorIndicesInDoc(
+	docText: string,
+	targetChar: string,
+	allowContextRegex?: RegExp,
+	allowPosition?: (docText: string, index: number, targetChar: string) => boolean,
+): number[] {
 	const indices: number[] = [];
 	for (let i = 0; i < docText.length; i += 1) {
 		if (docText[i] !== targetChar) {
@@ -98,10 +118,31 @@ function findCharErrorIndicesInDoc(docText: string, targetChar: string, allowCon
 		if (isAllowedByContext(docText, i, targetChar, allowContextRegex)) {
 			continue;
 		}
+		if (isAllowedByPosition(docText, i, targetChar, allowPosition)) {
+			continue;
+		}
 
 		indices.push(i);
 	}
 	return indices;
+}
+
+function isMarkdownFootnoteDefinitionColon(docText: string, index: number, targetChar: string): boolean {
+	if (targetChar !== ":") {
+		return false;
+	}
+
+	const lineStart = docText.lastIndexOf("\n", index - 1) + 1;
+	const lineEndRaw = docText.indexOf("\n", index);
+	const lineEnd = lineEndRaw >= 0 ? lineEndRaw : docText.length;
+	const lineText = docText.slice(lineStart, lineEnd);
+	const colonOffset = index - lineStart;
+	if (colonOffset < 0 || colonOffset >= lineText.length || lineText[colonOffset] !== ":") {
+		return false;
+	}
+
+	const beforeColon = lineText.slice(0, colonOffset + 1);
+	return /^\s{0,3}\[\^[^\]\r\n]+\]:$/.test(beforeColon);
 }
 
 function getReplacementChar(char: string, state: EnPunctuationFixState): string | null {
@@ -147,6 +188,9 @@ export function fixEnPunctuationErrors(
 			if (isAllowedByContext(sourceText, i, char, config.allowContextRegex)) {
 				break;
 			}
+			if (isAllowedByPosition(sourceText, i, char, config.allowPosition)) {
+				break;
+			}
 			const replacement = getReplacementChar(char, state);
 			if (!replacement || replacement === char) {
 				break;
@@ -172,6 +216,7 @@ export function createEnPunctuationRules(
 			const settings = getSettings();
 			return settings.proofreadCommonPunctuationEnabled && config.enabled(settings);
 		},
-		matchDocumentIndices: (docText) => findCharErrorIndicesInDoc(docText, config.char, config.allowContextRegex),
+		matchDocumentIndices: (docText) =>
+			findCharErrorIndicesInDoc(docText, config.char, config.allowContextRegex, config.allowPosition),
 	}));
 }
