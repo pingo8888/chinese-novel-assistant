@@ -2,13 +2,11 @@ import type { Plugin } from "obsidian";
 import { UI } from "../../core/constants";
 import type { PluginContext } from "../../core/context";
 import { registerGuidebookSidebarView } from "../guidebook";
-import { buildGuidebookTreeData } from "../guidebook/tree-builder";
 import {
 	registerStickyNoteSidebarView,
 	syncStickyNoteSidebarWithGuidebook,
 } from "../sticky-note";
 import { registerStickyNoteFloatingFeature } from "../sticky-note/floating-manager";
-import type { SidebarViewRenderContext } from "../../ui/views/sidebar/types";
 
 interface OpenGuidebookSidebarOptions {
 	focusGuidebook?: boolean;
@@ -16,15 +14,14 @@ interface OpenGuidebookSidebarOptions {
 }
 
 export function registerSidebarFeature(plugin: Plugin, ctx: PluginContext): void {
-	const renderContext = createSidebarRenderContext(plugin, ctx);
 	const getGuidebookTabTooltipText = () => ctx.t("feature.right_sidebar.guidebook.tab.tooltip");
 	const getGuidebookRibbonTooltipText = () => ctx.t("feature.right_sidebar.guidebook.tooltip");
 
 	registerGuidebookSidebarView(plugin, {
 		getTabTooltipText: getGuidebookTabTooltipText,
-		renderContext,
+		ctx,
 	});
-	registerStickyNoteSidebarView(plugin, renderContext);
+	registerStickyNoteSidebarView(plugin, ctx);
 	registerStickyNoteFloatingFeature(plugin, ctx);
 
 	plugin.addRibbonIcon(UI.ICON.PLUGIN, getGuidebookRibbonTooltipText(), () => {
@@ -37,29 +34,6 @@ export function registerSidebarFeature(plugin: Plugin, ctx: PluginContext): void
 			revealGuidebook: false,
 		});
 	});
-}
-
-function createSidebarRenderContext(
-	plugin: Plugin,
-	ctx: PluginContext,
-): SidebarViewRenderContext {
-	return {
-		app: plugin.app,
-		t: (key) => ctx.t(key),
-		getSettings: () => ctx.settings,
-		setSettings: (patch) => ctx.setSettings(patch),
-		onSettingsChange: (listener) => ctx.onSettingsChange(listener),
-		loadGuidebookTreeData: (activeFilePath) =>
-			buildGuidebookTreeData(
-				plugin.app,
-				{
-					locale: ctx.settings.locale,
-					novelLibraries: ctx.settings.novelLibraries,
-					guidebookCollectionOrders: ctx.settings.guidebookCollectionOrders,
-				},
-				activeFilePath,
-			),
-	};
 }
 
 async function openGuidebookSidebarWithStickyNote(

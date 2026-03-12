@@ -1,10 +1,11 @@
-import type { SidebarViewRenderContext } from "../sidebar/types";
+import type { PluginContext } from "../../../core/context";
 import { MarkdownView, Notice, TFile, TFolder, setIcon, type EventRef, type TAbstractFile } from "obsidian";
 import { UI } from "../../../core/constants";
 import { ClearableInputComponent } from "../../componets/clearable-input";
 import { showContextMenuAtMouseEvent } from "../../componets/context-menu";
 import { createStickyNoteCardList } from "./card-list";
 import type { StickyNoteSortMode, StickyNoteViewOptions } from "./types";
+import type { SettingDatas } from "../../../core/setting-datas";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../../services/novel-library-service";
 import { StickyNoteRepository } from "../../../features/sticky-note/repository";
 type StickyNoteSparklesTooltipKey = "feature.right_sidebar.sticky_note.action.sparkles.tooltip";
@@ -14,7 +15,7 @@ type StickyNoteSortTooltipKey =
 
 const STICKY_NOTE_SORT_MENU_SECTION = "cna-sticky-note-sort";
 
-export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: SidebarViewRenderContext): () => void {
+export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: PluginContext): () => void {
 	const rootEl = containerEl.createDiv({ cls: "cna-right-sidebar-guidebook" });
 	const headerEl = rootEl.createDiv({ cls: "cna-right-sidebar-guidebook__header" });
 	headerEl.createDiv({ cls: "cna-right-sidebar-guidebook__header-spacer" });
@@ -49,7 +50,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 	let lastScopeReferencePath: string | null = ctx.app.workspace.getActiveFile()?.path ?? null;
 
 	const resolveViewOptions = (): StickyNoteViewOptions => {
-		const settings = ctx.getSettings();
+		const settings = ctx.settings;
 		return {
 			defaultRows: settings.stickyNoteDefaultRows,
 			tagHintTextEnabled: settings.stickyNoteTagHintTextEnabled,
@@ -61,7 +62,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 		app: ctx.app,
 		containerEl: listWrapEl,
 		t: (key) => ctx.t(key),
-		getSettings: () => ctx.getSettings(),
+		getSettings: () => ctx.settings,
 		getStickyNoteRootPaths: () => stickyNoteRootPaths,
 		onVisibleCountChange: (count) => {
 			noteCountEl?.setText(`${Math.max(0, count)}`);
@@ -100,7 +101,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 		if (!normalizedNextPath || !normalizedPreviousPath || normalizedNextPath === normalizedPreviousPath) {
 			return false;
 		}
-		const libraryRoots = novelLibraryService.normalizeLibraryRoots(ctx.getSettings().novelLibraries);
+		const libraryRoots = novelLibraryService.normalizeLibraryRoots(ctx.settings.novelLibraries);
 		if (libraryRoots.length === 0) {
 			return false;
 		}
@@ -192,7 +193,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 		}
 		try {
 			const file = await repository.createCardFile(stickyRootPath, {
-				defaultRows: ctx.getSettings().stickyNoteDefaultRows,
+				defaultRows: ctx.settings.stickyNoteDefaultRows,
 			});
 			cardList.applyVaultFileCreateOrModify(file.path);
 		} catch (error) {
@@ -289,7 +290,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 		}),
 	];
 	updateLocalizedText();
-	const disposeSettingsChange = ctx.onSettingsChange?.(() => {
+	const disposeSettingsChange = ctx.onSettingsChange(() => {
 		refreshStickyNoteScope();
 		cardList.setViewOptions(resolveViewOptions());
 		updateLocalizedText();
@@ -304,13 +305,13 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Side
 		for (const ref of workspaceEventRefs) {
 			ctx.app.workspace.offref(ref);
 		}
-		disposeSettingsChange?.();
+		disposeSettingsChange();
 		cardList.destroy();
 	};
 }
 
 function resolveStickyNoteRootPaths(
-	settings: ReturnType<SidebarViewRenderContext["getSettings"]>,
+	settings: SettingDatas,
 	novelLibraryService: NovelLibraryService,
 ): string[] {
 	const roots = settings.novelLibraries
@@ -327,11 +328,11 @@ function resolveStickyNoteRootPaths(
 }
 
 function resolveScopedStickyNoteRootPaths(
-	ctx: SidebarViewRenderContext,
+	ctx: PluginContext,
 	novelLibraryService: NovelLibraryService,
 	preferredFilePath?: string | null,
 ): string[] {
-	const settings = ctx.getSettings();
+	const settings = ctx.settings;
 	const allRoots = resolveStickyNoteRootPaths(settings, novelLibraryService);
 	if (allRoots.length === 0) {
 		return allRoots;
@@ -371,10 +372,10 @@ function areStringArraysEqual(left: string[], right: string[]): boolean {
 }
 
 function resolveTargetStickyNoteRootPath(
-	ctx: SidebarViewRenderContext,
+	ctx: PluginContext,
 	novelLibraryService: NovelLibraryService,
 ): string | null {
-	const settings = ctx.getSettings();
+	const settings = ctx.settings;
 	const normalizedLibraryRoots = novelLibraryService.normalizeLibraryRoots(settings.novelLibraries);
 	if (normalizedLibraryRoots.length === 0) {
 		return null;
@@ -397,7 +398,7 @@ function resolveTargetStickyNoteRootPath(
 }
 
 function resolveCurrentNovelLibraryName(
-	ctx: SidebarViewRenderContext,
+	ctx: PluginContext,
 	novelLibraryService: NovelLibraryService,
 	filePath?: string | null,
 ): string {
@@ -407,7 +408,7 @@ function resolveCurrentNovelLibraryName(
 	if (!activeFilePath) {
 		return ctx.t("feature.right_sidebar.guidebook.current_library.none");
 	}
-	const settings = ctx.getSettings();
+	const settings = ctx.settings;
 	const libraryRoots = novelLibraryService.normalizeLibraryRoots(settings.novelLibraries);
 	const matchedLibraryPath = novelLibraryService.resolveContainingLibraryRoot(activeFilePath, libraryRoots);
 	if (!matchedLibraryPath) {

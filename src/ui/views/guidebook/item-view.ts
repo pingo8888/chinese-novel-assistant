@@ -1,6 +1,6 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import { UI } from "../../../core/constants";
-import type { SidebarViewRenderContext } from "../sidebar/types";
+import type { PluginContext } from "../../../core/context";
 import { renderGuidebookSidebarPanel } from "./sidebar-panel";
 
 export class GuidebookSidebarView extends ItemView {
@@ -9,7 +9,7 @@ export class GuidebookSidebarView extends ItemView {
 	constructor(
 		leaf: WorkspaceLeaf,
 		private readonly getTooltipText: () => string,
-		private readonly ctx: SidebarViewRenderContext,
+		private readonly ctx: PluginContext,
 	) {
 		super(leaf);
 	}

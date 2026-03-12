@@ -1,6 +1,6 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import { UI } from "../../../core/constants";
-import type { SidebarViewRenderContext } from "../sidebar/types";
+import type { PluginContext } from "../../../core/context";
 import { renderStickyNoteSidebarPanel } from "./sidebar-panel";
 
 export class StickyNoteSidebarView extends ItemView {
@@ -8,7 +8,7 @@ export class StickyNoteSidebarView extends ItemView {
 
 	constructor(
 		leaf: WorkspaceLeaf,
-		private readonly ctx: SidebarViewRenderContext,
+		private readonly ctx: PluginContext,
 	) {
 		super(leaf);
 	}

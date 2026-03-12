@@ -1,11 +1,11 @@
-import type { SidebarViewRenderContext } from "../sidebar/types";
+import type { PluginContext } from "../../../core/context";
 import { MarkdownView, setIcon, TFile, TFolder } from "obsidian";
 import { UI } from "../../../core/constants";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../../services/novel-library-service";
 import { type VaultChangeEvent, watchVaultChanges } from "../../../services/vault-change-watcher";
 import { ToggleButtonComponent } from "../../componets/toggle-button";
 import { createGuidebookTreeViewComponent, type GuidebookTreeExpandedStateSnapshot } from "./outline-tree";
-import type { GuidebookTreeData } from "../../../features/guidebook/tree-builder";
+import { buildGuidebookTreeData, type GuidebookTreeData } from "../../../features/guidebook/tree-builder";
 import {
 	handleGuidebookBlankCreateCollection,
 	handleGuidebookFileContextAction,
@@ -16,7 +16,7 @@ import { handleGuidebookTreeDragMove } from "../../../features/guidebook/drag-so
 
 let cachedMarkdownFilePath: string | null = null;
 
-export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: SidebarViewRenderContext): () => void {
+export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: PluginContext): () => void {
 	const rootEl = containerEl.createDiv({ cls: "cna-right-sidebar-guidebook" });
 	const headerEl = rootEl.createDiv({ cls: "cna-right-sidebar-guidebook__header" });
 	headerEl.createDiv({ cls: "cna-right-sidebar-guidebook__header-spacer" });
@@ -30,7 +30,7 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 	const contentEl = rootEl.createDiv({ cls: "cna-right-sidebar-guidebook__content" });
 	const scrollEl = contentEl.createDiv({ cls: "cna-right-sidebar-guidebook__scroll" });
 	let latestTreeData: GuidebookTreeData | null = null;
-	const initialSettings = ctx.getSettings();
+	const initialSettings = ctx.settings;
 	const rawExpandedState = initialSettings.guidebookTreeExpandedStates ?? {};
 	const initialExpandedState = filterGuidebookTreeExpandedState(rawExpandedState);
 	const initialAllExpanded = initialSettings.guidebookTreeAllExpanded ?? true;
@@ -53,7 +53,7 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 			if (!nextSnapshot) {
 				return;
 			}
-			const settings = ctx.getSettings();
+			const settings = ctx.settings;
 			if (
 				settings.guidebookTreeAllExpanded === nextSnapshot.allExpanded &&
 				areExpandedStateRecordsEqual(settings.guidebookTreeExpandedStates ?? {}, nextSnapshot.nodeExpandedState)
@@ -86,7 +86,7 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 						app: ctx.app,
 						t: (key) => ctx.t(key),
 						treeData: latestTreeData,
-						openFileInNewTab: ctx.getSettings().openFileInNewTab,
+						openFileInNewTab: ctx.settings.openFileInNewTab,
 					},
 					action,
 					fileNode,
@@ -103,7 +103,7 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 						app: ctx.app,
 						t: (key) => ctx.t(key),
 						treeData: latestTreeData,
-						openFileInNewTab: ctx.getSettings().openFileInNewTab,
+						openFileInNewTab: ctx.settings.openFileInNewTab,
 					},
 					action,
 					fileNode,
@@ -121,7 +121,7 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 						app: ctx.app,
 						t: (key) => ctx.t(key),
 						treeData: latestTreeData,
-						openFileInNewTab: ctx.getSettings().openFileInNewTab,
+						openFileInNewTab: ctx.settings.openFileInNewTab,
 					},
 					action,
 					fileNode,
@@ -139,7 +139,7 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 					app: ctx.app,
 					t: (key) => ctx.t(key),
 					treeData: latestTreeData,
-					openFileInNewTab: ctx.getSettings().openFileInNewTab,
+					openFileInNewTab: ctx.settings.openFileInNewTab,
 				});
 				if (changed) {
 					void refreshGuidebook();
@@ -153,8 +153,8 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 						app: ctx.app,
 						t: (key) => ctx.t(key),
 						treeData: latestTreeData,
-						getSettings: ctx.getSettings,
-						setSettings: ctx.setSettings,
+						getSettings: () => ctx.settings,
+						setSettings: (patch) => ctx.setSettings(patch),
 					},
 					request,
 				);
@@ -202,7 +202,7 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 			treeView.renderLoading(ctx.t("feature.right_sidebar.guidebook.tree.loading"));
 		}
 
-		const treeData = (await ctx.loadGuidebookTreeData?.(nextFilePath ?? null)) ?? null;
+		const treeData = (await loadGuidebookTreeData(ctx, nextFilePath ?? null)) ?? null;
 		if (isDisposed || currentSeq !== refreshSeq) {
 			return;
 		}
@@ -255,7 +255,7 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 		}
 	});
 
-	const disposeSettingsChange = ctx.onSettingsChange?.(() => {
+	const disposeSettingsChange = ctx.onSettingsChange(() => {
 		void refreshGuidebook();
 	});
 
@@ -276,12 +276,12 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Sideb
 			ctx.app.workspace.offref(eventRef);
 		}
 		disposeVaultWatcher();
-		disposeSettingsChange?.();
+		disposeSettingsChange();
 	};
 }
 
 function resolveCurrentNovelLibraryName(
-	ctx: SidebarViewRenderContext,
+	ctx: PluginContext,
 	novelLibraryService: NovelLibraryService,
 	filePath?: string | null,
 ): string {
@@ -290,7 +290,7 @@ function resolveCurrentNovelLibraryName(
 		return ctx.t("feature.right_sidebar.guidebook.current_library.none");
 	}
 
-	const settings = ctx.getSettings();
+	const settings = ctx.settings;
 	const libraryRoots = novelLibraryService.normalizeLibraryRoots(settings.novelLibraries);
 	const matchedLibraryPath = novelLibraryService.resolveContainingLibraryRoot(activeFilePath, libraryRoots);
 	if (!matchedLibraryPath) {
@@ -301,9 +301,24 @@ function resolveCurrentNovelLibraryName(
 	return segments[segments.length - 1] ?? matchedLibraryPath;
 }
 
-function resolveActiveMarkdownFilePath(ctx: SidebarViewRenderContext): string | null {
+function resolveActiveMarkdownFilePath(ctx: PluginContext): string | null {
 	const activeView = ctx.app.workspace.getActiveViewOfType(MarkdownView);
 	return activeView?.file?.path ?? null;
+}
+
+async function loadGuidebookTreeData(
+	ctx: PluginContext,
+	activeFilePath: string | null,
+): Promise<GuidebookTreeData | null> {
+	return buildGuidebookTreeData(
+		ctx.app,
+		{
+			locale: ctx.settings.locale,
+			novelLibraries: ctx.settings.novelLibraries,
+			guidebookCollectionOrders: ctx.settings.guidebookCollectionOrders,
+		},
+		activeFilePath,
+	);
 }
 
 function isMarkdownFile(file: unknown): file is TFile {
@@ -312,12 +327,12 @@ function isMarkdownFile(file: unknown): file is TFile {
 
 function shouldRefreshForVaultEvent(
 	event: VaultChangeEvent,
-	ctx: SidebarViewRenderContext,
+	ctx: PluginContext,
 	novelLibraryService: NovelLibraryService,
 	latestTreeData: GuidebookTreeData | null,
 	lastMarkdownFilePath: string | null,
 ): boolean {
-	const settings = ctx.getSettings();
+	const settings = ctx.settings;
 	const normalizedLibraryRoots = novelLibraryService.normalizeLibraryRoots(settings.novelLibraries);
 	const referenceFilePath = resolveActiveMarkdownFilePath(ctx) ?? lastMarkdownFilePath ?? cachedMarkdownFilePath;
 	if (!referenceFilePath) {
@@ -343,7 +358,7 @@ function shouldRefreshForVaultEvent(
 
 function shouldRefreshForLibraryFolderRename(
 	event: VaultChangeEvent,
-	ctx: SidebarViewRenderContext,
+	ctx: PluginContext,
 	novelLibraryService: NovelLibraryService,
 ): boolean {
 	const renamedFolderPath = novelLibraryService.normalizeVaultPath(event.path);
@@ -351,7 +366,7 @@ function shouldRefreshForLibraryFolderRename(
 	if (!renamedFolderPath || !previousFolderPath || renamedFolderPath === previousFolderPath) {
 		return false;
 	}
-	const libraryRoots = novelLibraryService.normalizeLibraryRoots(ctx.getSettings().novelLibraries);
+	const libraryRoots = novelLibraryService.normalizeLibraryRoots(ctx.settings.novelLibraries);
 	if (libraryRoots.length === 0) {
 		return false;
 	}
@@ -411,5 +426,6 @@ function filterGuidebookTreeExpandedState(source: Record<string, boolean>): Reco
 	}
 	return next;
 }
+
 
 

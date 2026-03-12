@@ -1,25 +1,28 @@
 import { Plugin } from "obsidian";
+import { normalizeLocale } from "./lang";
 import {
 	createPluginContext,
 	type ContextHost,
 	type PluginContext,
 } from "./core/context";
-import { normalizeLocale } from "./lang";
+
 import {
 	createDefaultSettings,
 	type SettingDatas,
 } from "./core/setting-datas";
 import { SettingStore } from "./core/setting-store";
+// 界面相关
+import { CNASettingTab } from "./ui/views/settings-tabs/settings-tab";
+import { registerSidebarFeature } from "./features/sidebar";
+// 功能相关
 import { registerCharacterCountFeature } from "./features/character-count";
 import { registerCommandsFeature } from "./features/commands";
 import { registerTextDetectionFeature } from "./features/text-detection";
 import { registerTextAutocompleteFeature } from "./features/text-autocomplete";
 import { registerTypesetFeature } from "./features/typeset";
-import { registerSidebarFeature } from "./features/sidebar";
 import { registerNovelLibraryFeature } from "./features/novel-library";
-import { ChineseNovelAssistantSettingTab } from "./ui/views/settings-tabs/settings-tab";
 
-export default class ChineseNovelAssistantPlugin extends Plugin {
+export default class CNAPlugin extends Plugin {
 	private settingStore = new SettingStore(this);
 	private ctx: PluginContext | null = null;
 
@@ -28,11 +31,11 @@ export default class ChineseNovelAssistantPlugin extends Plugin {
 
 		this.ctx = createPluginContext(this.createContextHost());
 
-		// 界面
-		this.ctx.addSettingTab(new ChineseNovelAssistantSettingTab(this.app, this, this.ctx));
+		// 注册界面
+		this.ctx.addSettingTab(new CNASettingTab(this.app, this, this.ctx));
 		registerSidebarFeature(this, this.ctx);
 		
-		// 功能
+		// 注册功能
 		registerNovelLibraryFeature(this, this.ctx);
 		registerCommandsFeature(this, this.ctx);
 		registerCharacterCountFeature(this, this.ctx);
@@ -41,23 +44,16 @@ export default class ChineseNovelAssistantPlugin extends Plugin {
 		registerTypesetFeature(this, this.ctx);
 	}
 
+	// 初始化ContextHost
 	private createContextHost(): ContextHost {
 		return {
 			app: this.app,
 			addSettingTab: (tab) => this.addSettingTab(tab),
-			getSettings: () => this.settingStore.data,
-			saveSettings: async (nextSettings) => {
-				this.settingStore.patch(nextSettings);
-				await this.settingStore.saveAndNotify();
-			},
-			onSettingsChange: (listener) => {
-				return this.settingStore.subscribe((next) => {
-					listener(next);
-				});
-			},
+			settingStore: this.settingStore,
 		};
 	}
 
+	// 加载设置数据
 	private async loadSettings(): Promise<void> {
 		const loaded = (await this.loadData()) as Partial<SettingDatas> | null;
 		const defaults = createDefaultSettings();
@@ -67,5 +63,3 @@ export default class ChineseNovelAssistantPlugin extends Plugin {
 		this.settingStore.notify();
 	}
 }
-
-

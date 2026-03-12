@@ -15,7 +15,7 @@ import {
 
 const SETTINGS_SEARCH_HIDDEN_CLASS = "cna-settings-search-hidden";
 
-export class ChineseNovelAssistantSettingTab extends PluginSettingTab {
+export class CNASettingTab extends PluginSettingTab {
 	private ctx: PluginContext;
 	private activeTabId = "general";
 	private searchKeyword = "";

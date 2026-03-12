@@ -1,6 +1,5 @@
 import type { Plugin, WorkspaceLeaf } from "obsidian";
 import type { PluginContext } from "../../core/context";
-import type { SidebarViewRenderContext } from "../../ui/views/sidebar/types";
 import { StickyNoteSidebarView } from "../../ui/views/sticky-note/item-view";
 
 export const STICKY_NOTE_COLORS = [
@@ -28,11 +27,11 @@ export function resolveStickyNoteFloatDefaultHeightByRows(rows: number): number 
 
 export function registerStickyNoteSidebarView(
 	plugin: Plugin,
-	renderContext: SidebarViewRenderContext,
+	ctx: PluginContext,
 ): void {
 	plugin.registerView(
 		"sticky-note-sidebar",
-		(leaf) => new StickyNoteSidebarView(leaf, renderContext),
+		(leaf) => new StickyNoteSidebarView(leaf, ctx),
 	);
 }
 
