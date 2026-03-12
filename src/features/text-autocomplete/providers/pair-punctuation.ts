@@ -1,6 +1,6 @@
 import { EditorSelection, Prec, type Extension } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
-import type { ChineseNovelAssistantSettings } from "../../../settings/settings";
+import type { SettingDatas } from "../../../core/setting-datas";
 
 interface PairToken {
 	open: string;
@@ -25,12 +25,12 @@ const COMMON_ZH_PAIR_TOKENS: PairToken[] = [
 const OPEN_TO_CLOSE = new Map<string, string>(COMMON_ZH_PAIR_TOKENS.map((token) => [token.open, token.close]));
 const CLOSE_TO_OPEN = new Map<string, string>(COMMON_ZH_PAIR_TOKENS.map((token) => [token.close, token.open]));
 
-function isEnabled(settings: ChineseNovelAssistantSettings): boolean {
+function isEnabled(settings: SettingDatas): boolean {
 	return settings.autocompletePairPunctuationEnabled;
 }
 
 export function createPairPunctuationAutocompleteExtension(
-	getSettings: () => ChineseNovelAssistantSettings,
+	getSettings: () => SettingDatas,
 ): Extension {
 	return [
 		Prec.high(
@@ -110,3 +110,5 @@ export function createPairPunctuationAutocompleteExtension(
 		),
 	];
 }
+
+

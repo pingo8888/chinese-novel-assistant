@@ -1,5 +1,5 @@
 import type { EditorView } from "@codemirror/view";
-import type { ChineseNovelAssistantSettings } from "../../../settings/settings";
+import type { SettingDatas } from "../../../core/setting-datas";
 import type { TextDetectionRule } from "../engine";
 
 interface ReplacementMatch {
@@ -20,7 +20,7 @@ export interface ProofreadDictFixResult {
 }
 
 export function createProofreadDictRules(
-	getSettings: () => ChineseNovelAssistantSettings,
+	getSettings: () => SettingDatas,
 	getDictionarySnapshot: () => DictionarySnapshotLike,
 	shouldDetectInView?: (view: EditorView) => boolean,
 ): TextDetectionRule[] {
@@ -128,3 +128,5 @@ function collectReplacementMatches(
 
 	return matches;
 }
+
+

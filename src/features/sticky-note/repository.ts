@@ -5,7 +5,7 @@ import {
 	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
 	resolveStickyNoteFloatDefaultHeightByRows,
 } from "../../constants";
-import type { ChineseNovelAssistantSettings } from "../../settings/settings";
+import type { SettingDatas } from "../../core/setting-datas";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
 import type { StickyNoteCardModel, StickyNoteImageModel } from "../../ui/views/sticky-note/types";
 import { extractPlainTextFromMarkdown, normalizeMarkdownLineEndings } from "./markdown-utils";
@@ -44,7 +44,7 @@ export class StickyNoteRepository {
 		this.novelLibraryService = new NovelLibraryService(app);
 	}
 
-	async listCards(settings: ChineseNovelAssistantSettings, options: ListStickyNotesOptions): Promise<StickyNoteCardModel[]> {
+	async listCards(settings: SettingDatas, options: ListStickyNotesOptions): Promise<StickyNoteCardModel[]> {
 		const stickyRoots = this.resolveStickyRoots(settings, options.rootPaths);
 		if (stickyRoots.length === 0) {
 			return [];
@@ -105,7 +105,7 @@ export class StickyNoteRepository {
 		await this.app.fileManager.trashFile(entry);
 	}
 
-	private resolveStickyRoots(settings: ChineseNovelAssistantSettings, preferredRootPaths?: string[]): string[] {
+	private resolveStickyRoots(settings: SettingDatas, preferredRootPaths?: string[]): string[] {
 		if (preferredRootPaths && preferredRootPaths.length > 0) {
 			return Array.from(
 				new Set(
@@ -383,3 +383,5 @@ function resolveBaseName(path: string): string {
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
+
+

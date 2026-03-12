@@ -1,6 +1,6 @@
 import { type App, Notice, TFile } from "obsidian";
 import type { TranslationKey } from "../../lang";
-import type { ChineseNovelAssistantSettings } from "../../settings/settings";
+import type { SettingDatas } from "../../core/setting-datas";
 import { GuidebookMarkdownParser } from "./markdown-parser";
 import type {
 	GuidebookTreeData,
@@ -41,8 +41,8 @@ export interface GuidebookTreeDragSortContext {
 	app: App;
 	t: (key: TranslationKey) => string;
 	treeData: GuidebookTreeData | null;
-	getSettings: () => ChineseNovelAssistantSettings;
-	setSettings: (patch: Partial<ChineseNovelAssistantSettings>) => Promise<void>;
+	getSettings: () => SettingDatas;
+	setSettings: (patch: Partial<SettingDatas>) => Promise<void>;
 }
 
 const markdownParser = new GuidebookMarkdownParser();
@@ -423,3 +423,5 @@ function areStringArraysEqual(left: string[], right: string[]): boolean {
 	}
 	return true;
 }
+
+

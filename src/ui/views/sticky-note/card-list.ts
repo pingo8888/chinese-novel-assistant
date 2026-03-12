@@ -3,7 +3,7 @@ import type { TranslationKey } from "../../../lang";
 import { renderStickyNoteCardItem } from "./card-item";
 import type { StickyNoteCardModel, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
 import { closeStickyNoteCardMenu } from "./card-menu";
-import type { ChineseNovelAssistantSettings } from "../../../settings/settings";
+import type { SettingDatas } from "../../../core/setting-datas";
 import { StickyNoteRepository } from "../../../features/sticky-note/repository";
 
 export interface StickyNoteCardListController {
@@ -22,7 +22,7 @@ interface StickyNoteCardListDeps {
 	app: App;
 	containerEl: HTMLElement;
 	t: (key: TranslationKey) => string;
-	getSettings: () => ChineseNovelAssistantSettings;
+	getSettings: () => SettingDatas;
 	getStickyNoteRootPaths: () => string[];
 	onVisibleCountChange?: (count: number) => void;
 	initialSortMode: StickyNoteSortMode;
@@ -370,3 +370,5 @@ function revokeImageUrls(images: StickyNoteCardModel["images"]): void {
 		}
 	}
 }
+
+

@@ -2,7 +2,7 @@ import { EditorSelection, Prec, type Extension } from "@codemirror/state";
 import { EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { type Plugin } from "obsidian";
 import { translate } from "../../../lang";
-import type { ChineseNovelAssistantSettings } from "../../../settings/settings";
+import type { SettingDatas } from "../../../core/setting-datas";
 import { SnippetFragmentService, type SnippetFragment } from "../../../services/snippet-fragment-service";
 import { NovelLibraryService } from "../../../services/novel-library-service";
 import { CandidatePanelComponent } from "../../../ui/componets/candidate-panel";
@@ -23,7 +23,7 @@ const CURSOR_PLACEHOLDER = "{$cursor}";
 
 export function createSnippetTextFragmentAutocompleteExtension(
 	plugin: Plugin,
-	getSettings: () => ChineseNovelAssistantSettings,
+	getSettings: () => SettingDatas,
 ): Extension {
 	const snippetFragmentService = SnippetFragmentService.getInstance(plugin.app);
 	const novelLibraryService = new NovelLibraryService(plugin.app);
@@ -188,7 +188,7 @@ export function createSnippetTextFragmentAutocompleteExtension(
 				}
 
 				private resolveFileContext(
-					settings: Pick<ChineseNovelAssistantSettings, "novelLibraries">,
+					settings: Pick<SettingDatas, "novelLibraries">,
 				): FileContext | null {
 					const markdownView = resolveMarkdownViewByEditorView(plugin.app, this.view);
 					const filePath = markdownView?.file?.path ?? "";
@@ -218,7 +218,7 @@ export function createSnippetTextFragmentAutocompleteExtension(
 
 				private isInsideFeatureRoot(
 					fileContext: FileContext,
-					settings: Pick<ChineseNovelAssistantSettings, "locale">,
+					settings: Pick<SettingDatas, "locale">,
 				): boolean {
 					const featureRoot = novelLibraryService.resolveNovelLibraryFeatureRootPath(
 						{ locale: settings.locale },
@@ -310,3 +310,5 @@ export function createSnippetTextFragmentAutocompleteExtension(
 		),
 	);
 }
+
+

@@ -1,12 +1,12 @@
 import { EditorView } from "@codemirror/view";
 import { MarkdownView, TFile, type Plugin } from "obsidian";
-import type { ChineseNovelAssistantSettings } from "../../settings/settings";
+import type { SettingDatas } from "../../core/setting-datas";
 import type { GuidebookKeywordPreviewItem } from "../text-detection/rules/guidebook-keyword";
 import { GuidebookPreviewPopover } from "../../ui/views/guidebook/preview-popover";
 import type { TranslationKey } from "../../lang";
 
 interface GuidebookPreviewControllerOptions {
-	getSettings: () => ChineseNovelAssistantSettings;
+	getSettings: () => SettingDatas;
 	resolveKeywordPreviewItem: (view: EditorView, keyword: string) => GuidebookKeywordPreviewItem | null;
 	t: (key: TranslationKey) => string;
 }
@@ -23,7 +23,7 @@ type SidebarPreviewCarrierElement = HTMLElement & {
 
 export class GuidebookPreviewController {
 	private readonly plugin: Plugin;
-	private readonly getSettings: () => ChineseNovelAssistantSettings;
+	private readonly getSettings: () => SettingDatas;
 	private readonly resolveKeywordPreviewItem: (view: EditorView, keyword: string) => GuidebookKeywordPreviewItem | null;
 	private readonly previewPopover: GuidebookPreviewPopover;
 	private pendingShowTimer: number | null = null;
@@ -188,7 +188,7 @@ export class GuidebookPreviewController {
 
 	private resolveHoverContext(
 		targetEl: Element,
-		settings: ChineseNovelAssistantSettings,
+		settings: SettingDatas,
 	): { anchorEl: HTMLElement; previewItem: GuidebookKeywordPreviewItem | null } | null {
 		if (settings.guidebookPreviewMainHoverEnabled) {
 			const keywordEl = targetEl.closest(`.${GUIDEBOOK_KEYWORD_HIT_CLASS}`);
@@ -446,3 +446,5 @@ function parseH2HeadingTitle(line: string): string | null {
 	title = title.replace(/[ \t]+#+[ \t]*$/, "").trim();
 	return title.length > 0 ? title : null;
 }
+
+

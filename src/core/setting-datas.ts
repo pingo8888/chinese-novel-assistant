@@ -1,11 +1,11 @@
 import type { SupportedLocale } from "../lang";
 import { GUIDEBOOK_KEYWORD_DEFAULT_COLORS } from "../constants";
 
-export interface ChineseNovelAssistantSettings {
-	locale: SupportedLocale;
-	guidebookCollectionOrders: Record<string, string[]>;
-	guidebookTreeExpandedStates: Record<string, boolean>;
-	guidebookTreeAllExpanded: boolean;
+export interface SettingDatas {
+	// 全局
+	novelLibraries: string[];
+
+	// 设定
 	guidebookKeywordHighlightMode: "first" | "all";
 	guidebookKeywordHighlightBackgroundColor: string;
 	guidebookKeywordUnderlineStyle: "none" | "solid" | "dashed" | "dotted" | "double" | "wavy";
@@ -18,25 +18,14 @@ export interface ChineseNovelAssistantSettings {
 	guidebookPreviewSidebarHoverEnabled: boolean;
 	guidebookPreviewWidth: number;
 	guidebookPreviewMaxLines: number;
+
+	// 便签
 	stickyNoteEnabled: boolean;
 	stickyNoteDefaultRows: number;
 	stickyNoteImageAutoExpand: boolean;
 	stickyNoteTagHintTextEnabled: boolean;
-	stickyNotePath: string;
-	novelLibraries: string[];
-	snippetQuickInsertEnabled: boolean;
-	snippetQuickInsertPageSize: number;
-	snippetTextFragmentEnabled: boolean;
-	openFileInNewTab: boolean;
-	enableCharacterCount: boolean;
-	enableCharacterMilestone: boolean;
-	countOnlyNovelLibrary: boolean;
-	typesetEnabled: boolean;
-	typesetIndentChars: number;
-	typesetLineSpacing: number;
-	typesetParagraphSpacing: number;
-	typesetShowHeadingIcons: boolean;
-	typesetJustifyText: boolean;
+
+	// 纠错
 	proofreadCommonPunctuationEnabled: boolean;
 	proofreadEnglishCommaEnabled: boolean;
 	proofreadEnglishPeriodEnabled: boolean;
@@ -47,17 +36,41 @@ export interface ChineseNovelAssistantSettings {
 	proofreadQuoteEnabled: boolean;
 	proofreadSingleQuoteEnabled: boolean;
 	proofreadPairPunctuationEnabled: boolean;
-	autocompletePairPunctuationEnabled: boolean;
 	proofreadCustomDictionaryEnabled: boolean;
+
+	// 补全
+	autocompletePairPunctuationEnabled: boolean;
+	snippetQuickInsertEnabled: boolean;
+	snippetTextFragmentEnabled: boolean;
+	snippetQuickInsertPageSize: number;
+
+	// 排版
+	typesetEnabled: boolean;
+	typesetIndentChars: number;
+	typesetLineSpacing: number;
+	typesetParagraphSpacing: number;
+	typesetShowHeadingIcons: boolean;
+	typesetJustifyText: boolean;
+
+	// 其他
+	locale: SupportedLocale;
+	openFileInNewTab: boolean;
+	enableCharacterCount: boolean;
+	enableCharacterMilestone: boolean;
+	countOnlyNovelLibrary: boolean;
+	
+	// 设定视图节点排序、展开与折叠数据
+	guidebookCollectionOrders: Record<string, string[]>;
+	guidebookTreeExpandedStates: Record<string, boolean>;
+	guidebookTreeAllExpanded: boolean;
+
 }
 
-export function createDefaultSettings(locale: SupportedLocale): ChineseNovelAssistantSettings {
+export function createDefaultSettings(locale: SupportedLocale): SettingDatas {
 	return {
-		locale,
-			guidebookCollectionOrders: {},
-			guidebookTreeExpandedStates: {},
-			guidebookTreeAllExpanded: true,
-			guidebookKeywordHighlightMode: "first",
+		novelLibraries: [],
+
+		guidebookKeywordHighlightMode: "first",
 		guidebookKeywordHighlightBackgroundColor: GUIDEBOOK_KEYWORD_DEFAULT_COLORS.highlightBackground,
 		guidebookKeywordUnderlineStyle: "dotted",
 		guidebookKeywordUnderlineWidth: 2,
@@ -73,21 +86,7 @@ export function createDefaultSettings(locale: SupportedLocale): ChineseNovelAssi
 		stickyNoteDefaultRows: 5,
 		stickyNoteImageAutoExpand: false,
 		stickyNoteTagHintTextEnabled: true,
-		stickyNotePath: "",
-		novelLibraries: [],
-		snippetQuickInsertEnabled: true,
-		snippetQuickInsertPageSize: 8,
-		snippetTextFragmentEnabled: true,
-			openFileInNewTab: true,
-			enableCharacterCount: true,
-			enableCharacterMilestone: true,
-			countOnlyNovelLibrary: true,
-		typesetEnabled: true,
-		typesetIndentChars: 2,
-		typesetLineSpacing: 1,
-		typesetParagraphSpacing: 12,
-		typesetShowHeadingIcons: false,
-		typesetJustifyText: true,
+
 		proofreadCommonPunctuationEnabled: false,
 		proofreadEnglishCommaEnabled: true,
 		proofreadEnglishPeriodEnabled: true,
@@ -98,10 +97,32 @@ export function createDefaultSettings(locale: SupportedLocale): ChineseNovelAssi
 		proofreadQuoteEnabled: true,
 		proofreadSingleQuoteEnabled: true,
 		proofreadPairPunctuationEnabled: true,
-		autocompletePairPunctuationEnabled: true,
 		proofreadCustomDictionaryEnabled: false,
+
+		autocompletePairPunctuationEnabled: true,
+		snippetQuickInsertEnabled: true,
+		snippetTextFragmentEnabled: true,
+		snippetQuickInsertPageSize: 8,
+
+		typesetEnabled: true,
+		typesetIndentChars: 2,
+		typesetLineSpacing: 1,
+		typesetParagraphSpacing: 12,
+		typesetShowHeadingIcons: false,
+		typesetJustifyText: true,
+
+		locale,
+		openFileInNewTab: true,
+		enableCharacterCount: true,
+		enableCharacterMilestone: true,
+		countOnlyNovelLibrary: true,
+
+		guidebookCollectionOrders: {},
+		guidebookTreeExpandedStates: {},
+		guidebookTreeAllExpanded: true,
 	};
 }
 
-export const DEFAULT_SETTINGS: ChineseNovelAssistantSettings = createDefaultSettings("zh_cn");
+export const DEFAULT_SETTINGS: SettingDatas = createDefaultSettings("zh_cn");
+
 

@@ -2,7 +2,7 @@ import { Annotation, Prec } from "@codemirror/state";
 import { EditorView, gutter, GutterMarker, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { MarkdownView, Plugin, TFile } from "obsidian";
 import type { PluginContext } from "../../core/context";
-import type { ChineseNovelAssistantSettings } from "../../settings/settings";
+import type { SettingDatas } from "../../core/setting-datas";
 import { NovelLibraryService } from "../../services/novel-library-service";
 import { bindVaultChangeWatcher } from "../../services/vault-change-watcher";
 import {
@@ -276,7 +276,7 @@ class CharacterCountFeature {
 		this.renderFolderBadges();
 	}
 
-	private buildScope(settings: ChineseNovelAssistantSettings): CountScope {
+	private buildScope(settings: SettingDatas): CountScope {
 		const libraryRoots = this.novelLibraryService.normalizeLibraryRoots(settings.novelLibraries);
 
 		const excludedRootsByLibrary = new Map<string, string[]>();
@@ -533,7 +533,7 @@ class CharacterMilestoneMarker extends GutterMarker {
 }
 
 function createCharacterMilestoneGutterExtension(
-	getSettings: () => ChineseNovelAssistantSettings,
+	getSettings: () => SettingDatas,
 ) {
 	const milestoneByLineByView = new WeakMap<EditorView, Map<number, number>>();
 
@@ -607,3 +607,5 @@ function resolveEditorViewFromMarkdownView(view: MarkdownView): MaybeEditorView 
 	};
 	return editorAny.cm ?? editorAny.editor?.cm ?? null;
 }
+
+

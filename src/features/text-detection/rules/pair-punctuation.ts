@@ -1,5 +1,5 @@
 import type { EditorView } from "@codemirror/view";
-import type { ChineseNovelAssistantSettings } from "../../../settings/settings";
+import type { SettingDatas } from "../../../core/setting-datas";
 import type { TextDetectionRule } from "../engine";
 
 interface PairToken {
@@ -15,7 +15,7 @@ interface StackEntry {
 
 interface PairRuleConfig {
 	group: PairToken["group"];
-	isSubEnabled: (settings: ChineseNovelAssistantSettings) => boolean;
+	isSubEnabled: (settings: SettingDatas) => boolean;
 }
 
 export interface PairPunctuationFixResult {
@@ -141,7 +141,7 @@ function createPairErrorFinder(pairTokens: PairToken[]): (docText: string) => nu
 	};
 }
 
-function getEnabledPairTokens(settings: ChineseNovelAssistantSettings): PairToken[] {
+function getEnabledPairTokens(settings: SettingDatas): PairToken[] {
 	if (!settings.proofreadCommonPunctuationEnabled) {
 		return [];
 	}
@@ -156,7 +156,7 @@ function getEnabledPairTokens(settings: ChineseNovelAssistantSettings): PairToke
 	return COMMON_PAIR_TOKENS.filter((token) => enabledGroups.has(token.group));
 }
 
-function collectPairPunctuationErrorIndices(docText: string, settings: ChineseNovelAssistantSettings): number[] {
+function collectPairPunctuationErrorIndices(docText: string, settings: SettingDatas): number[] {
 	if (!settings.proofreadCommonPunctuationEnabled) {
 		return [];
 	}
@@ -179,7 +179,7 @@ function collectPairPunctuationErrorIndices(docText: string, settings: ChineseNo
 
 export function fixPairPunctuationErrors(
 	docText: string,
-	settings: ChineseNovelAssistantSettings,
+	settings: SettingDatas,
 ): PairPunctuationFixResult {
 	const errorIndices = new Set<number>(collectPairPunctuationErrorIndices(docText, settings));
 	if (errorIndices.size === 0) {
@@ -223,7 +223,7 @@ export function fixPairPunctuationErrors(
 }
 
 export function createPairPunctuationRules(
-	getSettings: () => ChineseNovelAssistantSettings,
+	getSettings: () => SettingDatas,
 	shouldDetectInView?: (view: EditorView) => boolean,
 ): TextDetectionRule[] {
 	return PAIR_RULE_CONFIGS.map((config) => {
@@ -241,3 +241,5 @@ export function createPairPunctuationRules(
 		};
 	});
 }
+
+

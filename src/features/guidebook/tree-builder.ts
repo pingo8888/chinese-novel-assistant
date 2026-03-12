@@ -1,6 +1,6 @@
 import type { App, TFile } from "obsidian";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
-import type { ChineseNovelAssistantSettings } from "../../settings/settings";
+import type { SettingDatas } from "../../core/setting-datas";
 import { GuidebookMarkdownParser } from "./markdown-parser";
 
 export interface GuidebookTreeH2Node {
@@ -35,7 +35,7 @@ export interface GuidebookTreeData {
 }
 
 type GuidebookTreeBuildSettings = Pick<
-	ChineseNovelAssistantSettings,
+	SettingDatas,
 	"locale" | "novelLibraries" | "guidebookCollectionOrders"
 >;
 
@@ -236,3 +236,5 @@ function pruneGuidebookFileParseCache(guidebookRootPath: string, activeGuidebook
 		}
 	}
 }
+
+

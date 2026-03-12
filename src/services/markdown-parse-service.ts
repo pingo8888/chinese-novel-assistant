@@ -1,9 +1,9 @@
 import { App, TFile } from "obsidian";
-import type { ChineseNovelAssistantSettings } from "../settings/settings";
+import type { SettingDatas } from "../core/setting-datas";
 import { NovelLibraryService } from "./novel-library-service";
 
 export interface MarkdownParseRequest {
-	settings: Pick<ChineseNovelAssistantSettings, "novelLibraries">;
+	settings: Pick<SettingDatas, "novelLibraries">;
 	filePath: string;
 	parserId?: string;
 }
@@ -124,3 +124,5 @@ export class MarkdownParseService {
 		});
 	}
 }
+
+

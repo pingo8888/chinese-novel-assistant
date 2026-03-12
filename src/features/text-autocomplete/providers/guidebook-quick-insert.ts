@@ -2,7 +2,7 @@ import { EditorSelection, Prec, type Extension } from "@codemirror/state";
 import { EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import type { Plugin } from "obsidian";
 import { translate } from "../../../lang";
-import type { ChineseNovelAssistantSettings } from "../../../settings/settings";
+import type { SettingDatas } from "../../../core/setting-datas";
 import {
 	GuidebookQuickInsertService,
 	type GuidebookQuickInsertCandidate,
@@ -19,7 +19,7 @@ interface TriggerMatch {
 
 export function createGuidebookQuickInsertAutocompleteExtension(
 	plugin: Plugin,
-	getSettings: () => ChineseNovelAssistantSettings,
+	getSettings: () => SettingDatas,
 	guidebookQuickInsertService: GuidebookQuickInsertService,
 ): Extension {
 	const novelLibraryService = new NovelLibraryService(plugin.app);
@@ -191,7 +191,7 @@ export function createGuidebookQuickInsertAutocompleteExtension(
 
 				private isInsideFeatureRoot(
 					filePath: string,
-					settings: Pick<ChineseNovelAssistantSettings, "locale" | "novelLibraries">,
+					settings: Pick<SettingDatas, "locale" | "novelLibraries">,
 				): boolean {
 					const normalizedFilePath = novelLibraryService.normalizeVaultPath(filePath);
 					if (!normalizedFilePath) {
@@ -284,3 +284,5 @@ export function createGuidebookQuickInsertAutocompleteExtension(
 function containsCjk(value: string): boolean {
 	return /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/.test(value);
 }
+
+

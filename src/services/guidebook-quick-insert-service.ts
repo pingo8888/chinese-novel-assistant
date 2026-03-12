@@ -1,6 +1,6 @@
 import { type App, type Plugin } from "obsidian";
 import { buildGuidebookTreeData } from "../features/guidebook/tree-builder";
-import type { ChineseNovelAssistantSettings } from "../settings/settings";
+import type { SettingDatas } from "../core/setting-datas";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "./novel-library-service";
 import { bindVaultChangeWatcher } from "./vault-change-watcher";
 
@@ -15,7 +15,7 @@ interface GuidebookQuickInsertSnapshot {
 
 interface QueryGuidebookQuickInsertOptions {
 	settings: Pick<
-		ChineseNovelAssistantSettings,
+		SettingDatas,
 		"locale" | "novelLibraries" | "guidebookCollectionOrders"
 	>;
 	filePath: string;
@@ -46,7 +46,7 @@ export class GuidebookQuickInsertService {
 		return created;
 	}
 
-	bindVaultEvents(plugin: Plugin, getSettings: () => ChineseNovelAssistantSettings): void {
+	bindVaultEvents(plugin: Plugin, getSettings: () => SettingDatas): void {
 		if (this.initialized) {
 			return;
 		}
@@ -159,7 +159,7 @@ export class GuidebookQuickInsertService {
 
 	private tryCollectGuidebookLibraryRoot(
 		path: string,
-		settings: Pick<ChineseNovelAssistantSettings, "locale" | "novelLibraries">,
+		settings: Pick<SettingDatas, "locale" | "novelLibraries">,
 		target: Set<string>,
 	): void {
 		const normalizedPath = this.novelLibraryService.normalizeVaultPath(path);
@@ -187,7 +187,7 @@ export class GuidebookQuickInsertService {
 	}
 
 	private invalidateByLibraryRoot(
-		settings: Pick<ChineseNovelAssistantSettings, "locale">,
+		settings: Pick<SettingDatas, "locale">,
 		libraryRoot: string,
 	): void {
 		const key = this.createCacheKey(settings, libraryRoot);
@@ -196,7 +196,7 @@ export class GuidebookQuickInsertService {
 	}
 
 	private createCacheKey(
-		settings: Pick<ChineseNovelAssistantSettings, "locale">,
+		settings: Pick<SettingDatas, "locale">,
 		normalizedLibraryPath: string,
 	): string {
 		const normalizedGuidebookDirName = this.novelLibraryService.normalizeVaultPath(NOVEL_LIBRARY_SUBDIR_NAMES.guidebook);
@@ -215,3 +215,5 @@ export class GuidebookQuickInsertService {
 		return left.keyword.localeCompare(right.keyword);
 	}
 }
+
+

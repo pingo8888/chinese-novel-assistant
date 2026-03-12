@@ -1,6 +1,6 @@
 import { App, TFolder } from "obsidian";
 import type { SupportedLocale } from "../lang";
-import type { ChineseNovelAssistantSettings } from "../settings/settings";
+import type { SettingDatas } from "../core/setting-datas";
 
 export const NOVEL_LIBRARY_SUBDIR_NAMES = {
 	guidebook: "设定库",
@@ -117,7 +117,7 @@ export class NovelLibraryService {
 		return this.normalizeVaultPath(`${normalizedLibraryPath}/${preferredFeatureDirName}`);
 	}
 
-	resolveNovelLibrarySubdirPaths(settings: Pick<ChineseNovelAssistantSettings, "locale">, libraryPath: string): string[] {
+	resolveNovelLibrarySubdirPaths(settings: Pick<SettingDatas, "locale">, libraryPath: string): string[] {
 		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
 		if (!normalizedLibraryPath) {
 			return [];
@@ -133,7 +133,7 @@ export class NovelLibraryService {
 	}
 
 	resolveNovelLibrarySubdirPath(
-		settings: Pick<ChineseNovelAssistantSettings, "locale">,
+		settings: Pick<SettingDatas, "locale">,
 		libraryPath: string,
 		subdirName: string,
 	): string {
@@ -156,7 +156,7 @@ export class NovelLibraryService {
 	}
 
 	resolveNovelLibraryFeatureRootPath(
-		settings: Pick<ChineseNovelAssistantSettings, "locale">,
+		settings: Pick<SettingDatas, "locale">,
 		libraryPath: string,
 	): string {
 		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
@@ -166,7 +166,7 @@ export class NovelLibraryService {
 		return this.getNovelLibraryFeatureRootPath(normalizedLibraryPath, settings.locale);
 	}
 
-	async ensureNovelLibraryStructure(settings: Pick<ChineseNovelAssistantSettings, "locale">, libraryPath: string): Promise<void> {
+	async ensureNovelLibraryStructure(settings: Pick<SettingDatas, "locale">, libraryPath: string): Promise<void> {
 		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
 		if (!normalizedLibraryPath) {
 			return;
@@ -328,3 +328,5 @@ export class NovelLibraryService {
 		return entry instanceof TFolder;
 	}
 }
+
+

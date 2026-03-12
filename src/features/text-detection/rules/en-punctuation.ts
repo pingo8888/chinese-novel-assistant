@@ -1,10 +1,10 @@
 import type { EditorView } from "@codemirror/view";
-import type { ChineseNovelAssistantSettings } from "../../../settings/settings";
+import type { SettingDatas } from "../../../core/setting-datas";
 import type { TextDetectionRule } from "../engine";
 
 interface EnPunctuationRuleConfig {
 	char: string;
-	enabled: (settings: ChineseNovelAssistantSettings) => boolean;
+	enabled: (settings: SettingDatas) => boolean;
 	allowContextRegex?: RegExp;
 	allowPosition?: (docText: string, index: number, targetChar: string) => boolean;
 }
@@ -165,7 +165,7 @@ function getReplacementChar(char: string, state: EnPunctuationFixState): string 
 
 export function fixEnPunctuationErrors(
 	docText: string,
-	settings: ChineseNovelAssistantSettings,
+	settings: SettingDatas,
 ): EnPunctuationFixResult {
 	if (!settings.proofreadCommonPunctuationEnabled) {
 		return { text: docText, replacedCount: 0 };
@@ -205,7 +205,7 @@ export function fixEnPunctuationErrors(
 }
 
 export function createEnPunctuationRules(
-	getSettings: () => ChineseNovelAssistantSettings,
+	getSettings: () => SettingDatas,
 	shouldDetectInView?: (view: EditorView) => boolean,
 ): TextDetectionRule[] {
 	return PUNCTUATION_RULE_CONFIGS.map((config) => ({
@@ -220,3 +220,5 @@ export function createEnPunctuationRules(
 			findCharErrorIndicesInDoc(docText, config.char, config.allowContextRegex, config.allowPosition),
 	}));
 }
+
+

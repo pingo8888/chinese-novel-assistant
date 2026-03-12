@@ -1,7 +1,7 @@
 import { App, Plugin } from "obsidian";
 import { MarkdownParseService } from "./markdown-parse-service";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "./novel-library-service";
-import type { ChineseNovelAssistantSettings } from "../settings/settings";
+import type { SettingDatas } from "../core/setting-datas";
 import { bindVaultChangeWatcher } from "./vault-change-watcher";
 
 interface ProofreadDictLineEntry {
@@ -34,7 +34,7 @@ export class ProofreadDictService {
 	private rebuildTimer: number | null = null;
 	private rebuildingPromise: Promise<void> | null = null;
 	private pendingRebuild = false;
-	private queuedSettings: ChineseNovelAssistantSettings | null = null;
+	private queuedSettings: SettingDatas | null = null;
 	private stale = true;
 
 	private snapshot: ProofreadDictSnapshot = {
@@ -63,7 +63,7 @@ export class ProofreadDictService {
 		return created;
 	}
 
-	bindVaultEvents(plugin: Plugin, getSettings: () => ChineseNovelAssistantSettings): void {
+	bindVaultEvents(plugin: Plugin, getSettings: () => SettingDatas): void {
 		if (this.initialized) {
 			return;
 		}
@@ -106,7 +106,7 @@ export class ProofreadDictService {
 		return this.snapshot;
 	}
 
-	async ensureCacheReady(settings: ChineseNovelAssistantSettings): Promise<ProofreadDictSnapshot> {
+	async ensureCacheReady(settings: SettingDatas): Promise<ProofreadDictSnapshot> {
 		if (this.stale) {
 			await this.requestRebuild(settings);
 			return this.snapshot;
@@ -117,7 +117,7 @@ export class ProofreadDictService {
 		return this.snapshot;
 	}
 
-	private scheduleRebuild(settings: ChineseNovelAssistantSettings): void {
+	private scheduleRebuild(settings: SettingDatas): void {
 		this.queuedSettings = settings;
 		if (this.rebuildTimer !== null) {
 			window.clearTimeout(this.rebuildTimer);
@@ -129,7 +129,7 @@ export class ProofreadDictService {
 		}, ProofreadDictService.REBUILD_DEBOUNCE_MS);
 	}
 
-	private async requestRebuild(settings: ChineseNovelAssistantSettings): Promise<void> {
+	private async requestRebuild(settings: SettingDatas): Promise<void> {
 		this.queuedSettings = settings;
 		this.stale = true;
 
@@ -164,7 +164,7 @@ export class ProofreadDictService {
 		} while (this.pendingRebuild);
 	}
 
-	private async buildSnapshot(settings: ChineseNovelAssistantSettings): Promise<ProofreadDictSnapshot> {
+	private async buildSnapshot(settings: SettingDatas): Promise<ProofreadDictSnapshot> {
 		if (!settings.proofreadCustomDictionaryEnabled) {
 			return this.createEmptySnapshot();
 		}
@@ -223,7 +223,7 @@ export class ProofreadDictService {
 		};
 	}
 
-	private resolveDictionaryRoots(settings: ChineseNovelAssistantSettings): string[] {
+	private resolveDictionaryRoots(settings: SettingDatas): string[] {
 		const roots: string[] = [];
 		for (const libraryPath of settings.novelLibraries) {
 			const dictionaryRoot = this.novelLibraryService.resolveNovelLibrarySubdirPath(
@@ -239,7 +239,7 @@ export class ProofreadDictService {
 		return Array.from(new Set(roots));
 	}
 
-	private isDictionaryMarkdownPath(path: string, settings: ChineseNovelAssistantSettings): boolean {
+	private isDictionaryMarkdownPath(path: string, settings: SettingDatas): boolean {
 		const normalizedPath = this.novelLibraryService.normalizeVaultPath(path);
 		if (!normalizedPath || !normalizedPath.toLowerCase().endsWith(".md")) {
 			return false;
@@ -295,3 +295,5 @@ export class ProofreadDictService {
 		}
 	}
 }
+
+

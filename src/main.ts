@@ -7,9 +7,9 @@ import {
 import { normalizeLocale } from "./lang";
 import {
 	createDefaultSettings,
-	type ChineseNovelAssistantSettings,
+	type SettingDatas,
 	DEFAULT_SETTINGS,
-} from "./settings/settings";
+} from "./core/setting-datas";
 import { registerCharacterCountFeature } from "./features/character-count";
 import { registerCommandsFeature } from "./features/commands";
 import { registerTextDetectionFeature } from "./features/text-detection";
@@ -21,7 +21,7 @@ import { ChineseNovelAssistantSettingTab } from "./ui/views/settings-tabs/settin
 import type { SettingsChangeListener } from "./core/context";
 
 export default class ChineseNovelAssistantPlugin extends Plugin {
-	private settings: ChineseNovelAssistantSettings = DEFAULT_SETTINGS;
+	private settings: SettingDatas = DEFAULT_SETTINGS;
 	private ctx: PluginContext | null = null;
 	private settingsChangeListeners = new Set<SettingsChangeListener>();
 
@@ -67,7 +67,7 @@ export default class ChineseNovelAssistantPlugin extends Plugin {
 	private async loadSettings(): Promise<void> {
 		const rawLocale = this.getRuntimeLocale();
 		const appLocale = normalizeLocale(typeof rawLocale === "string" ? rawLocale : null);
-		const loaded = (await this.loadData()) as Partial<ChineseNovelAssistantSettings> | null;
+		const loaded = (await this.loadData()) as Partial<SettingDatas> | null;
 		const defaults = createDefaultSettings(appLocale);
 		this.settings = Object.assign({}, defaults, loaded ?? {});
 		this.settings.locale = normalizeLocale(this.settings.locale);
@@ -86,3 +86,5 @@ export default class ChineseNovelAssistantPlugin extends Plugin {
 		return null;
 	}
 }
+
+
