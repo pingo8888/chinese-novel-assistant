@@ -340,11 +340,14 @@ function resolveScopedStickyNoteRootPaths(
 	const referencePath = typeof preferredFilePath === "string"
 		? preferredFilePath
 		: (ctx.app.workspace.getActiveFile()?.path ?? "");
+	if (!referencePath) {
+		return [];
+	}
 	const matchedLibraryRoot = referencePath
 		? novelLibraryService.resolveContainingLibraryRoot(referencePath, normalizedLibraryRoots)
 		: null;
 	if (!matchedLibraryRoot) {
-		return allRoots;
+		return [];
 	}
 	const stickyRootPath = novelLibraryService.resolveNovelLibrarySubdirPath(
 		settings,

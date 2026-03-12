@@ -106,7 +106,8 @@ export class StickyNoteRepository {
 	}
 
 	private resolveStickyRoots(settings: SettingDatas, preferredRootPaths?: string[]): string[] {
-		if (preferredRootPaths && preferredRootPaths.length > 0) {
+		// `undefined` means "use all libraries"; an explicit empty array means "no scope".
+		if (preferredRootPaths !== undefined) {
 			return Array.from(
 				new Set(
 					preferredRootPaths
