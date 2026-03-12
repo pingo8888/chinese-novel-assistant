@@ -8,7 +8,6 @@ import { normalizeLocale } from "./lang";
 import {
 	createDefaultSettings,
 	type SettingDatas,
-	DEFAULT_SETTINGS,
 } from "./core/setting-datas";
 import { registerCharacterCountFeature } from "./features/character-count";
 import { registerCommandsFeature } from "./features/commands";
@@ -21,7 +20,7 @@ import { ChineseNovelAssistantSettingTab } from "./ui/views/settings-tabs/settin
 import type { SettingsChangeListener } from "./core/context";
 
 export default class ChineseNovelAssistantPlugin extends Plugin {
-	private settings: SettingDatas = DEFAULT_SETTINGS;
+	private settings: SettingDatas = createDefaultSettings();
 	private ctx: PluginContext | null = null;
 	private settingsChangeListeners = new Set<SettingsChangeListener>();
 
@@ -68,7 +67,8 @@ export default class ChineseNovelAssistantPlugin extends Plugin {
 		const rawLocale = this.getRuntimeLocale();
 		const appLocale = normalizeLocale(typeof rawLocale === "string" ? rawLocale : null);
 		const loaded = (await this.loadData()) as Partial<SettingDatas> | null;
-		const defaults = createDefaultSettings(appLocale);
+		const defaults = createDefaultSettings();
+		defaults.locale = appLocale;
 		this.settings = Object.assign({}, defaults, loaded ?? {});
 		this.settings.locale = normalizeLocale(this.settings.locale);
 	}

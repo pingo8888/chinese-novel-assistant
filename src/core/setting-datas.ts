@@ -1,11 +1,5 @@
 import type { SupportedLocale } from "../lang";
 
-const KEYWORD_COLORS = {
-	background: "#FFFFFF00",
-	underline: "#4A86E9",
-	text: "#4A86E9",
-} as const;
-
 export interface SettingDatas {
 	// 全局
 	novelLibraries: string[];
@@ -71,18 +65,18 @@ export interface SettingDatas {
 
 }
 
-export function createDefaultSettings(locale: SupportedLocale): SettingDatas {
+export function createDefaultSettings(): SettingDatas {
 	return {
 		novelLibraries: [],
 
 		guidebookKeywordHighlightMode: "first",
-		guidebookKeywordHighlightBackgroundColor: KEYWORD_COLORS.background,
+		guidebookKeywordHighlightBackgroundColor: "#FFFFFF00",
 		guidebookKeywordUnderlineStyle: "dotted",
 		guidebookKeywordUnderlineWidth: 2,
-		guidebookKeywordUnderlineColor: KEYWORD_COLORS.underline,
+		guidebookKeywordUnderlineColor: "#4A86E9",
 		guidebookKeywordFontWeight: "normal",
 		guidebookKeywordFontStyle: "normal",
-		guidebookKeywordTextColor: KEYWORD_COLORS.text,
+		guidebookKeywordTextColor: "#4A86E9",
 		guidebookPreviewMainHoverEnabled: true,
 		guidebookPreviewSidebarHoverEnabled: false,
 		guidebookPreviewWidth: 320,
@@ -116,7 +110,7 @@ export function createDefaultSettings(locale: SupportedLocale): SettingDatas {
 		typesetShowHeadingIcons: false,
 		typesetJustifyText: true,
 
-		locale,
+		locale: "zh_cn",
 		openFileInNewTab: true,
 		enableCharacterCount: true,
 		enableCharacterMilestone: true,
@@ -127,7 +121,3 @@ export function createDefaultSettings(locale: SupportedLocale): SettingDatas {
 		guidebookTreeAllExpanded: true,
 	};
 }
-
-export const DEFAULT_SETTINGS: SettingDatas = createDefaultSettings("zh_cn");
-
-
