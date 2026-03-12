@@ -9,6 +9,7 @@ import {
 	createDefaultSettings,
 	type SettingDatas,
 } from "./core/setting-datas";
+import { SettingStore } from "./core/setting-store";
 import { registerCharacterCountFeature } from "./features/character-count";
 import { registerCommandsFeature } from "./features/commands";
 import { registerTextDetectionFeature } from "./features/text-detection";
@@ -17,12 +18,10 @@ import { registerTypesetFeature } from "./features/typeset";
 import { registerSidebarFeature } from "./features/sidebar";
 import { registerNovelLibraryFeature } from "./features/novel-library";
 import { ChineseNovelAssistantSettingTab } from "./ui/views/settings-tabs/settings-tab";
-import type { SettingsChangeListener } from "./core/context";
 
 export default class ChineseNovelAssistantPlugin extends Plugin {
-	private settings: SettingDatas = createDefaultSettings();
+	private settingStore = new SettingStore(this);
 	private ctx: PluginContext | null = null;
-	private settingsChangeListeners = new Set<SettingsChangeListener>();
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
@@ -46,44 +45,26 @@ export default class ChineseNovelAssistantPlugin extends Plugin {
 		return {
 			app: this.app,
 			addSettingTab: (tab) => this.addSettingTab(tab),
-			getSettings: () => this.settings,
+			getSettings: () => this.settingStore.data,
 			saveSettings: async (nextSettings) => {
-				this.settings = nextSettings;
-				await this.saveData(this.settings);
-				for (const listener of this.settingsChangeListeners) {
-					listener(this.settings);
-				}
+				this.settingStore.patch(nextSettings);
+				await this.settingStore.saveAndNotify();
 			},
 			onSettingsChange: (listener) => {
-				this.settingsChangeListeners.add(listener);
-				return () => {
-					this.settingsChangeListeners.delete(listener);
-				};
+				return this.settingStore.subscribe((next) => {
+					listener(next);
+				});
 			},
 		};
 	}
 
 	private async loadSettings(): Promise<void> {
-		const rawLocale = this.getRuntimeLocale();
-		const appLocale = normalizeLocale(typeof rawLocale === "string" ? rawLocale : null);
 		const loaded = (await this.loadData()) as Partial<SettingDatas> | null;
 		const defaults = createDefaultSettings();
-		defaults.locale = appLocale;
-		this.settings = Object.assign({}, defaults, loaded ?? {});
-		this.settings.locale = normalizeLocale(this.settings.locale);
-	}
-
-	private getRuntimeLocale(): string | null {
-		const appWithLocale = this.app as typeof this.app & { locale?: unknown };
-		if (typeof appWithLocale.locale === "string" && appWithLocale.locale.length > 0) {
-			return appWithLocale.locale;
-		}
-
-		if (typeof navigator !== "undefined" && typeof navigator.language === "string") {
-			return navigator.language;
-		}
-
-		return null;
+		const merged = Object.assign({}, defaults, loaded ?? {});
+		merged.locale = normalizeLocale(merged.locale);
+		this.settingStore.patch(merged);
+		this.settingStore.notify();
 	}
 }
 
