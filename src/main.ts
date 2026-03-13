@@ -14,7 +14,7 @@ import {
 import { SettingStore } from "./core/setting-store";
 
 // 界面相关
-import { CNASettingTab } from "./ui/views/settings-tabs/settings-tab";
+import { CNASettingTab } from "./features/setting-tabs/views/settings-tab";
 import { registerSidebarFeature } from "./features/sidebar";
 import { registerRibbonFeature } from "./features/ribbon";
 // 功能相关
@@ -73,3 +73,4 @@ export default class CNAPlugin extends Plugin {
 		this.settingStore.notify();
 	}
 }
+

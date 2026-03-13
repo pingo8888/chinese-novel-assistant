@@ -2,7 +2,7 @@ import type {
 	GuidebookTreeData,
 	GuidebookTreeFileNode,
 	GuidebookTreeH1Node,
-} from "../../../features/guidebook/tree-builder";
+} from "../tree-builder";
 
 export interface GuidebookTreeSearchResult {
 	treeData: GuidebookTreeData | null;
@@ -75,3 +75,4 @@ function countAllH2(treeData: GuidebookTreeData): number {
 function matchesKeyword(value: string, normalizedKeyword: string): boolean {
 	return value.trim().toLowerCase().includes(normalizedKeyword);
 }
+

@@ -3,18 +3,18 @@ import { MarkdownView, setIcon, TFile, TFolder } from "obsidian";
 import { UI } from "../../../core/constants";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../../services/novel-library-service";
 import { type VaultChangeEvent, watchVaultChanges } from "../../../services/vault-change-watcher";
-import { ClearableInputComponent } from "../../componets/clearable-input";
-import { ToggleButtonComponent } from "../../componets/toggle-button";
+import { ClearableInputComponent } from "../../../ui/componets/clearable-input";
+import { ToggleButtonComponent } from "../../../ui/componets/toggle-button";
 import { createGuidebookTreeViewComponent, type GuidebookTreeExpandedStateSnapshot } from "./outline-tree";
-import { buildGuidebookTreeData, type GuidebookTreeData } from "../../../features/guidebook/tree-builder";
+import { buildGuidebookTreeData, type GuidebookTreeData } from "../tree-builder";
 import { filterGuidebookTreeByKeyword } from "./search-box";
 import {
 	handleGuidebookBlankCreateCollection,
 	handleGuidebookFileContextAction,
 	handleGuidebookH1ContextAction,
 	handleGuidebookH2ContextAction,
-} from "../../../features/guidebook/menu-actions";
-import { handleGuidebookTreeDragMove } from "../../../features/guidebook/drag-sort-actions";
+} from "../menu-actions";
+import { handleGuidebookTreeDragMove } from "../drag-sort-actions";
 
 let cachedMarkdownFilePath: string | null = null;
 
@@ -459,6 +459,7 @@ function filterGuidebookTreeExpandedState(source: Record<string, boolean>): Reco
 	}
 	return next;
 }
+
 
 
 

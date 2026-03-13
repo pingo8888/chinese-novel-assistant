@@ -5,8 +5,8 @@ import { bindVaultChangeWatcher } from "../../services/vault-change-watcher";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
 
 import { StickyNoteRepository } from "./repository";
-import { renderStickyNoteCardItem } from "../../ui/views/sticky-note/card-item";
-import type { StickyNoteCard, StickyNoteViewOptions } from "../../ui/views/sticky-note/types";
+import { renderStickyNoteCardItem } from "./views/card-item";
+import type { StickyNoteCard, StickyNoteViewOptions } from "./views/types";
 import { areStringArraysEqual, clamp, normalizePosition, normalizePositiveSize } from "../../utils/helpers";
 import {
 	STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
@@ -667,3 +667,4 @@ function isStickyNoteTabActiveInRightSidebar(): boolean {
 	const selector = `.workspace-split.mod-right-split .workspace-tab-header.is-active[data-type="sticky-note-sidebar"]`;
 	return document.querySelector(selector) !== null;
 }
+

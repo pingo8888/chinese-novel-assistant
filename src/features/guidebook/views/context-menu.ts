@@ -1,10 +1,10 @@
 import { UI } from "../../../core/constants";
-import { showContextMenuAtMouseEvent } from "../../componets/context-menu";
+import { showContextMenuAtMouseEvent } from "../../../ui/componets/context-menu";
 import type {
 	GuidebookTreeFileNode,
 	GuidebookTreeH1Node,
 	GuidebookTreeH2Node,
-} from "../../../features/guidebook/tree-builder";
+} from "../tree-builder";
 
 export type GuidebookTreeFileContextAction =
 	| "create_collection"
@@ -155,5 +155,6 @@ export function openGuidebookBlankContextMenu(
 		},
 	]);
 }
+
 
 

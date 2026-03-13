@@ -1,7 +1,7 @@
 import { App, Plugin, PluginSettingTab } from "obsidian";
 import type { PluginContext } from "../../../core/context";
-import { ClearableInputComponent } from "../../componets/clearable-input";
-import { TabsComponent, type TabDefinition } from "../../componets/tabs";
+import { ClearableInputComponent } from "../../../ui/componets/clearable-input";
+import { TabsComponent, type TabDefinition } from "../../../ui/componets/tabs";
 import {
 	type SettingsTabRenderContext,
 	renderGlobalSettings,
@@ -272,3 +272,4 @@ export class CNASettingTab extends PluginSettingTab {
 		});
 	}
 }
+

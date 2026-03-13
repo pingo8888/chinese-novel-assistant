@@ -1,5 +1,5 @@
 import type { Plugin } from "obsidian";
-import { GuidebookSidebarView } from "../../ui/views/guidebook/item-view";
+import { GuidebookSidebarView } from "./views/item-view";
 import type { PluginContext } from "../../core/context";
 
 // 注册guidebook侧边栏视图函数
@@ -12,3 +12,4 @@ export function registerGuidebookSidebarView(
 		(leaf) => new GuidebookSidebarView(leaf, ctx),
 	);
 }
+

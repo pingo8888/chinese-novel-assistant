@@ -1,13 +1,13 @@
 import type { PluginContext } from "../../../core/context";
 import { MarkdownView, Notice, TFile, TFolder, setIcon, type EventRef, type TAbstractFile } from "obsidian";
 import { UI } from "../../../core/constants";
-import { ClearableInputComponent } from "../../componets/clearable-input";
-import { showContextMenuAtMouseEvent } from "../../componets/context-menu";
+import { ClearableInputComponent } from "../../../ui/componets/clearable-input";
+import { showContextMenuAtMouseEvent } from "../../../ui/componets/context-menu";
 import { createStickyNoteCardList } from "./card-list";
 import type { StickyNoteSortMode, StickyNoteViewOptions } from "./types";
 import type { SettingDatas } from "../../../core/setting-datas";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../../services/novel-library-service";
-import { StickyNoteRepository } from "../../../features/sticky-note/repository";
+import { StickyNoteRepository } from "../repository";
 type StickyNoteSparklesTooltipKey = "feature.right_sidebar.sticky_note.action.sparkles.tooltip";
 type StickyNoteSortTooltipKey =
 	| "feature.right_sidebar.sticky_note.sort.tooltip.desc"
@@ -431,5 +431,6 @@ function getSortDirectionTooltipKey(mode: StickyNoteSortMode): StickyNoteSortToo
 			return "feature.right_sidebar.sticky_note.sort.tooltip.desc";
 	}
 }
+
 
 

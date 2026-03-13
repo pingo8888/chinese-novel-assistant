@@ -1,7 +1,7 @@
 import { Notice, Setting, TFolder } from "obsidian";
 import { NovelLibraryService } from "../../../services/novel-library-service";
-import { attachFolderSuggest } from "../../componets/folder-suggest";
-import { askForConfirmation } from "../../modals/confirm-modal";
+import { attachFolderSuggest } from "../../../ui/componets/folder-suggest";
+import { askForConfirmation } from "../../../ui/modals/confirm-modal";
 import { createSettingsSectionHeading } from "./heading";
 import type { SettingsTabRenderContext } from "./types";
 
@@ -102,3 +102,4 @@ function appendMissingNovelLibraryTag(deps: SettingsTabRenderContext, setting: S
 		text: deps.ctx.t("settings.global.novel_library.missing"),
 	});
 }
+

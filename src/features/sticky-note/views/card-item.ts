@@ -10,12 +10,12 @@ import {
 	STICKY_NOTE_FLOAT_LEFT_GAP,
 	STICKY_NOTE_FLOAT_MIN_HEIGHT,
 	STICKY_NOTE_FLOAT_MIN_WIDTH,
-} from "../../../features/sticky-note";
+} from "..";
 import { showStickyNoteContentMenu } from "./content-menu";
-import { applyStickyNoteCardMenuCommand, applyStickyNoteRichTextCommand } from "../../../features/sticky-note/menu-actions";
-import { promptVaultImageFile } from "../../modals/vault-image-picker-modal";
+import { applyStickyNoteCardMenuCommand, applyStickyNoteRichTextCommand } from "../menu-actions";
+import { promptVaultImageFile } from "../../../ui/modals/vault-image-picker-modal";
 import { showStickyNoteCardMenu } from "./card-menu";
-import { openImagePreview } from "../../modals/image-preview-modal";
+import { openImagePreview } from "../../../ui/modals/image-preview-modal";
 import { extractPlainTextFromMarkdown, normalizeMarkdownLineEndings } from "../../../utils/markdown-text";
 
 interface StickyNoteCardItemDeps {
@@ -878,6 +878,7 @@ function extractPlainTextForCaretMapping(markdown: string): string {
 		.replace(/^\n+/, "")
 		.replace(/\n+$/, "");
 }
+
 
 
 

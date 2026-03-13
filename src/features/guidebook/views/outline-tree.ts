@@ -1,12 +1,12 @@
 import { setIcon } from "obsidian";
 import { UI } from "../../../core/constants";
-import type { GuidebookTreeDragMoveRequest } from "../../../features/guidebook/drag-sort-actions";
+import type { GuidebookTreeDragMoveRequest } from "../drag-sort-actions";
 import type {
 	GuidebookTreeData,
 	GuidebookTreeFileNode,
 	GuidebookTreeH1Node,
 	GuidebookTreeH2Node,
-} from "../../../features/guidebook/tree-builder";
+} from "../tree-builder";
 import {
 	openGuidebookBlankContextMenu,
 	openGuidebookFileContextMenu,
@@ -572,5 +572,6 @@ class GuidebookTreeView implements GuidebookTreeViewComponent {
 		return `${libraryRootPath}${STATE_KEY_SCOPE_SEPARATOR}h1:${h1Node.sourcePath}${STATE_KEY_PATH_SEPARATOR}${h1Node.title.trim()}`;
 	}
 }
+
 
 

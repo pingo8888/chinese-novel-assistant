@@ -2,7 +2,7 @@ import { EditorView } from "@codemirror/view";
 import { MarkdownView, TFile, type Plugin } from "obsidian";
 import type { SettingDatas } from "../../core/setting-datas";
 import type { GuidebookKeywordPreviewItem } from "../text-detection/rules/guidebook-keyword";
-import { GuidebookPreviewPopover } from "../../ui/views/guidebook/preview-popover";
+import { GuidebookPreviewPopover } from "./views/preview-popover";
 import type { TranslationKey } from "../../lang";
 
 interface GuidebookPreviewControllerOptions {
@@ -446,5 +446,6 @@ function parseH2HeadingTitle(line: string): string | null {
 	title = title.replace(/[ \t]+#+[ \t]*$/, "").trim();
 	return title.length > 0 ? title : null;
 }
+
 
 

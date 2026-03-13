@@ -4,7 +4,7 @@ import { renderStickyNoteCardItem } from "./card-item";
 import type { StickyNoteCard, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
 import { closeStickyNoteCardMenu } from "./card-menu";
 import type { SettingDatas } from "../../../core/setting-datas";
-import { StickyNoteRepository } from "../../../features/sticky-note/repository";
+import { StickyNoteRepository } from "../repository";
 
 export interface StickyNoteCardListController {
 	setSortMode(sortMode: StickyNoteSortMode): void;
@@ -325,6 +325,7 @@ function revokeImageUrls(images: StickyNoteCard["images"]): void {
 		}
 	}
 }
+
 
 
 
