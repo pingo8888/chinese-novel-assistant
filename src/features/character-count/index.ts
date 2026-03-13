@@ -143,13 +143,46 @@ class CharacterCountFeature {
 
 	private observeFileExplorerDom(): void {
 		const workspaceContainerEl = (this.plugin.app.workspace as unknown as { containerEl?: HTMLElement }).containerEl ?? document.body;
-		this.badgeObserver = new MutationObserver(() => {
+		this.badgeObserver = new MutationObserver((mutations) => {
+			if (!this.hasRelevantFileExplorerMutation(mutations)) {
+				return;
+			}
 			this.scheduleFolderBadgeRender();
 		});
 		this.badgeObserver.observe(workspaceContainerEl, {
 			childList: true,
 			subtree: true,
 		});
+	}
+
+	private hasRelevantFileExplorerMutation(mutations: MutationRecord[]): boolean {
+		for (const mutation of mutations) {
+			if (this.isNodeInsideFileExplorer(mutation.target)) {
+				return true;
+			}
+			for (const node of Array.from(mutation.addedNodes)) {
+				if (this.isNodeInsideFileExplorer(node)) {
+					return true;
+				}
+			}
+			for (const node of Array.from(mutation.removedNodes)) {
+				if (this.isNodeInsideFileExplorer(node)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private isNodeInsideFileExplorer(node: Node | null): boolean {
+		if (!node) {
+			return false;
+		}
+		const element = node instanceof HTMLElement ? node : node.parentElement;
+		if (!element) {
+			return false;
+		}
+		return Boolean(element.closest(".workspace-leaf-content[data-type='file-explorer']"));
 	}
 
 	private clearTimers(): void {
@@ -481,7 +514,9 @@ class CharacterCountFeature {
 		if (!badgeEl) {
 			badgeEl = flairOuterEl.createSpan({ cls: `tree-item-flair cna-character-count-badge ${badgeClass}` });
 		}
-		badgeEl.setText(text);
+		if (badgeEl.textContent !== text) {
+			badgeEl.setText(text);
+		}
 	}
 
 	private removeFolderBadge(folderTitleEl: HTMLElement): void {
