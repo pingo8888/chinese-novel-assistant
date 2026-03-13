@@ -149,6 +149,8 @@
 	"feature.right_sidebar.guidebook.current_library.none": "未匹配小说库",
 	"feature.right_sidebar.guidebook.action.expand_all": "全部展开",
 	"feature.right_sidebar.guidebook.action.collapse_all": "全部折叠",
+	"feature.right_sidebar.guidebook.search.placeholder": "搜索 分类 或 设定",
+	"feature.right_sidebar.guidebook.search.clear": "清空搜索",
 	"feature.right_sidebar.guidebook.menu.create_collection": "创建集合",
 	"feature.right_sidebar.guidebook.menu.create_category": "创建分类",
 	"feature.right_sidebar.guidebook.menu.create_setting": "创建设定",

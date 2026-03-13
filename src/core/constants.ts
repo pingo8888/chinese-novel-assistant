@@ -39,6 +39,7 @@ export const UI = {
 		LIST: "list",
 		LIST_ORDERED: "list-ordered",
 		ERASER: "eraser",
+		FUNNEL: "funnel",
 	},
 } as const;
 

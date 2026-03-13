@@ -924,14 +924,59 @@ button.cna-sticky-note-card__image-remove:hover {
 	min-height: 0;
 	display: flex;
 	flex-direction: column;
-	overflow: hidden;
+	gap: 8px;
+}
+
+.cna-right-sidebar-guidebook__search-wrap {
+	flex: 0 0 auto;
+	min-width: 0;
+}
+
+.cna-guidebook-search-input-container {
+	position: relative;
+	width: 100%;
+}
+
+.cna-guidebook-search-input-container input[type="search"],
+.cna-guidebook-search-input-container input[type="text"] {
+	padding-right: 58px;
+}
+
+.cna-guidebook-search-input-container .search-input-clear-button {
+	display: none;
+	position: absolute;
+	left: auto;
+	right: 28px;
+	top: 0 !important;
+	bottom: 0;
+	height: 16px;
+	line-height: 16px;
+	margin: auto 0 !important;
+	transform: none !important;
+}
+
+.cna-guidebook-search-input-container .search-input-clear-button.is-visible {
+	display: block;
+}
+
+.cna-guidebook-search-count {
+	position: absolute;
+	right: 8px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: var(--text-faint);
+	font-size: var(--font-ui-smaller);
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+	pointer-events: none;
+	z-index: 1;
 }
 
 .cna-right-sidebar-guidebook__scroll {
 	flex: 1;
 	min-height: 0;
 	overflow-y: auto;
-	margin: 6px 0;
+	margin: 0;
 }
 
 .cna-guidebook-tree {

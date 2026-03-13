@@ -3,9 +3,11 @@ import { MarkdownView, setIcon, TFile, TFolder } from "obsidian";
 import { UI } from "../../../core/constants";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../../services/novel-library-service";
 import { type VaultChangeEvent, watchVaultChanges } from "../../../services/vault-change-watcher";
+import { ClearableInputComponent } from "../../componets/clearable-input";
 import { ToggleButtonComponent } from "../../componets/toggle-button";
 import { createGuidebookTreeViewComponent, type GuidebookTreeExpandedStateSnapshot } from "./outline-tree";
 import { buildGuidebookTreeData, type GuidebookTreeData } from "../../../features/guidebook/tree-builder";
+import { filterGuidebookTreeByKeyword } from "./search-box";
 import {
 	handleGuidebookBlankCreateCollection,
 	handleGuidebookFileContextAction,
@@ -28,7 +30,10 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Plugi
 
 	rootEl.createDiv({ cls: "cna-right-sidebar-guidebook__divider" });
 	const contentEl = rootEl.createDiv({ cls: "cna-right-sidebar-guidebook__content" });
+	const searchWrapEl = contentEl.createDiv({ cls: "cna-right-sidebar-guidebook__search-wrap" });
 	const scrollEl = contentEl.createDiv({ cls: "cna-right-sidebar-guidebook__scroll" });
+	let searchKeyword = "";
+	let searchCountEl: HTMLElement | null = null;
 	let latestTreeData: GuidebookTreeData | null = null;
 	const initialSettings = ctx.settings;
 	const rawExpandedState = initialSettings.guidebookTreeExpandedStates ?? {};
@@ -178,6 +183,23 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Plugi
 		initialOn: initialAllExpanded,
 		onToggle: (isOn) => treeView.setAllExpanded(isOn),
 	});
+	new ClearableInputComponent({
+		containerEl: searchWrapEl,
+		containerClassName: "cna-guidebook-search-input-container",
+		placeholder: "",
+		clearAriaLabel: "",
+		onChange: (value) => {
+			searchKeyword = value;
+			applySearchFilterAndRender();
+		},
+	});
+	const searchInputContainerEl = searchWrapEl.querySelector<HTMLElement>(".cna-guidebook-search-input-container");
+	searchCountEl = searchInputContainerEl?.createSpan({
+		cls: "cna-guidebook-search-count",
+		text: "0",
+	}) ?? null;
+	const searchInputEl = searchWrapEl.querySelector<HTMLInputElement>("input");
+	const searchClearButtonEl = searchWrapEl.querySelector<HTMLElement>(".search-input-clear-button");
 
 	const novelLibraryService = new NovelLibraryService(ctx.app);
 	let lastMarkdownFilePath = resolveActiveMarkdownFilePath(ctx) ?? cachedMarkdownFilePath;
@@ -189,6 +211,21 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Plugi
 	let refreshTimer: number | null = null;
 	let renderedTreeSignature: string | null = null;
 	let hasRenderedTree = false;
+	const applySearchFilterAndRender = (forceRender = false): void => {
+		const { treeData: filteredTreeData, matchedH2Count } = filterGuidebookTreeByKeyword(latestTreeData, searchKeyword);
+		searchCountEl?.setText(`${Math.max(0, matchedH2Count)}`);
+		const treeSignature = buildGuidebookTreeSignature(filteredTreeData);
+		if (!forceRender && hasRenderedTree && treeSignature === renderedTreeSignature) {
+			return;
+		}
+		renderedTreeSignature = treeSignature;
+		hasRenderedTree = true;
+		treeView.renderData(filteredTreeData, ctx.t("feature.right_sidebar.guidebook.tree.empty"));
+	};
+	const updateLocalizedText = (): void => {
+		searchInputEl?.setAttr("placeholder", ctx.t("feature.right_sidebar.guidebook.search.placeholder"));
+		searchClearButtonEl?.setAttr("aria-label", ctx.t("feature.right_sidebar.guidebook.search.clear"));
+	};
 
 	const refreshGuidebook = async (preferredFilePath?: string | null): Promise<void> => {
 		const nextFilePath = preferredFilePath ?? resolveActiveMarkdownFilePath(ctx) ?? lastMarkdownFilePath ?? cachedMarkdownFilePath;
@@ -206,15 +243,8 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Plugi
 		if (isDisposed || currentSeq !== refreshSeq) {
 			return;
 		}
-		const treeSignature = buildGuidebookTreeSignature(treeData);
-		if (hasRenderedTree && treeSignature === renderedTreeSignature) {
-			return;
-		}
 		latestTreeData = treeData;
-		renderedTreeSignature = treeSignature;
-		hasRenderedTree = true;
-
-		treeView.renderData(treeData, ctx.t("feature.right_sidebar.guidebook.tree.empty"));
+		applySearchFilterAndRender();
 	};
 	const scheduleRefresh = (preferredFilePath?: string | null): void => {
 		if (refreshTimer !== null) {
@@ -225,6 +255,7 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Plugi
 			void refreshGuidebook(preferredFilePath);
 		}, 120);
 	};
+	updateLocalizedText();
 	void refreshGuidebook();
 
 	const workspaceEventRefs = [
@@ -256,6 +287,8 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Plugi
 	});
 
 	const disposeSettingsChange = ctx.onSettingsChange(() => {
+		updateLocalizedText();
+		applySearchFilterAndRender(true);
 		void refreshGuidebook();
 	});
 

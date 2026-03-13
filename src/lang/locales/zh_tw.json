@@ -149,6 +149,8 @@
 	"feature.right_sidebar.guidebook.current_library.none": "未匹配小說庫",
 	"feature.right_sidebar.guidebook.action.expand_all": "全部展開",
 	"feature.right_sidebar.guidebook.action.collapse_all": "全部折疊",
+	"feature.right_sidebar.guidebook.search.placeholder": "搜尋 分類 或 設定",
+	"feature.right_sidebar.guidebook.search.clear": "清除搜尋",
 	"feature.right_sidebar.guidebook.menu.create_collection": "建立集合",
 	"feature.right_sidebar.guidebook.menu.create_category": "建立分類",
 	"feature.right_sidebar.guidebook.menu.create_setting": "建立設定",
