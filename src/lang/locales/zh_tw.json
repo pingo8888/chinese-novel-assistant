@@ -1,4 +1,5 @@
 {
+	"ribbon.tooltip": "中文小說寫作助手",
 	"settings.language.name": "介面語言",
 	"settings.language.desc": "選擇外掛使用的語言。",
 	"settings.language.option.zh_cn": "簡體中文",

@@ -6,15 +6,21 @@ import {
 	type PluginContext,
 } from "./core/context";
 
+// 设置相关
 import {
 	createDefaultSettings,
 	type SettingDatas,
 } from "./core/setting-datas";
 import { SettingStore } from "./core/setting-store";
+
 // 界面相关
 import { CNASettingTab } from "./ui/views/settings-tabs/settings-tab";
 import { registerSidebarFeature } from "./features/sidebar";
+import { registerRibbonFeature } from "./features/ribbon";
 // 功能相关
+import { registerGuidebookSidebarView } from "./features/guidebook";
+import { registerStickyNoteSidebarView } from "./features/sticky-note";
+import { registerStickyNoteFloatingFeature } from "./features/sticky-note/floating-manager";
 import { registerCharacterCountFeature } from "./features/character-count";
 import { registerCommandsFeature } from "./features/commands";
 import { registerTextDetectionFeature } from "./features/text-detection";
@@ -33,6 +39,10 @@ export default class CNAPlugin extends Plugin {
 
 		// 注册界面
 		this.ctx.addSettingTab(new CNASettingTab(this.app, this, this.ctx));
+		registerRibbonFeature(this, this.ctx);
+		registerGuidebookSidebarView(this, this.ctx);
+		registerStickyNoteSidebarView(this, this.ctx);
+		registerStickyNoteFloatingFeature(this, this.ctx);
 		registerSidebarFeature(this, this.ctx);
 		
 		// 注册功能

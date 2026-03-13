@@ -1,6 +1,5 @@
 import { setIcon } from "obsidian";
-import { UI } from "../../../core/constants";
-import { STICKY_NOTE_COLORS } from "../../../features/sticky-note";
+import { STICKY_NOTE_COLORS, UI } from "../../../core/constants";
 import type { TranslationKey } from "../../../lang";
 import type { StickyNoteCardMenuCommand } from "../../../features/sticky-note/menu-actions";
 

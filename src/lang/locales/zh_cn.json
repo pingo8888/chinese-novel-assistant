@@ -1,4 +1,5 @@
 {
+	"ribbon.tooltip": "中文小说写作助手",
 	"settings.language.name": "界面语言",
 	"settings.language.desc": "选择插件使用的语言。",
 	"settings.language.option.zh_cn": "简体中文",

@@ -3,7 +3,7 @@ import { createSettingsSectionHeading } from "./heading";
 import type { SettingsTabRenderContext } from "./types";
 
 export function renderStickyNoteSettings(containerEl: HTMLElement, deps: SettingsTabRenderContext): void {
-	const { app, ctx, refresh } = deps;
+	const { ctx, refresh } = deps;
 	const panelEl = containerEl.createDiv({ cls: "cna-settings-panel" });
 	createSettingsSectionHeading(panelEl, ctx.t("settings.sticky_note.section.main"));
 
@@ -14,18 +14,6 @@ export function renderStickyNoteSettings(containerEl: HTMLElement, deps: Setting
 		.addToggle((toggle) =>
 			toggle.setValue(ctx.settings.stickyNoteEnabled).onChange(async (value) => {
 				await ctx.setSettings({ stickyNoteEnabled: value });
-				if (!value) {
-					for (const leaf of app.workspace.getLeavesOfType("sticky-note-sidebar")) {
-						leaf.detach();
-					}
-					refresh();
-					return;
-				}
-				await app.workspace.ensureSideLeaf("sticky-note-sidebar", "right", {
-					active: false,
-					reveal: false,
-					split: false,
-				});
 				refresh();
 			}),
 		);

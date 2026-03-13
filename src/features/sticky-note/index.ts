@@ -2,16 +2,6 @@ import type { Plugin, WorkspaceLeaf } from "obsidian";
 import type { PluginContext } from "../../core/context";
 import { StickyNoteSidebarView } from "../../ui/views/sticky-note/item-view";
 
-export const STICKY_NOTE_COLORS = [
-	"#4A86E9",
-	"#7B61FF",
-	"#47B881",
-	"#F6C445",
-	"#F59E0B",
-	"#F05D6C",
-	"#9CA3AF",
-] as const;
-
 export const STICKY_NOTE_FLOAT_DEFAULT_WIDTH = 292;
 export const STICKY_NOTE_FLOAT_DEFAULT_HEIGHT = 119;
 export const STICKY_NOTE_FLOAT_MIN_WIDTH = 220;
@@ -64,4 +54,19 @@ export function detachStickyNoteSidebars(plugin: Plugin): void {
 	for (const leaf of plugin.app.workspace.getLeavesOfType("sticky-note-sidebar")) {
 		leaf.detach();
 	}
+}
+
+export async function openStickyNoteSidebar(plugin: Plugin, focus: boolean): Promise<void> {
+	const stickyNoteLeaf = await plugin.app.workspace.ensureSideLeaf(
+		"sticky-note-sidebar",
+		"right",
+		{
+			active: focus,
+			reveal: true,
+			split: false,
+		},
+	);
+	plugin.app.workspace.setActiveLeaf(stickyNoteLeaf, {
+		focus,
+	});
 }

@@ -8,7 +8,6 @@ export class GuidebookSidebarView extends ItemView {
 
 	constructor(
 		leaf: WorkspaceLeaf,
-		private readonly getTooltipText: () => string,
 		private readonly ctx: PluginContext,
 	) {
 		super(leaf);
@@ -19,7 +18,7 @@ export class GuidebookSidebarView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return this.getTooltipText();
+		return this.ctx.t("feature.right_sidebar.guidebook.tab.tooltip");
 	}
 
 	getIcon(): string {

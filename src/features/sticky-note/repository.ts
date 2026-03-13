@@ -1,10 +1,10 @@
 import { TFile, TFolder, type App } from "obsidian";
 import type { SettingDatas } from "../../core/setting-datas";
+import { STICKY_NOTE_COLORS } from "../../core/constants";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
 import type { StickyNoteCardModel, StickyNoteImageModel } from "../../ui/views/sticky-note/types";
 import { extractPlainTextFromMarkdown, normalizeMarkdownLineEndings } from "./markdown-utils";
 import {
-	STICKY_NOTE_COLORS,
 	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
 	resolveStickyNoteFloatDefaultHeightByRows,
 } from "./index";
