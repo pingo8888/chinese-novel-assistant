@@ -1,6 +1,7 @@
 import { App, TFolder } from "obsidian";
-import type { SupportedLocale } from "../lang";
 import type { SettingDatas } from "../core/setting-datas";
+
+const NOVEL_LIBRARY_FEATURE_DIR_NAME = "00_功能库";
 
 export const NOVEL_LIBRARY_SUBDIR_NAMES = {
 	guidebook: "设定库",
@@ -10,28 +11,7 @@ export const NOVEL_LIBRARY_SUBDIR_NAMES = {
 } as const;
 
 type NovelLibrarySubdirKey = keyof typeof NOVEL_LIBRARY_SUBDIR_NAMES;
-
 const NOVEL_LIBRARY_SUBDIR_KEYS = Object.keys(NOVEL_LIBRARY_SUBDIR_NAMES) as NovelLibrarySubdirKey[];
-
-const NOVEL_LIBRARY_FEATURE_DIR_NAMES: Record<SupportedLocale, string> = {
-	zh_cn: "00_功能库",
-	zh_tw: "00_功能庫",
-};
-
-const NOVEL_LIBRARY_SUBDIR_NAMES_BY_LOCALE: Record<SupportedLocale, Record<NovelLibrarySubdirKey, string>> = {
-	zh_cn: {
-		guidebook: "设定库",
-		stickyNote: "便签库",
-		snippet: "片段库",
-		proofreadDictionary: "纠错词库",
-	},
-	zh_tw: {
-		guidebook: "設定庫",
-		stickyNote: "便箋庫",
-		snippet: "片段庫",
-		proofreadDictionary: "糾錯詞庫",
-	},
-};
 
 export class NovelLibraryService {
 	private app: App;
@@ -95,45 +75,23 @@ export class NovelLibraryService {
 		return this.resolveContainingLibraryRoot(path, libraryRoots) !== null;
 	}
 
-	private getNovelLibraryFeatureRootPath(normalizedLibraryPath: string, locale: SupportedLocale): string {
-		if (!normalizedLibraryPath) {
-			return "";
-		}
-
-		const preferredFeatureDirName = this.resolveFeatureLibraryDirName(locale);
-		if (!preferredFeatureDirName) {
-			return "";
-		}
-
-		const candidateFeatureRootPaths = this.resolveFeatureLibraryDirNameCandidates(locale)
-			.map((dirName) => this.normalizeVaultPath(`${normalizedLibraryPath}/${dirName}`))
-			.filter((path) => path.length > 0);
-
-		const existingFeatureRootPath = this.resolveBestExistingFeatureRootPath(candidateFeatureRootPaths, locale);
-		if (existingFeatureRootPath) {
-			return existingFeatureRootPath;
-		}
-
-		return this.normalizeVaultPath(`${normalizedLibraryPath}/${preferredFeatureDirName}`);
-	}
-
-	resolveNovelLibrarySubdirPaths(settings: Pick<SettingDatas, "locale">, libraryPath: string): string[] {
+	resolveNovelLibrarySubdirPaths(_settings: Pick<SettingDatas, "locale">, libraryPath: string): string[] {
 		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
 		if (!normalizedLibraryPath) {
 			return [];
 		}
-		const featureRootPath = this.getNovelLibraryFeatureRootPath(normalizedLibraryPath, settings.locale);
+		const featureRootPath = this.resolveFeatureRootPath(normalizedLibraryPath);
 		if (!featureRootPath) {
 			return [];
 		}
 
 		return NOVEL_LIBRARY_SUBDIR_KEYS
-			.map((subdirKey) => this.resolveCompatibleSubdirPath(featureRootPath, settings.locale, subdirKey))
+			.map((subdirKey) => this.normalizeVaultPath(`${featureRootPath}/${NOVEL_LIBRARY_SUBDIR_NAMES[subdirKey]}`))
 			.filter((path) => path.length > 0);
 	}
 
 	resolveNovelLibrarySubdirPath(
-		settings: Pick<SettingDatas, "locale">,
+		_settings: Pick<SettingDatas, "locale">,
 		libraryPath: string,
 		subdirName: string,
 	): string {
@@ -142,46 +100,62 @@ export class NovelLibraryService {
 		if (!normalizedLibraryPath || !normalizedSubdirName) {
 			return "";
 		}
-
-		const featureRootPath = this.getNovelLibraryFeatureRootPath(normalizedLibraryPath, settings.locale);
+		const featureRootPath = this.resolveFeatureRootPath(normalizedLibraryPath);
 		if (!featureRootPath) {
 			return "";
 		}
 
-		const subdirKey = this.resolveSubdirKey(normalizedSubdirName);
-		if (!subdirKey) {
-			return this.normalizeVaultPath(`${featureRootPath}/${normalizedSubdirName}`);
-		}
-		return this.resolveCompatibleSubdirPath(featureRootPath, settings.locale, subdirKey);
+		const resolvedSubdirName = this.resolveSubdirName(normalizedSubdirName);
+		return this.normalizeVaultPath(`${featureRootPath}/${resolvedSubdirName}`);
 	}
 
-	resolveNovelLibraryFeatureRootPath(
-		settings: Pick<SettingDatas, "locale">,
-		libraryPath: string,
-	): string {
+	resolveNovelLibraryFeatureRootPath(_settings: Pick<SettingDatas, "locale">, libraryPath: string): string {
 		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
 		if (!normalizedLibraryPath) {
 			return "";
 		}
-		return this.getNovelLibraryFeatureRootPath(normalizedLibraryPath, settings.locale);
+		return this.resolveFeatureRootPath(normalizedLibraryPath);
 	}
 
-	async ensureNovelLibraryStructure(settings: Pick<SettingDatas, "locale">, libraryPath: string): Promise<void> {
+	async ensureNovelLibraryStructure(_settings: Pick<SettingDatas, "locale">, libraryPath: string): Promise<void> {
 		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
 		if (!normalizedLibraryPath) {
 			return;
 		}
 
 		await this.ensureFolderPath(normalizedLibraryPath);
-		const featureRootPath = this.getNovelLibraryFeatureRootPath(normalizedLibraryPath, settings.locale);
+		const featureRootPath = this.resolveFeatureRootPath(normalizedLibraryPath);
 		if (!featureRootPath) {
 			return;
 		}
 		await this.ensureFolderPath(featureRootPath);
 		for (const subdirKey of NOVEL_LIBRARY_SUBDIR_KEYS) {
-			const subdirPath = this.resolveCompatibleSubdirPath(featureRootPath, settings.locale, subdirKey);
-			await this.ensureFolderPath(subdirPath);
+			await this.ensureFolderPath(
+				this.normalizeVaultPath(`${featureRootPath}/${NOVEL_LIBRARY_SUBDIR_NAMES[subdirKey]}`),
+			);
 		}
+	}
+
+	private resolveFeatureRootPath(normalizedLibraryPath: string): string {
+		if (!normalizedLibraryPath) {
+			return "";
+		}
+		return this.normalizeVaultPath(`${normalizedLibraryPath}/${NOVEL_LIBRARY_FEATURE_DIR_NAME}`);
+	}
+
+	private resolveSubdirName(subdirName: string): string {
+		const normalizedInput = this.normalizeVaultPath(subdirName);
+		const normalizedInputLower = normalizedInput.toLowerCase();
+		if (!normalizedInputLower) {
+			return "";
+		}
+
+		for (const subdirKey of NOVEL_LIBRARY_SUBDIR_KEYS) {
+			if (normalizedInputLower === subdirKey.toLowerCase()) {
+				return NOVEL_LIBRARY_SUBDIR_NAMES[subdirKey];
+			}
+		}
+		return normalizedInput;
 	}
 
 	private async ensureFolderPath(path: string): Promise<void> {
@@ -205,128 +179,4 @@ export class NovelLibraryService {
 			}
 		}
 	}
-
-	private resolveFeatureLibraryDirName(locale: SupportedLocale): string {
-		return this.normalizeVaultPath(NOVEL_LIBRARY_FEATURE_DIR_NAMES[locale]);
-	}
-
-	private resolveFeatureLibraryDirNameCandidates(locale: SupportedLocale): string[] {
-		const preferred = this.resolveFeatureLibraryDirName(locale);
-		const candidates = [preferred];
-		for (const supportedLocale of Object.keys(NOVEL_LIBRARY_FEATURE_DIR_NAMES) as SupportedLocale[]) {
-			const candidate = this.normalizeVaultPath(NOVEL_LIBRARY_FEATURE_DIR_NAMES[supportedLocale]);
-			if (!candidate || candidates.includes(candidate)) {
-				continue;
-			}
-			candidates.push(candidate);
-		}
-		return candidates;
-	}
-
-	private resolveNovelLibrarySubdirName(locale: SupportedLocale, subdirKey: NovelLibrarySubdirKey): string {
-		return this.normalizeVaultPath(NOVEL_LIBRARY_SUBDIR_NAMES_BY_LOCALE[locale][subdirKey]);
-	}
-
-	private resolveNovelLibrarySubdirNameCandidates(locale: SupportedLocale, subdirKey: NovelLibrarySubdirKey): string[] {
-		const preferred = this.resolveNovelLibrarySubdirName(locale, subdirKey);
-		const candidates = [preferred];
-		for (const supportedLocale of Object.keys(NOVEL_LIBRARY_SUBDIR_NAMES_BY_LOCALE) as SupportedLocale[]) {
-			const candidate = this.normalizeVaultPath(NOVEL_LIBRARY_SUBDIR_NAMES_BY_LOCALE[supportedLocale][subdirKey]);
-			if (!candidate || candidates.includes(candidate)) {
-				continue;
-			}
-			candidates.push(candidate);
-		}
-		return candidates;
-	}
-
-	private resolveSubdirKey(subdirName: string): NovelLibrarySubdirKey | null {
-		const normalizedInput = this.normalizeVaultPath(subdirName).toLowerCase();
-		if (!normalizedInput) {
-			return null;
-		}
-
-		for (const subdirKey of NOVEL_LIBRARY_SUBDIR_KEYS) {
-			if (normalizedInput === subdirKey.toLowerCase()) {
-				return subdirKey;
-			}
-			for (const supportedLocale of Object.keys(NOVEL_LIBRARY_SUBDIR_NAMES_BY_LOCALE) as SupportedLocale[]) {
-				const localizedName = this.normalizeVaultPath(NOVEL_LIBRARY_SUBDIR_NAMES_BY_LOCALE[supportedLocale][subdirKey]).toLowerCase();
-				if (normalizedInput === localizedName) {
-					return subdirKey;
-				}
-			}
-		}
-		return null;
-	}
-
-	private resolveCompatibleSubdirPath(
-		featureRootPath: string,
-		locale: SupportedLocale,
-		subdirKey: NovelLibrarySubdirKey,
-	): string {
-		const subdirCandidates = this.resolveNovelLibrarySubdirNameCandidates(locale, subdirKey)
-			.map((subdirName) => this.normalizeVaultPath(`${featureRootPath}/${subdirName}`))
-			.filter((path) => path.length > 0);
-		const existingPath = this.resolveExistingFolderPath(subdirCandidates);
-		if (existingPath) {
-			return existingPath;
-		}
-
-		const preferredSubdirName = this.resolveNovelLibrarySubdirName(locale, subdirKey);
-		return this.normalizeVaultPath(`${featureRootPath}/${preferredSubdirName}`);
-	}
-
-	private resolveBestExistingFeatureRootPath(candidateFeatureRootPaths: string[], locale: SupportedLocale): string | null {
-		const existingFeatureRootPaths = candidateFeatureRootPaths.filter((path) => this.isExistingFolderPath(path));
-		if (existingFeatureRootPaths.length === 0) {
-			return null;
-		}
-		if (existingFeatureRootPaths.length === 1) {
-			return existingFeatureRootPaths[0] ?? null;
-		}
-
-		let bestPath = existingFeatureRootPaths[0] ?? null;
-		let bestScore = bestPath ? this.countExistingSubdirsInFeatureRoot(bestPath, locale) : -1;
-		for (const candidatePath of existingFeatureRootPaths.slice(1)) {
-			const score = this.countExistingSubdirsInFeatureRoot(candidatePath, locale);
-			if (score > bestScore) {
-				bestPath = candidatePath;
-				bestScore = score;
-			}
-		}
-		return bestPath;
-	}
-
-	private countExistingSubdirsInFeatureRoot(featureRootPath: string, locale: SupportedLocale): number {
-		let count = 0;
-		for (const subdirKey of NOVEL_LIBRARY_SUBDIR_KEYS) {
-			const subdirCandidates = this.resolveNovelLibrarySubdirNameCandidates(locale, subdirKey)
-				.map((subdirName) => this.normalizeVaultPath(`${featureRootPath}/${subdirName}`))
-				.filter((path) => path.length > 0);
-			if (this.resolveExistingFolderPath(subdirCandidates)) {
-				count += 1;
-			}
-		}
-		return count;
-	}
-
-	private resolveExistingFolderPath(paths: string[]): string | null {
-		for (const path of paths) {
-			if (this.isExistingFolderPath(path)) {
-				return path;
-			}
-		}
-		return null;
-	}
-
-	private isExistingFolderPath(path: string): boolean {
-		if (!path) {
-			return false;
-		}
-		const entry = this.app.vault.getAbstractFileByPath(path);
-		return entry instanceof TFolder;
-	}
 }
-
-

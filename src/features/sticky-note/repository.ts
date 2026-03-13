@@ -18,11 +18,11 @@ type StickyNoteFileData = Record<string, unknown>;
 
 // 单便签文件的解析结果
 interface ParseStickyNoteResult {
-	data: StickyNoteFileData;
-	contentMarkdown: string;
+	data: StickyNoteFileData;		// 便签元数据
+	contentMarkdown: string;		// 便签内容
 }
 
-// 创建浮动便签时的数据项
+// 创建浮动便签时的数据
 interface CreateStickyNoteFileOptions {
 	isFloating?: boolean;
 	floatX?: number;
