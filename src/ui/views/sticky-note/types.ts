@@ -4,15 +4,14 @@ export type StickyNoteSortMode =
 	| "modified_desc"
 	| "modified_asc";
 
-export interface StickyNoteImageModel {
+export interface StickyNoteImage {
 	id: string;
 	src: string;
-	name: string;
 	revokeOnDestroy: boolean;
 	vaultPath?: string;
 }
 
-export interface StickyNoteCardModel {
+export interface StickyNoteCard {
 	id: string;
 	sourcePath: string;
 	cwData: Record<string, unknown>;
@@ -21,7 +20,7 @@ export interface StickyNoteCardModel {
 	contentMarkdown: string;
 	contentPlainText: string;
 	tagsText: string;
-	images: StickyNoteImageModel[];
+	images: StickyNoteImage[];
 	isImageExpanded: boolean;
 	isPinned: boolean;
 	colorHex?: string;
@@ -36,3 +35,4 @@ export interface StickyNoteViewOptions {
 	defaultRows: number;
 	tagHintTextEnabled: boolean;
 }
+

@@ -158,7 +158,7 @@ export class NovelLibraryService {
 		return normalizedInput;
 	}
 
-	private async ensureFolderPath(path: string): Promise<void> {
+	async ensureFolderPath(path: string): Promise<void> {
 		const normalizedPath = this.normalizeVaultPath(path);
 		if (!normalizedPath) {
 			return;
