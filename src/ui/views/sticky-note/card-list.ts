@@ -1,7 +1,7 @@
 import { Notice, type App } from "obsidian";
 import type { TranslationKey } from "../../../lang";
 import { renderStickyNoteCardItem } from "./card-item";
-import type { StickyNoteCardModel, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
+import type { StickyNoteCard, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
 import { closeStickyNoteCardMenu } from "./card-menu";
 import type { SettingDatas } from "../../../core/setting-datas";
 import { StickyNoteRepository } from "../../../features/sticky-note/repository";
@@ -34,7 +34,7 @@ interface StickyNoteCardListState {
 	sortMode: StickyNoteSortMode;
 	searchKeyword: string;
 	viewOptions: StickyNoteViewOptions;
-	cards: StickyNoteCardModel[];
+	cards: StickyNoteCard[];
 }
 
 export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNoteCardListController {
@@ -51,7 +51,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 	let cardItemDisposers: Array<() => void> = [];
 	const fileReadVersionByPath = new Map<string, number>();
 
-	const replaceCards = (nextCards: StickyNoteCardModel[]): void => {
+	const replaceCards = (nextCards: StickyNoteCard[]): void => {
 		for (const card of state.cards) {
 			revokeImageUrls(card.images);
 		}
@@ -94,7 +94,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 		return true;
 	};
 
-	const upsertCard = (nextCard: StickyNoteCardModel): void => {
+	const upsertCard = (nextCard: StickyNoteCard): void => {
 		const index = state.cards.findIndex((item) => item.sourcePath === nextCard.sourcePath);
 		if (index < 0) {
 			state.cards.push(nextCard);
@@ -143,7 +143,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 		}
 	};
 
-	const persistCard = async (card: StickyNoteCardModel): Promise<void> => {
+	const persistCard = async (card: StickyNoteCard): Promise<void> => {
 		try {
 			await repository.saveCard(card);
 		} catch (error) {
@@ -155,7 +155,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 		}
 	};
 
-	const deleteCardFromVault = async (card: StickyNoteCardModel): Promise<boolean> => {
+	const deleteCardFromVault = async (card: StickyNoteCard): Promise<boolean> => {
 		try {
 			await repository.deleteCard(card);
 			return true;
@@ -286,7 +286,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 	};
 }
 
-function getVisibleCards(state: StickyNoteCardListState): StickyNoteCardModel[] {
+function getVisibleCards(state: StickyNoteCardListState): StickyNoteCard[] {
 	const keyword = state.searchKeyword.trim().toLowerCase();
 	const nonFloatingCards = state.cards.filter((card) => !card.isFloating);
 	const matched = keyword.length === 0
@@ -295,7 +295,7 @@ function getVisibleCards(state: StickyNoteCardListState): StickyNoteCardModel[] 
 	return [...matched].sort((left, right) => compareCards(left, right, state.sortMode));
 }
 
-function compareCards(left: StickyNoteCardModel, right: StickyNoteCardModel, sortMode: StickyNoteSortMode): number {
+function compareCards(left: StickyNoteCard, right: StickyNoteCard, sortMode: StickyNoteSortMode): number {
 	if (left.isPinned !== right.isPinned) {
 		return left.isPinned ? -1 : 1;
 	}
@@ -313,17 +313,18 @@ function compareCards(left: StickyNoteCardModel, right: StickyNoteCardModel, sor
 	}
 }
 
-function isCardMatched(card: StickyNoteCardModel, normalizedKeyword: string): boolean {
+function isCardMatched(card: StickyNoteCard, normalizedKeyword: string): boolean {
 	const searchSpace = `${card.contentPlainText}\n${card.tagsText}`.toLowerCase();
 	return searchSpace.includes(normalizedKeyword);
 }
 
-function revokeImageUrls(images: StickyNoteCardModel["images"]): void {
+function revokeImageUrls(images: StickyNoteCard["images"]): void {
 	for (const image of images) {
 		if (image.revokeOnDestroy) {
 			URL.revokeObjectURL(image.src);
 		}
 	}
 }
+
 
 

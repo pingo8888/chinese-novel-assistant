@@ -3,7 +3,7 @@ import {
 	UI,
 } from "../../../core/constants";
 import type { TranslationKey } from "../../../lang";
-import type { StickyNoteCardModel, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
+import type { StickyNoteCard, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
 import {
 	STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
 	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
@@ -21,7 +21,7 @@ import { extractPlainTextFromMarkdown, normalizeMarkdownLineEndings } from "../.
 interface StickyNoteCardItemDeps {
 	app: App;
 	containerEl: HTMLElement;
-	card: StickyNoteCardModel;
+	card: StickyNoteCard;
 	sortMode: StickyNoteSortMode;
 	viewOptions: StickyNoteViewOptions;
 	t: (key: TranslationKey) => string;
@@ -249,12 +249,13 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 		imageGridEl.empty();
 
 		for (const image of card.images) {
+			const imageName = resolveImageFileName(image.vaultPath);
 			const imageCardEl = imageGridEl.createDiv({ cls: "cna-sticky-note-card__image-card" });
 			const imageEl = imageCardEl.createEl("img", {
 				cls: "cna-sticky-note-card__image",
 				attr: {
 					src: image.src,
-					alt: image.name,
+					alt: imageName,
 					tabindex: "0",
 				},
 			});
@@ -262,7 +263,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 			imageEl.addEventListener("click", (event) => {
 				event.preventDefault();
 				event.stopPropagation();
-				openImagePreview(deps.app, image.src, image.name);
+				openImagePreview(deps.app, image.src, imageName);
 			});
 			imageEl.addEventListener("keydown", (event) => {
 				if (event.key !== "Enter" && event.key !== " ") {
@@ -270,7 +271,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 				}
 				event.preventDefault();
 				event.stopPropagation();
-				openImagePreview(deps.app, image.src, image.name);
+				openImagePreview(deps.app, image.src, imageName);
 			});
 			const removeButtonEl = imageCardEl.createEl("button", {
 				cls: "cna-sticky-note-card__image-remove",
@@ -324,7 +325,6 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 			{
 				id: `${card.id}-image-${Date.now()}-${Math.random().toString(16).slice(2)}`,
 				src: preview.src,
-				name: imageFile.name,
 				revokeOnDestroy: preview.revokeOnDestroy,
 				vaultPath: imageFile.path,
 			},
@@ -508,7 +508,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 	};
 }
 
-function resolveHeaderTimestamp(card: StickyNoteCardModel, sortMode: StickyNoteSortMode): number {
+function resolveHeaderTimestamp(card: StickyNoteCard, sortMode: StickyNoteSortMode): number {
 	switch (sortMode) {
 		case "created_desc":
 		case "created_asc":
@@ -832,6 +832,15 @@ function parsePixelValue(value: string, fallback: number): number {
 	return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function resolveImageFileName(vaultPath?: string): string {
+	const normalized = (vaultPath ?? "").trim().replace(/\\/g, "/");
+	if (!normalized) {
+		return "image";
+	}
+	const segments = normalized.split("/").filter((segment) => segment.length > 0);
+	return segments[segments.length - 1] ?? "image";
+}
+
 function buildPlainToMarkdownBoundaryMap(markdown: string, plainText: string): number[] {
 	const boundaries = new Array<number>(plainText.length + 1).fill(markdown.length);
 	boundaries[0] = 0;
@@ -869,5 +878,6 @@ function extractPlainTextForCaretMapping(markdown: string): string {
 		.replace(/^\n+/, "")
 		.replace(/\n+$/, "");
 }
+
 
 

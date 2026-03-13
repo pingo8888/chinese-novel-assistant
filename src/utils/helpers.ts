@@ -49,3 +49,31 @@ export function asNumber(value: unknown, fallback: number): number {
 export function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
+
+// 规范化正数尺寸，非法或非正值时返回回退值。
+export function normalizePositiveSize(value: number, fallback: number): number {
+	return Number.isFinite(value) && value > 0 ? Math.round(value) : fallback;
+}
+
+// 规范化坐标值，非法时回退到 0。
+export function normalizePosition(value: number): number {
+	return Number.isFinite(value) ? Math.round(value) : 0;
+}
+
+// 将数值约束在 [min, max] 区间内。
+export function clamp(value: number, min: number, max: number): number {
+	return Math.max(min, Math.min(max, value));
+}
+
+// 比较两个字符串数组是否按相同顺序完全一致。
+export function areStringArraysEqual(left: string[], right: string[]): boolean {
+	if (left.length !== right.length) {
+		return false;
+	}
+	for (let index = 0; index < left.length; index += 1) {
+		if (left[index] !== right[index]) {
+			return false;
+		}
+	}
+	return true;
+}

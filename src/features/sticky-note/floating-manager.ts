@@ -1,10 +1,13 @@
 import { MarkdownView, Notice, TFile, type Plugin } from "obsidian";
 import type { PluginContext } from "../../core/context";
-import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
-import { StickyNoteRepository } from "./repository";
+
 import { bindVaultChangeWatcher } from "../../services/vault-change-watcher";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
+
+import { StickyNoteRepository } from "./repository";
 import { renderStickyNoteCardItem } from "../../ui/views/sticky-note/card-item";
-import type { StickyNoteCardModel, StickyNoteViewOptions } from "../../ui/views/sticky-note/types";
+import type { StickyNoteCard, StickyNoteViewOptions } from "../../ui/views/sticky-note/types";
+import { areStringArraysEqual, clamp, normalizePosition, normalizePositiveSize } from "../../utils/helpers";
 import {
 	STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
 	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
@@ -22,7 +25,7 @@ const STICKY_TAB_FLASH_DURATION_MS = 220;
 const STICKY_TAB_FLASH_ITERATIONS = 4;
 
 interface FloatingWindowEntry {
-	card: StickyNoteCardModel;
+	card: StickyNoteCard;
 	windowEl: HTMLElement;
 	contentSurfaceEls: HTMLElement[];
 	disposeCardItem: () => void;
@@ -80,6 +83,7 @@ class StickyNoteFloatingFeature {
 		this.lastScopeReferencePath = this.plugin.app.workspace.getActiveFile()?.path ?? null;
 		this.refreshStickyNoteScope();
 
+		// 绑定便签文件变更监听
 		bindVaultChangeWatcher(this.plugin, this.plugin.app, (event) => {
 			if (this.isUnloaded) {
 				return;
@@ -223,7 +227,7 @@ class StickyNoteFloatingFeature {
 		this.addOrReplaceFloatingWindow(card);
 	}
 
-	private addOrReplaceFloatingWindow(card: StickyNoteCardModel): void {
+	private addOrReplaceFloatingWindow(card: StickyNoteCard): void {
 		this.removeFloatingWindow(card.sourcePath);
 
 		const layerEl = this.ensureLayer();
@@ -286,7 +290,7 @@ class StickyNoteFloatingFeature {
 		};
 	}
 
-	private async deleteCard(card: StickyNoteCardModel): Promise<void> {
+	private async deleteCard(card: StickyNoteCard): Promise<void> {
 		try {
 			await this.repository.deleteCard(card);
 		} catch (error) {
@@ -297,7 +301,7 @@ class StickyNoteFloatingFeature {
 		}
 	}
 
-	private schedulePersist(card: StickyNoteCardModel): void {
+	private schedulePersist(card: StickyNoteCard): void {
 		this.cancelPersist(card.sourcePath);
 		const timer = window.setTimeout(() => {
 			this.saveTimerByPath.delete(card.sourcePath);
@@ -315,7 +319,7 @@ class StickyNoteFloatingFeature {
 		this.saveTimerByPath.delete(path);
 	}
 
-	private async persistCard(card: StickyNoteCardModel): Promise<void> {
+	private async persistCard(card: StickyNoteCard): Promise<void> {
 		try {
 			await this.repository.saveCard(card);
 		} catch (error) {
@@ -324,7 +328,7 @@ class StickyNoteFloatingFeature {
 		}
 	}
 
-	private bindFloatingWindowInteractions(windowEl: HTMLElement, card: StickyNoteCardModel, contentSurfaceEls: HTMLElement[]): () => void {
+	private bindFloatingWindowInteractions(windowEl: HTMLElement, card: StickyNoteCard, contentSurfaceEls: HTMLElement[]): () => void {
 		const headerEl = windowEl.querySelector<HTMLElement>(".cna-sticky-note-card__header");
 		const resizeHandleEl = windowEl.createDiv({ cls: FLOAT_RESIZE_HANDLE_CLASS });
 		let removeDragListeners: (() => void) | null = null;
@@ -424,7 +428,7 @@ class StickyNoteFloatingFeature {
 
 	private applyWindowFrame(
 		windowEl: HTMLElement,
-		card: StickyNoteCardModel,
+		card: StickyNoteCard,
 		clampToViewport: boolean,
 		options?: ApplyWindowFrameOptions,
 	): void {
@@ -433,10 +437,10 @@ class StickyNoteFloatingFeature {
 		const viewportHeight = Math.max(1, bounds.height);
 		const maxWidth = Math.max(1, viewportWidth - 8);
 		const minWidth = Math.min(STICKY_NOTE_FLOAT_MIN_WIDTH, maxWidth);
-		const width = clamp(normalizeSize(card.floatW, STICKY_NOTE_FLOAT_DEFAULT_WIDTH), minWidth, maxWidth);
+		const width = clamp(normalizePositiveSize(card.floatW, STICKY_NOTE_FLOAT_DEFAULT_WIDTH), minWidth, maxWidth);
 		const defaultContentHeight = STICKY_NOTE_FLOAT_DEFAULT_HEIGHT;
 		const contentHeight = clamp(
-			normalizeSize(card.floatH, defaultContentHeight),
+			normalizePositiveSize(card.floatH, defaultContentHeight),
 			STICKY_NOTE_FLOAT_MIN_HEIGHT,
 			Math.max(STICKY_NOTE_FLOAT_MIN_HEIGHT, viewportHeight - 56),
 		);
@@ -607,30 +611,6 @@ function resolveScopedStickyRootPaths(
 	);
 	const normalizedStickyRootPath = novelLibraryService.normalizeVaultPath(stickyRootPath);
 	return normalizedStickyRootPath ? [normalizedStickyRootPath] : allRoots;
-}
-
-function areStringArraysEqual(left: string[], right: string[]): boolean {
-	if (left.length !== right.length) {
-		return false;
-	}
-	for (let index = 0; index < left.length; index += 1) {
-		if (left[index] !== right[index]) {
-			return false;
-		}
-	}
-	return true;
-}
-
-function normalizeSize(value: number, fallback: number): number {
-	return Number.isFinite(value) && value > 0 ? Math.round(value) : fallback;
-}
-
-function normalizePosition(value: number): number {
-	return Number.isFinite(value) ? Math.round(value) : 0;
-}
-
-function clamp(value: number, min: number, max: number): number {
-	return Math.max(min, Math.min(max, value));
 }
 
 function resolveFloatingBounds(): FloatingBounds {
