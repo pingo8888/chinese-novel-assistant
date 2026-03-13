@@ -1,38 +1,34 @@
 import { TFile, TFolder, type App } from "obsidian";
 import type { SettingDatas } from "../../core/setting-datas";
-import { STICKY_NOTE_COLORS } from "../../core/constants";
+
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
 import type { StickyNoteCardModel, StickyNoteImageModel } from "../../ui/views/sticky-note/types";
-import { extractPlainTextFromMarkdown, normalizeMarkdownLineEndings } from "./markdown-utils";
+import { extractPlainTextFromMarkdown, normalizeMarkdownLineEndings } from "../../utils/markdown-text";
+
+import { STICKY_NOTE_COLORS } from "../../core/constants";
 import {
+	STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
 	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
-	resolveStickyNoteFloatDefaultHeightByRows,
 } from "./index";
 
 const STICKY_NOTE_WARNING_TEXT = "数据由灵感便签管理，请勿删除或手动修改";
-const MISSING_IMAGE_PLACEHOLDER_DATA_URI = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
 const STICKY_NOTE_DEFAULT_COLOR = "#9CA3AF";
 
 type StickyNoteFileData = Record<string, unknown>;
 
+// 单便签文件的解析结果
 interface ParseStickyNoteResult {
 	data: StickyNoteFileData;
 	contentMarkdown: string;
 }
 
-interface ListStickyNotesOptions {
-	imageAutoExpand: boolean;
-	rootPaths?: string[];
-	defaultRows?: number;
-}
-
+// 创建浮动便签时的数据项
 interface CreateStickyNoteFileOptions {
 	isFloating?: boolean;
 	floatX?: number;
 	floatY?: number;
 	floatW?: number;
 	floatH?: number;
-	defaultRows?: number;
 }
 
 export class StickyNoteRepository {
@@ -44,8 +40,8 @@ export class StickyNoteRepository {
 		this.novelLibraryService = new NovelLibraryService(app);
 	}
 
-	async listCards(settings: SettingDatas, options: ListStickyNotesOptions): Promise<StickyNoteCardModel[]> {
-		const stickyRoots = this.resolveStickyRoots(settings, options.rootPaths);
+	async listCards(settings: SettingDatas, rootPaths?: string[]): Promise<StickyNoteCardModel[]> {
+		const stickyRoots = this.resolveStickyRoots(settings, rootPaths);
 		if (stickyRoots.length === 0) {
 			return [];
 		}
@@ -53,17 +49,17 @@ export class StickyNoteRepository {
 			.getMarkdownFiles()
 			.filter((file) => stickyRoots.some((root) => this.novelLibraryService.isSameOrChildPath(file.path, root)));
 		const cards = await Promise.all(
-			markdownFiles.map((file) => this.readCardFromFile(file, options.imageAutoExpand, options.defaultRows)),
+			markdownFiles.map((file) => this.readCardFromFile(file)),
 		);
 		return cards.filter((card): card is StickyNoteCardModel => card !== null);
 	}
 
-	async getCardByPath(path: string, options: ListStickyNotesOptions): Promise<StickyNoteCardModel | null> {
+	async getCardByPath(path: string): Promise<StickyNoteCardModel | null> {
 		const entry = this.app.vault.getAbstractFileByPath(path);
 		if (!(entry instanceof TFile) || !entry.path.toLowerCase().endsWith(".md")) {
 			return null;
 		}
-		return this.readCardFromFile(entry, options.imageAutoExpand, options.defaultRows);
+		return this.readCardFromFile(entry);
 	}
 
 	async createCardFile(stickyRootPath: string, options?: CreateStickyNoteFileOptions): Promise<TFile> {
@@ -129,14 +125,13 @@ export class StickyNoteRepository {
 		return Array.from(new Set(roots));
 	}
 
-	private async readCardFromFile(file: TFile, imageAutoExpand: boolean, defaultRows?: number): Promise<StickyNoteCardModel | null> {
+	private async readCardFromFile(file: TFile): Promise<StickyNoteCardModel | null> {
 		try {
 			const raw = await this.app.vault.cachedRead(file);
 			const parsed = parseStickyNoteFile(raw);
 			const imagePaths = parseCsvPaths(parsed.data["images"], (value) => this.novelLibraryService.normalizeVaultPath(value));
 			const images = this.resolveImageModels(file.path, imagePaths);
 			const contentMarkdown = normalizeMarkdownLineEndings(parsed.contentMarkdown);
-			const defaultFloatHeight = resolveStickyNoteFloatDefaultHeightByRows(defaultRows ?? Number.NaN);
 			return {
 				id: file.path,
 				sourcePath: file.path,
@@ -147,14 +142,14 @@ export class StickyNoteRepository {
 				contentPlainText: extractPlainTextFromMarkdown(contentMarkdown),
 				tagsText: parseTagsToText(parsed.data["tags"]),
 				images,
-				isImageExpanded: imageAutoExpand,
+				isImageExpanded: asBoolean(parsed.data["isimageexpanded"], false),
 				isPinned: asBoolean(parsed.data["ispinned"], false),
 				colorHex: parseColorHex(parsed.data["color"]),
 				isFloating: asBoolean(parsed.data["isfloating"], false),
 				floatX: asNumber(parsed.data["floatx"], 0),
 				floatY: asNumber(parsed.data["floaty"], 0),
 				floatW: asNumber(parsed.data["floatw"], STICKY_NOTE_FLOAT_DEFAULT_WIDTH),
-				floatH: asNumber(parsed.data["floath"], defaultFloatHeight),
+				floatH: asNumber(parsed.data["floath"], STICKY_NOTE_FLOAT_DEFAULT_HEIGHT),
 			};
 		} catch {
 			return null;
@@ -162,18 +157,26 @@ export class StickyNoteRepository {
 	}
 
 	private resolveImageModels(notePath: string, imagePaths: string[]): StickyNoteImageModel[] {
-		return imagePaths.map((path, index) => {
+		const models: StickyNoteImageModel[] = [];
+		for (let index = 0; index < imagePaths.length; index += 1) {
+			const path = imagePaths[index];
+			if (!path) {
+				continue;
+			}
 			const normalizedPath = this.novelLibraryService.normalizeVaultPath(path);
 			const entry = this.app.vault.getAbstractFileByPath(normalizedPath);
-			const imageFile = entry instanceof TFile ? entry : null;
-			return {
+			if (!(entry instanceof TFile)) {
+				continue;
+			}
+			models.push({
 				id: `${notePath}::image::${index}`,
-				src: imageFile ? this.app.vault.getResourcePath(imageFile) : MISSING_IMAGE_PLACEHOLDER_DATA_URI,
-				name: imageFile?.name ?? resolveBaseName(normalizedPath),
+				src: this.app.vault.getResourcePath(entry),
+				name: entry.name,
 				revokeOnDestroy: false,
 				vaultPath: normalizedPath,
-			};
-		});
+			});
+		}
+		return models;
 	}
 
 	private async ensureFolderPath(path: string): Promise<void> {
@@ -219,18 +222,18 @@ function pad2(value: number): string {
 }
 
 function buildDefaultStickyNoteFileContent(options?: CreateStickyNoteFileOptions): string {
-	const defaultFloatHeight = resolveStickyNoteFloatDefaultHeightByRows(options?.defaultRows ?? Number.NaN);
 	const data: StickyNoteFileData = {
 		warning: STICKY_NOTE_WARNING_TEXT,
 		ispinned: false,
 		color: pickRandomStickyNoteColor(),
 		tags: "",
 		images: "",
+		isimageexpanded: false,
 		isfloating: options?.isFloating ?? false,
 		floatx: Number.isFinite(options?.floatX) ? Math.round(options?.floatX ?? 0) : 0,
 		floaty: Number.isFinite(options?.floatY) ? Math.round(options?.floatY ?? 0) : 0,
 		floatw: Number.isFinite(options?.floatW) ? Math.round(options?.floatW ?? STICKY_NOTE_FLOAT_DEFAULT_WIDTH) : STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
-		floath: Number.isFinite(options?.floatH) ? Math.round(options?.floatH ?? defaultFloatHeight) : defaultFloatHeight,
+		floath: Number.isFinite(options?.floatH) ? Math.round(options?.floatH ?? STICKY_NOTE_FLOAT_DEFAULT_HEIGHT) : STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
 	};
 	return `<!---cw-data\n${JSON.stringify(data, null, 2)}\n--->\n`;
 }
@@ -291,6 +294,7 @@ function serializeStickyNoteFile(card: StickyNoteCardModel, novelLibraryService:
 		color: card.colorHex ?? "",
 		tags: serializeTags(card.tagsText),
 		images: normalizedImagePaths.join(","),
+		isimageexpanded: card.isImageExpanded,
 		isfloating: card.isFloating,
 		floatx: Math.round(card.floatX),
 		floaty: Math.round(card.floatY),
@@ -372,17 +376,6 @@ function asNumber(value: unknown, fallback: number): number {
 	return fallback;
 }
 
-function resolveBaseName(path: string): string {
-	const normalized = path.trim();
-	if (!normalized) {
-		return "image";
-	}
-	const segments = normalized.split("/");
-	return segments[segments.length - 1] ?? "image";
-}
-
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-
-

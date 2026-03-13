@@ -54,7 +54,6 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Plug
 		return {
 			defaultRows: settings.stickyNoteDefaultRows,
 			tagHintTextEnabled: settings.stickyNoteTagHintTextEnabled,
-			imageAutoExpand: settings.stickyNoteImageAutoExpand,
 		};
 	};
 
@@ -192,9 +191,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Plug
 			return;
 		}
 		try {
-			const file = await repository.createCardFile(stickyRootPath, {
-				defaultRows: ctx.settings.stickyNoteDefaultRows,
-			});
+			const file = await repository.createCardFile(stickyRootPath);
 			cardList.applyVaultFileCreateOrModify(file.path);
 		} catch (error) {
 			console.error("[Chinese Novel Assistant] Failed to create sticky note.", error);

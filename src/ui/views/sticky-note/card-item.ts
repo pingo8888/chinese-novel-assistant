@@ -5,18 +5,18 @@ import {
 import type { TranslationKey } from "../../../lang";
 import type { StickyNoteCardModel, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
 import {
+	STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
 	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
 	STICKY_NOTE_FLOAT_LEFT_GAP,
 	STICKY_NOTE_FLOAT_MIN_HEIGHT,
 	STICKY_NOTE_FLOAT_MIN_WIDTH,
-	resolveStickyNoteFloatDefaultHeightByRows,
 } from "../../../features/sticky-note";
 import { showStickyNoteContentMenu } from "./content-menu";
 import { applyStickyNoteCardMenuCommand, applyStickyNoteRichTextCommand } from "../../../features/sticky-note/menu-actions";
 import { promptVaultImageFile } from "../../modals/vault-image-picker-modal";
 import { showStickyNoteCardMenu } from "./card-menu";
 import { openImagePreview } from "../../modals/image-preview-modal";
-import { extractPlainTextFromMarkdown, normalizeMarkdownLineEndings } from "../../../features/sticky-note/markdown-utils";
+import { extractPlainTextFromMarkdown, normalizeMarkdownLineEndings } from "../../../utils/markdown-text";
 
 interface StickyNoteCardItemDeps {
 	app: App;
@@ -450,25 +450,15 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 		renderImageToggle();
 		renderImages();
 		deps.onImageExpandedChange?.(card.isImageExpanded);
+		deps.onCardTouched();
 	});
 
 	pinButtonEl.addEventListener("click", () => {
 		card.isFloating = !card.isFloating;
 		if (card.isFloating) {
-			const defaultFloatHeight = resolveStickyNoteFloatDefaultHeightByRows(deps.viewOptions.defaultRows);
 			const cardRect = rootEl.getBoundingClientRect();
-			const contentSurfaceEl = contentSectionEl.querySelector<HTMLElement>(".cna-sticky-note-card__surface");
-			const contentRect = contentSurfaceEl?.getBoundingClientRect();
-			if (shouldUseDefaultFloatMetric(card.floatW, STICKY_NOTE_FLOAT_DEFAULT_WIDTH)) {
-				card.floatW = normalizeFloatSize(cardRect.width, STICKY_NOTE_FLOAT_DEFAULT_WIDTH, STICKY_NOTE_FLOAT_MIN_WIDTH);
-			} else {
-				card.floatW = normalizeFloatSize(card.floatW, STICKY_NOTE_FLOAT_DEFAULT_WIDTH, STICKY_NOTE_FLOAT_MIN_WIDTH);
-			}
-			if (shouldUseDefaultFloatMetric(card.floatH, defaultFloatHeight)) {
-				card.floatH = normalizeFloatSize(contentRect?.height ?? cardRect.height, defaultFloatHeight, STICKY_NOTE_FLOAT_MIN_HEIGHT);
-			} else {
-				card.floatH = normalizeFloatSize(card.floatH, defaultFloatHeight, STICKY_NOTE_FLOAT_MIN_HEIGHT);
-			}
+			card.floatW = normalizeFloatSize(card.floatW, STICKY_NOTE_FLOAT_DEFAULT_WIDTH, STICKY_NOTE_FLOAT_MIN_WIDTH);
+			card.floatH = normalizeFloatSize(card.floatH, STICKY_NOTE_FLOAT_DEFAULT_HEIGHT, STICKY_NOTE_FLOAT_MIN_HEIGHT);
 			if (!isFiniteNumber(card.floatX) && !isFiniteNumber(card.floatY)) {
 				card.floatX = 0;
 				card.floatY = 0;
@@ -565,13 +555,6 @@ function normalizeFloatSize(value: number, fallback: number, min: number): numbe
 
 function isFiniteNumber(value: number): boolean {
 	return Number.isFinite(value);
-}
-
-function shouldUseDefaultFloatMetric(value: number, defaultValue: number): boolean {
-	if (!Number.isFinite(value) || value <= 0) {
-		return true;
-	}
-	return Math.abs(value - defaultValue) <= 1;
 }
 
 function resolveInitialFloatingPosition(cardRect: DOMRect, floatingWidth: number): { x: number; y: number } {

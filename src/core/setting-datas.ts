@@ -21,7 +21,6 @@ export interface SettingDatas {
 	// 便签
 	stickyNoteEnabled: boolean;
 	stickyNoteDefaultRows: number;
-	stickyNoteImageAutoExpand: boolean;
 	stickyNoteTagHintTextEnabled: boolean;
 
 	// 纠错
@@ -83,7 +82,6 @@ export function createDefaultSettings(): SettingDatas {
 		guidebookPreviewMaxLines: 8,
 		stickyNoteEnabled: true,
 		stickyNoteDefaultRows: 5,
-		stickyNoteImageAutoExpand: false,
 		stickyNoteTagHintTextEnabled: true,
 
 		proofreadCommonPunctuationEnabled: false,

@@ -1,7 +1,7 @@
 import { Notice, Plugin, type Editor } from "obsidian";
 import type { PluginContext } from "../../core/context";
 import {
-	resolveStickyNoteFloatDefaultHeightByRows,
+	STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
 	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
 	STICKY_NOTE_FLOAT_LEFT_GAP,
 } from "../sticky-note";
@@ -137,7 +137,7 @@ async function runCreateStickyNoteCommand(
 
 	try {
 		const width = STICKY_NOTE_FLOAT_DEFAULT_WIDTH;
-		const contentHeight = resolveStickyNoteFloatDefaultHeightByRows(ctx.settings.stickyNoteDefaultRows);
+		const contentHeight = STICKY_NOTE_FLOAT_DEFAULT_HEIGHT;
 		const position = resolveCommandCreatedFloatingPosition(width);
 		const file = await repository.createCardFile(stickyRootPath, {
 			isFloating: true,

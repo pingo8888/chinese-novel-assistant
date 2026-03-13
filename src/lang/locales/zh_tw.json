@@ -54,8 +54,6 @@
 	"settings.sticky_note.enable.desc": "開啟後，右邊欄顯示便箋視圖",
 	"settings.sticky_note.default_rows.name": "便箋預設行數",
 	"settings.sticky_note.default_rows.desc": "設定便箋預覽預設顯示行數（縮併時會自動展開）",
-	"settings.sticky_note.image_expand.name": "圖片預設展開",
-	"settings.sticky_note.image_expand.desc": "開啟後，便箋包含圖片時預設展開圖片區",
 	"settings.sticky_note.tag_hint.name": "標籤欄文字提示",
 	"settings.sticky_note.tag_hint.desc": "關閉後，標籤欄空狀態不顯示示例提示文字",
 	"settings.guidebook.section.keyword_highlight": "關鍵字高亮樣式",

@@ -1,4 +1,4 @@
-import { Notice, TFile, type Plugin } from "obsidian";
+import { MarkdownView, Notice, TFile, type Plugin } from "obsidian";
 import type { PluginContext } from "../../core/context";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
 import { StickyNoteRepository } from "./repository";
@@ -6,10 +6,10 @@ import { bindVaultChangeWatcher } from "../../services/vault-change-watcher";
 import { renderStickyNoteCardItem } from "../../ui/views/sticky-note/card-item";
 import type { StickyNoteCardModel, StickyNoteViewOptions } from "../../ui/views/sticky-note/types";
 import {
+	STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
 	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
 	STICKY_NOTE_FLOAT_MIN_HEIGHT,
 	STICKY_NOTE_FLOAT_MIN_WIDTH,
-	resolveStickyNoteFloatDefaultHeightByRows,
 } from "./index";
 
 const FLOAT_LAYER_CLASS = "cna-sticky-note-floating-layer";
@@ -63,8 +63,8 @@ class StickyNoteFloatingFeature {
 	private isUnloaded = false;
 	private lastViewportWidth = 0;
 	private lastViewportHeight = 0;
-	private imageExpandedByPath = new Map<string, boolean>();
-	private imageAutoExpandSetting = false;
+	private stickyNoteRootPaths: string[] = [];
+	private lastScopeReferencePath: string | null = null;
 
 	constructor(plugin: Plugin, ctx: PluginContext) {
 		this.plugin = plugin;
@@ -77,13 +77,15 @@ class StickyNoteFloatingFeature {
 		this.ensureLayer();
 		this.lastViewportWidth = Math.max(1, window.innerWidth);
 		this.lastViewportHeight = Math.max(1, window.innerHeight);
-		this.imageAutoExpandSetting = this.ctx.settings.stickyNoteImageAutoExpand;
+		this.lastScopeReferencePath = this.plugin.app.workspace.getActiveFile()?.path ?? null;
+		this.refreshStickyNoteScope();
 
 		bindVaultChangeWatcher(this.plugin, this.plugin.app, (event) => {
 			if (this.isUnloaded) {
 				return;
 			}
 			if (event.type === "rename" && !(event.file instanceof TFile)) {
+				this.refreshStickyNoteScope(event.path);
 				this.scheduleRefreshAll();
 				return;
 			}
@@ -111,18 +113,24 @@ class StickyNoteFloatingFeature {
 		});
 
 		const unsubscribeSettingsChange = this.ctx.onSettingsChange(() => {
-			const nextImageAutoExpand = this.ctx.settings.stickyNoteImageAutoExpand;
-			if (this.imageAutoExpandSetting !== nextImageAutoExpand) {
-				this.imageAutoExpandSetting = nextImageAutoExpand;
-				this.imageExpandedByPath.clear();
-				for (const entry of this.floatingEntriesByPath.values()) {
-					entry.card.isImageExpanded = nextImageAutoExpand;
-					this.imageExpandedByPath.set(entry.card.sourcePath, nextImageAutoExpand);
-				}
-			}
+			this.refreshStickyNoteScope();
 			this.scheduleRefreshAll();
 		});
 		this.plugin.register(unsubscribeSettingsChange);
+		this.plugin.registerEvent(
+			this.plugin.app.workspace.on("file-open", (file) => {
+				this.refreshStickyNoteScope(file?.path ?? null);
+			}),
+		);
+		this.plugin.registerEvent(
+			this.plugin.app.workspace.on("active-leaf-change", (leaf) => {
+				const markdownView = leaf?.view;
+				if (!(markdownView instanceof MarkdownView)) {
+					return;
+				}
+				this.refreshStickyNoteScope(markdownView.file?.path ?? null);
+			}),
+		);
 		this.plugin.registerDomEvent(window, "resize", () => {
 			this.handleViewportResize();
 		});
@@ -145,7 +153,6 @@ class StickyNoteFloatingFeature {
 			window.clearTimeout(timer);
 		}
 		this.saveTimerByPath.clear();
-		this.imageExpandedByPath.clear();
 		this.clearAllFloatingWindows();
 		this.layerEl?.remove();
 		this.layerEl = null;
@@ -177,10 +184,7 @@ class StickyNoteFloatingFeature {
 			return;
 		}
 
-		const cards = await this.repository.listCards(this.ctx.settings, {
-			imageAutoExpand: this.ctx.settings.stickyNoteImageAutoExpand,
-			defaultRows: this.ctx.settings.stickyNoteDefaultRows,
-		});
+		const cards = await this.repository.listCards(this.ctx.settings, this.stickyNoteRootPaths);
 		if (this.isUnloaded || this.refreshVersion !== currentRefreshVersion) {
 			return;
 		}
@@ -208,10 +212,7 @@ class StickyNoteFloatingFeature {
 			this.removeFloatingWindow(path);
 			return;
 		}
-		const card = await this.repository.getCardByPath(path, {
-			imageAutoExpand: this.ctx.settings.stickyNoteImageAutoExpand,
-			defaultRows: this.ctx.settings.stickyNoteDefaultRows,
-		});
+		const card = await this.repository.getCardByPath(path);
 		if (this.isUnloaded) {
 			return;
 		}
@@ -223,10 +224,6 @@ class StickyNoteFloatingFeature {
 	}
 
 	private addOrReplaceFloatingWindow(card: StickyNoteCardModel): void {
-		const preservedExpanded = this.imageExpandedByPath.get(card.sourcePath);
-		if (typeof preservedExpanded === "boolean") {
-			card.isImageExpanded = preservedExpanded;
-		}
 		this.removeFloatingWindow(card.sourcePath);
 
 		const layerEl = this.ensureLayer();
@@ -242,15 +239,11 @@ class StickyNoteFloatingFeature {
 			viewOptions: this.resolveFloatingViewOptions(),
 			t: (key) => this.ctx.t(key),
 			onCardTouched: () => {
-				this.imageExpandedByPath.set(card.sourcePath, card.isImageExpanded);
 				if (!card.isFloating) {
 					this.removeFloatingWindow(card.sourcePath);
 					this.flashStickyNoteTabIfNeeded();
 				}
 				this.schedulePersist(card);
-			},
-			onImageExpandedChange: (isExpanded) => {
-				this.imageExpandedByPath.set(card.sourcePath, isExpanded);
 			},
 			onCardDelete: () => {
 				void this.deleteCard(card);
@@ -273,7 +266,6 @@ class StickyNoteFloatingFeature {
 		if (!entry) {
 			return;
 		}
-		this.imageExpandedByPath.set(path, entry.card.isImageExpanded);
 		this.floatingEntriesByPath.delete(path);
 		this.cancelPersist(path);
 		entry.disposeInteractions();
@@ -291,14 +283,12 @@ class StickyNoteFloatingFeature {
 		return {
 			defaultRows: this.ctx.settings.stickyNoteDefaultRows,
 			tagHintTextEnabled: this.ctx.settings.stickyNoteTagHintTextEnabled,
-			imageAutoExpand: this.ctx.settings.stickyNoteImageAutoExpand,
 		};
 	}
 
 	private async deleteCard(card: StickyNoteCardModel): Promise<void> {
 		try {
 			await this.repository.deleteCard(card);
-			this.imageExpandedByPath.delete(card.sourcePath);
 		} catch (error) {
 			console.error("[Chinese Novel Assistant] Failed to delete floating sticky note.", error);
 			new Notice(this.ctx.t("feature.right_sidebar.sticky_note.notice.delete_failed"));
@@ -444,7 +434,7 @@ class StickyNoteFloatingFeature {
 		const maxWidth = Math.max(1, viewportWidth - 8);
 		const minWidth = Math.min(STICKY_NOTE_FLOAT_MIN_WIDTH, maxWidth);
 		const width = clamp(normalizeSize(card.floatW, STICKY_NOTE_FLOAT_DEFAULT_WIDTH), minWidth, maxWidth);
-		const defaultContentHeight = resolveStickyNoteFloatDefaultHeightByRows(this.ctx.settings.stickyNoteDefaultRows);
+		const defaultContentHeight = STICKY_NOTE_FLOAT_DEFAULT_HEIGHT;
 		const contentHeight = clamp(
 			normalizeSize(card.floatH, defaultContentHeight),
 			STICKY_NOTE_FLOAT_MIN_HEIGHT,
@@ -525,8 +515,27 @@ class StickyNoteFloatingFeature {
 		if (!path || !path.toLowerCase().endsWith(".md")) {
 			return false;
 		}
-		const stickyRoots = resolveStickyRootPaths(this.ctx.settings, this.novelLibraryService);
-		return stickyRoots.some((rootPath) => this.novelLibraryService.isSameOrChildPath(path, rootPath));
+		return this.stickyNoteRootPaths.some((rootPath) => this.novelLibraryService.isSameOrChildPath(path, rootPath));
+	}
+
+	private refreshStickyNoteScope(preferredFilePath?: string | null): void {
+		const activeFilePath = this.plugin.app.workspace.getActiveFile()?.path ?? null;
+		const referencePath = typeof preferredFilePath === "string" && preferredFilePath.length > 0
+			? preferredFilePath
+			: (activeFilePath ?? this.lastScopeReferencePath);
+		if (referencePath) {
+			this.lastScopeReferencePath = referencePath;
+		}
+		const nextRoots = resolveScopedStickyRootPaths(
+			this.ctx.settings,
+			this.novelLibraryService,
+			referencePath,
+		);
+		if (areStringArraysEqual(this.stickyNoteRootPaths, nextRoots)) {
+			return;
+		}
+		this.stickyNoteRootPaths = nextRoots;
+		this.scheduleRefreshAll();
 	}
 
 	private flashStickyNoteTabIfNeeded(): void {
@@ -571,6 +580,45 @@ function resolveStickyRootPaths(
 		.map((path) => novelLibraryService.normalizeVaultPath(path))
 		.filter((path) => path.length > 0);
 	return Array.from(new Set(roots));
+}
+
+function resolveScopedStickyRootPaths(
+	settings: PluginContext["settings"],
+	novelLibraryService: NovelLibraryService,
+	preferredFilePath?: string | null,
+): string[] {
+	const allRoots = resolveStickyRootPaths(settings, novelLibraryService);
+	if (allRoots.length === 0) {
+		return allRoots;
+	}
+	const normalizedLibraryRoots = novelLibraryService.normalizeLibraryRoots(settings.novelLibraries);
+	const referencePath = typeof preferredFilePath === "string" ? preferredFilePath : "";
+	if (!referencePath) {
+		return [];
+	}
+	const matchedLibraryRoot = novelLibraryService.resolveContainingLibraryRoot(referencePath, normalizedLibraryRoots);
+	if (!matchedLibraryRoot) {
+		return [];
+	}
+	const stickyRootPath = novelLibraryService.resolveNovelLibrarySubdirPath(
+		settings,
+		matchedLibraryRoot,
+		NOVEL_LIBRARY_SUBDIR_NAMES.stickyNote,
+	);
+	const normalizedStickyRootPath = novelLibraryService.normalizeVaultPath(stickyRootPath);
+	return normalizedStickyRootPath ? [normalizedStickyRootPath] : allRoots;
+}
+
+function areStringArraysEqual(left: string[], right: string[]): boolean {
+	if (left.length !== right.length) {
+		return false;
+	}
+	for (let index = 0; index < left.length; index += 1) {
+		if (left[index] !== right[index]) {
+			return false;
+		}
+	}
+	return true;
 }
 
 function normalizeSize(value: number, fallback: number): number {

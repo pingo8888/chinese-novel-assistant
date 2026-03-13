@@ -35,5 +35,4 @@ export interface StickyNoteCardModel {
 export interface StickyNoteViewOptions {
 	defaultRows: number;
 	tagHintTextEnabled: boolean;
-	imageAutoExpand: boolean;
 }

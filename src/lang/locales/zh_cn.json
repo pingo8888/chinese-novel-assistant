@@ -54,8 +54,6 @@
 	"settings.sticky_note.enable.desc": "开启后，右边栏显示便签视图",
 	"settings.sticky_note.default_rows.name": "便签默认行数",
 	"settings.sticky_note.default_rows.desc": "设置便签预览默认显示行数（缩并时会自动展开）",
-	"settings.sticky_note.image_expand.name": "图片默认展开",
-	"settings.sticky_note.image_expand.desc": "开启后，便签包含图片时默认展开图片区",
 	"settings.sticky_note.tag_hint.name": "标签栏文字提示",
 	"settings.sticky_note.tag_hint.desc": "关闭后，标签栏空状态不显示示例提示文字",
 	"settings.guidebook.section.keyword_highlight": "关键字高亮样式",

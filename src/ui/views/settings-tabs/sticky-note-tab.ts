@@ -35,20 +35,6 @@ export function renderStickyNoteSettings(containerEl: HTMLElement, deps: Setting
 		);
 
 	new Setting(panelEl)
-		.setName(ctx.t("settings.sticky_note.image_expand.name"))
-		.setDesc(ctx.t("settings.sticky_note.image_expand.desc"))
-		.setClass("cna-settings-item")
-		.setDisabled(!ctx.settings.stickyNoteEnabled)
-		.addToggle((toggle) =>
-			toggle
-				.setValue(ctx.settings.stickyNoteImageAutoExpand)
-				.setDisabled(!ctx.settings.stickyNoteEnabled)
-				.onChange(async (value) => {
-					await ctx.setSettings({ stickyNoteImageAutoExpand: value });
-				}),
-		);
-
-	new Setting(panelEl)
 		.setName(ctx.t("settings.sticky_note.tag_hint.name"))
 		.setDesc(ctx.t("settings.sticky_note.tag_hint.desc"))
 		.setClass("cna-settings-item")
