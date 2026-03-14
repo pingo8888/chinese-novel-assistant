@@ -2,7 +2,7 @@ import { Plugin } from "obsidian";
 import type { PluginContext } from "../../core/context";
 import { createPairPunctuationAutocompleteExtension } from "./providers/pair-punctuation";
 import { createSnippetTextFragmentAutocompleteExtension } from "./providers/text-fragment";
-import { createGuidebookQuickInsertAutocompleteExtension } from "./providers/guidebook-quick-insert";
+import { createGuidebookQuickInsertExt } from "./providers/guidebook-quick-insert";
 import { SnippetFragmentService } from "./text-fragment-parser";
 import { GuidebookQuickInsertService } from "../guidebook/quick-insert-keywords";
 
@@ -38,7 +38,7 @@ class TextAutocompleteFeature {
 			createPairPunctuationAutocompleteExtension(() => this.ctx.settings),
 		);
 		this.plugin.registerEditorExtension(
-			createGuidebookQuickInsertAutocompleteExtension(
+			createGuidebookQuickInsertExt(
 				this.plugin,
 				() => this.ctx.settings,
 				guidebookQuickInsertService,
