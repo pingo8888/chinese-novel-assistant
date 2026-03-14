@@ -1,7 +1,7 @@
 import type { EditorView } from "@codemirror/view";
 import { MarkdownView, TFile, type Plugin } from "obsidian";
 import { GuidebookMarkdownParser } from "../../guidebook/markdown-parser";
-import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../../services/novel-library-service";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../../core/novel-library-service";
 import type { SettingDatas } from "../../../core/setting-datas";
 import { resolveMarkdownViewByEditorView } from "../../../utils/markdown-editor-view";
 import type { TextDetectionRange, TextDetectionRule } from "../engine";

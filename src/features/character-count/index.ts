@@ -3,7 +3,7 @@ import { EditorView, gutter, GutterMarker, ViewPlugin, type ViewUpdate } from "@
 import { MarkdownView, Plugin, TFile } from "obsidian";
 import type { PluginContext } from "../../core/context";
 import type { SettingDatas } from "../../core/setting-datas";
-import { NovelLibraryService } from "../../services/novel-library-service";
+import { NovelLibraryService } from "../../core/novel-library-service";
 import { bindVaultChangeWatcher } from "../../core/vault-watcher";
 import {
 	countMarkdownCharacters,
@@ -642,5 +642,4 @@ function resolveEditorViewFromMarkdownView(view: MarkdownView): MaybeEditorView 
 	};
 	return editorAny.cm ?? editorAny.editor?.cm ?? null;
 }
-
 

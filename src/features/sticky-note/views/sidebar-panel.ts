@@ -6,7 +6,7 @@ import { showContextMenuAtMouseEvent } from "../../../ui/componets/context-menu"
 import { createStickyNoteCardList } from "./card-list";
 import type { StickyNoteSortMode, StickyNoteViewOptions } from "./types";
 import type { SettingDatas } from "../../../core/setting-datas";
-import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../../services/novel-library-service";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../../core/novel-library-service";
 import { StickyNoteRepository } from "../repository";
 type StickyNoteSparklesTooltipKey = "feature.right_sidebar.sticky_note.action.sparkles.tooltip";
 type StickyNoteSortTooltipKey =
