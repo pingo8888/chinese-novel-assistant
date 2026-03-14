@@ -4,7 +4,7 @@ import { MarkdownView, Plugin, TFile } from "obsidian";
 import type { PluginContext } from "../../core/context";
 import type { SettingDatas } from "../../core/setting-datas";
 import { NovelLibraryService } from "../../services/novel-library-service";
-import { bindVaultChangeWatcher } from "../../services/vault-change-watcher";
+import { bindVaultChangeWatcher } from "../../core/vault-watcher";
 import {
 	countMarkdownCharacters,
 	hasExcalidrawFrontmatter,

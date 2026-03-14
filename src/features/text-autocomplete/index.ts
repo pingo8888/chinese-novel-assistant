@@ -3,8 +3,8 @@ import type { PluginContext } from "../../core/context";
 import { createPairPunctuationAutocompleteExtension } from "./providers/pair-punctuation";
 import { createSnippetTextFragmentAutocompleteExtension } from "./providers/text-fragment";
 import { createGuidebookQuickInsertAutocompleteExtension } from "./providers/guidebook-quick-insert";
-import { SnippetFragmentService } from "../../services/snippet-fragment-service";
-import { GuidebookQuickInsertService } from "../../services/guidebook-quick-insert-service";
+import { SnippetFragmentService } from "./text-fragment-parser";
+import { GuidebookQuickInsertService } from "../guidebook/quick-insert-keywords";
 
 export function registerTextAutocompleteFeature(plugin: Plugin, ctx: PluginContext): void {
 	const feature = new TextAutocompleteFeature(plugin, ctx);
@@ -49,4 +49,7 @@ class TextAutocompleteFeature {
 		);
 	}
 }
+
+
+
 

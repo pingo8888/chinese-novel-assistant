@@ -1,14 +1,14 @@
 import type { EditorView } from "@codemirror/view";
 import { MarkdownView, Plugin } from "obsidian";
 import type { PluginContext } from "../../core/context";
-import { NovelLibraryService } from "../../services/novel-library-service";
-import { bindVaultChangeWatcher } from "../../services/vault-change-watcher";
+import { NovelLibraryService } from "../../core/novel-library-service";
+import { bindVaultChangeWatcher } from "../../core/vault-watcher";
 import { createTextDetectionExtension, createTextDetectionForceRefreshTransaction } from "./engine";
 import { createProofreadDictRules } from "./rules/proofread-dict";
 import { createEnPunctuationRules } from "./rules/en-punctuation";
 import { createPairPunctuationRules } from "./rules/pair-punctuation";
 import { GuidebookKeywordHighlightController } from "./rules/guidebook-keyword";
-import { ProofreadDictService } from "../../services/proofread-dict-service";
+import { ProofreadDictService } from "./proofread-dict-provider";
 import { GuidebookPreviewController } from "../guidebook/preview-controller";
 import { TextMenuGuidebookController } from "../guidebook/text-menu-controller";
 import {
@@ -160,3 +160,4 @@ class TextDetectionFeature {
 		return path === root || path.startsWith(`${root}/`);
 	}
 }
+

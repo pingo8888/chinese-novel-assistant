@@ -1,5 +1,5 @@
 import { Notice, Setting, TFolder } from "obsidian";
-import { NovelLibraryService } from "../../../services/novel-library-service";
+import { NovelLibraryService } from "../../../core/novel-library-service";
 import { attachFolderSuggest } from "../../../ui/componets/folder-suggest";
 import { askForConfirmation } from "../../../ui/modals/confirm-modal";
 import { createSettingsSectionHeading } from "./heading";

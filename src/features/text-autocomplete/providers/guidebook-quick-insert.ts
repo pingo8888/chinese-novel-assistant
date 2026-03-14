@@ -6,8 +6,8 @@ import type { SettingDatas } from "../../../core/setting-datas";
 import {
 	GuidebookQuickInsertService,
 	type GuidebookQuickInsertCandidate,
-} from "../../../services/guidebook-quick-insert-service";
-import { NovelLibraryService } from "../../../services/novel-library-service";
+} from "../../guidebook/quick-insert-keywords";
+import { NovelLibraryService } from "../../../core/novel-library-service";
 import { CandidatePanelComponent } from "../../../ui/componets/candidate-panel";
 import { resolveMarkdownViewByEditorView } from "../../../utils/markdown-editor-view";
 
@@ -284,5 +284,6 @@ export function createGuidebookQuickInsertAutocompleteExtension(
 function containsCjk(value: string): boolean {
 	return /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/.test(value);
 }
+
 
 

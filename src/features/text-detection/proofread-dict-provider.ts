@@ -1,8 +1,8 @@
 import { App, Plugin } from "obsidian";
-import { MarkdownParseService } from "./markdown-parse-service";
-import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "./novel-library-service";
-import type { SettingDatas } from "../core/setting-datas";
-import { bindVaultChangeWatcher } from "./vault-change-watcher";
+import { MarkdownParseService } from "../../services/markdown-parse-service";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
+import type { SettingDatas } from "../../core/setting-datas";
+import { bindVaultChangeWatcher } from "../../core/vault-watcher";
 
 interface ProofreadDictLineEntry {
 	wrong: string;
@@ -295,5 +295,6 @@ export class ProofreadDictService {
 		}
 	}
 }
+
 
 

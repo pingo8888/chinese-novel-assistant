@@ -7,7 +7,7 @@ import {
 } from "../sticky-note";
 import { StickyNoteRepository } from "../sticky-note/repository";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
-import { ProofreadDictService } from "../../services/proofread-dict-service";
+import { ProofreadDictService } from "../text-detection/proofread-dict-provider";
 import { fixProofreadDictErrors } from "../text-detection/rules/proofread-dict";
 import { fixEnPunctuationErrors } from "../text-detection/rules/en-punctuation";
 import { fixPairPunctuationErrors } from "../text-detection/rules/pair-punctuation";
@@ -217,3 +217,4 @@ function queryRightSplitRect(): DOMRect | null {
 	}
 	return rightSplitEl.getBoundingClientRect();
 }
+

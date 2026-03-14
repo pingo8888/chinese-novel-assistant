@@ -1,6 +1,6 @@
 import { App, TFile } from "obsidian";
 import type { SettingDatas } from "../core/setting-datas";
-import { NovelLibraryService } from "./novel-library-service";
+import { NovelLibraryService } from "../core/novel-library-service";
 
 export interface MarkdownParseRequest {
 	settings: Pick<SettingDatas, "novelLibraries">;

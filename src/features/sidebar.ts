@@ -8,7 +8,7 @@ import {
 
 // 注册sidebar功能，用于处理两个视图的编排
 export function registerSidebarFeature(plugin: Plugin, ctx: PluginContext): void {
-	// 在布局准备好后，打开引导书侧边栏和便签侧边栏
+	// 在布局准备好后，打开设定集侧边栏和便签侧边栏
 	plugin.app.workspace.onLayoutReady(() => {
 		void openGuidebookSidebarWithStickyNote(plugin, ctx);
 	});

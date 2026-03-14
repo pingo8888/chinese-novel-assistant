@@ -1,8 +1,8 @@
 import { MarkdownView, Notice, TFile, type Plugin } from "obsidian";
 import type { PluginContext } from "../../core/context";
 
-import { bindVaultChangeWatcher } from "../../services/vault-change-watcher";
-import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../services/novel-library-service";
+import { bindVaultChangeWatcher } from "../../core/vault-watcher";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../core/novel-library-service";
 
 import { StickyNoteRepository } from "./repository";
 import { renderStickyNoteCardItem } from "./views/card-item";

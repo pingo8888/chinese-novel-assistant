@@ -3,8 +3,8 @@ import { EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { type Plugin } from "obsidian";
 import { translate } from "../../../lang";
 import type { SettingDatas } from "../../../core/setting-datas";
-import { SnippetFragmentService, type SnippetFragment } from "../../../services/snippet-fragment-service";
-import { NovelLibraryService } from "../../../services/novel-library-service";
+import { SnippetFragmentService, type SnippetFragment } from "../text-fragment-parser";
+import { NovelLibraryService } from "../../../core/novel-library-service";
 import { CandidatePanelComponent } from "../../../ui/componets/candidate-panel";
 import { resolveMarkdownViewByEditorView } from "../../../utils/markdown-editor-view";
 
@@ -310,5 +310,7 @@ export function createSnippetTextFragmentAutocompleteExtension(
 		),
 	);
 }
+
+
 
 

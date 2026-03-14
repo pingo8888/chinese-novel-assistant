@@ -2,7 +2,7 @@ import type { PluginContext } from "../../../core/context";
 import { MarkdownView, setIcon, TFile, TFolder } from "obsidian";
 import { UI } from "../../../core/constants";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../../services/novel-library-service";
-import { type VaultChangeEvent, watchVaultChanges } from "../../../services/vault-change-watcher";
+import { type VaultChangeEvent, watchVaultChanges } from "../../../core/vault-watcher";
 import { ClearableInputComponent } from "../../../ui/componets/clearable-input";
 import { ToggleButtonComponent } from "../../../ui/componets/toggle-button";
 import { createGuidebookTreeViewComponent, type GuidebookTreeExpandedStateSnapshot } from "./outline-tree";
