@@ -2,6 +2,7 @@ import { Component, type App, MarkdownRenderer, setIcon } from "obsidian";
 import type { GuidebookKeywordPreviewItem } from "../../../features/text-detection/rules/guidebook-keyword";
 import { UI } from "../../../core/constants";
 import type { TranslationKey } from "../../../lang";
+import { clamp } from "../../../utils/helpers";
 
 export interface GuidebookPreviewDisplayOptions {
 	width: number;
@@ -266,16 +267,6 @@ export class GuidebookPreviewPopover {
 
 		return { left, top };
 	}
-}
-
-function clamp(value: number, min: number, max: number): number {
-	if (value < min) {
-		return min;
-	}
-	if (value > max) {
-		return max;
-	}
-	return value;
 }
 
 function parseAliasesAndContent(content: string): { aliases: string[]; content: string; status: "死亡" | "失效" | null } {

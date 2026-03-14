@@ -1,3 +1,5 @@
+import { clamp } from "../../utils/helpers";
+
 export interface CandidatePanelRenderContext<TItem> {
 	item: TItem;
 	index: number;
@@ -166,7 +168,7 @@ export class CandidatePanelComponent<TItem> {
 		if (totalPages <= 1) {
 			return false;
 		}
-		const nextPage = this.clamp(this.state.page + offset, 1, totalPages);
+		const nextPage = clamp(this.state.page + offset, 1, totalPages);
 		if (nextPage === this.state.page) {
 			return false;
 		}
@@ -291,7 +293,7 @@ export class CandidatePanelComponent<TItem> {
 		if (pageItems.length === 0) {
 			return null;
 		}
-		const selectedIndex = this.clamp(this.state.selectedIndex, 0, pageItems.length - 1);
+		const selectedIndex = clamp(this.state.selectedIndex, 0, pageItems.length - 1);
 		const item = pageItems[selectedIndex];
 		if (!item) {
 			return null;
@@ -314,7 +316,7 @@ export class CandidatePanelComponent<TItem> {
 			this.state.selectedIndex = 0;
 			return;
 		}
-		this.state.selectedIndex = this.clamp(this.state.selectedIndex, 0, currentPageItems.length - 1);
+		this.state.selectedIndex = clamp(this.state.selectedIndex, 0, currentPageItems.length - 1);
 	}
 
 	private buildDefaultFooterText(): string {
@@ -347,7 +349,7 @@ export class CandidatePanelComponent<TItem> {
 
 	private normalizePage(nextPage: number, items: readonly TItem[], pageSize: number): number {
 		const totalPages = this.getTotalPages(items, pageSize);
-		return this.clamp(nextPage, 1, totalPages);
+		return clamp(nextPage, 1, totalPages);
 	}
 
 	private wrapIndex(value: number, maxIndex: number): number {
@@ -363,7 +365,4 @@ export class CandidatePanelComponent<TItem> {
 		return value;
 	}
 
-	private clamp(value: number, min: number, max: number): number {
-		return Math.min(max, Math.max(min, value));
-	}
 }

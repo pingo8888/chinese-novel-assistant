@@ -8,6 +8,7 @@ import type { StickyNoteSortMode, StickyNoteViewOptions } from "./types";
 import type { SettingDatas } from "../../../core/setting-datas";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../../core/novel-library-service";
 import { StickyNoteRepository } from "../repository";
+import { areStringArraysEqual } from "../../../utils/helpers";
 type StickyNoteSparklesTooltipKey = "feature.right_sidebar.sticky_note.action.sparkles.tooltip";
 type StickyNoteSortTooltipKey =
 	| "feature.right_sidebar.sticky_note.sort.tooltip.desc"
@@ -353,18 +354,6 @@ function resolveScopedStickyNoteRootPaths(
 	);
 	const normalizedStickyRootPath = novelLibraryService.normalizeVaultPath(stickyRootPath);
 	return normalizedStickyRootPath ? [normalizedStickyRootPath] : allRoots;
-}
-
-function areStringArraysEqual(left: string[], right: string[]): boolean {
-	if (left.length !== right.length) {
-		return false;
-	}
-	for (let index = 0; index < left.length; index += 1) {
-		if (left[index] !== right[index]) {
-			return false;
-		}
-	}
-	return true;
 }
 
 function resolveTargetStickyNoteRootPath(

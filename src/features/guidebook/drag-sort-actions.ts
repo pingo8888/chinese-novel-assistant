@@ -1,6 +1,7 @@
 import { type App, Notice, TFile } from "obsidian";
 import type { TranslationKey } from "../../lang";
 import type { SettingDatas } from "../../core/setting-datas";
+import { areStringArraysEqual, clamp } from "../../utils/helpers";
 import { GuidebookMarkdownParser } from "./markdown-parser";
 import type {
 	GuidebookTreeData,
@@ -316,7 +317,7 @@ function moveLineRange(lines: string[], startLine: number, endLine: number, inse
 	if (movedBlock.length === 0) {
 		return lines;
 	}
-	let normalizedInsertLine = clampLineIndex(insertLine, 0, lines.length);
+	let normalizedInsertLine = clamp(insertLine, 0, lines.length);
 	if (normalizedInsertLine > startLine) {
 		normalizedInsertLine -= movedBlock.length;
 	}
@@ -332,7 +333,7 @@ function removeLineRange(lines: string[], startLine: number, endLine: number): s
 }
 
 function insertLineRange(lines: string[], insertLine: number, insertedLines: string[]): string[] {
-	const normalizedInsertLine = clampLineIndex(insertLine, 0, lines.length);
+	const normalizedInsertLine = clamp(insertLine, 0, lines.length);
 	return [...lines.slice(0, normalizedInsertLine), ...insertedLines, ...lines.slice(normalizedInsertLine)];
 }
 
@@ -345,16 +346,6 @@ function splitLines(content: string): string[] {
 
 function joinLines(lines: string[]): string {
 	return lines.join("\n");
-}
-
-function clampLineIndex(value: number, min: number, max: number): number {
-	if (value < min) {
-		return min;
-	}
-	if (value > max) {
-		return max;
-	}
-	return value;
 }
 
 function resolveCollectionFileByPath(app: App, path: string): TFile | null {
@@ -410,18 +401,6 @@ function movePathInArray(
 	const insertIndex = position === "before" ? targetIndex : targetIndex + 1;
 	next.splice(insertIndex, 0, sourcePath);
 	return next;
-}
-
-function areStringArraysEqual(left: string[], right: string[]): boolean {
-	if (left.length !== right.length) {
-		return false;
-	}
-	for (let index = 0; index < left.length; index += 1) {
-		if (left[index] !== right[index]) {
-			return false;
-		}
-	}
-	return true;
 }
 
 

@@ -4,6 +4,7 @@ import { ProofreadDictService } from "../text-detection/proofread-dict-provider"
 import { fixEnPunctuationErrors } from "../text-detection/rules/en-punctuation";
 import { fixPairPunctuationErrors } from "../text-detection/rules/pair-punctuation";
 import { fixProofreadDictErrors } from "../text-detection/rules/proofread-dict";
+import { clamp } from "../../utils/helpers";
 
 export function registerProofreadCommands(plugin: Plugin, ctx: PluginContext): void {
 	plugin.addCommand({
@@ -52,7 +53,7 @@ function runFixPunctuationCommand(ctx: PluginContext, editor: Editor): void {
 
 	const cursorOffset = editor.posToOffset(editor.getCursor());
 	editor.setValue(fixedText);
-	const nextCursorOffset = Math.max(0, Math.min(cursorOffset, fixedText.length));
+	const nextCursorOffset = clamp(cursorOffset, 0, fixedText.length);
 	editor.setCursor(editor.offsetToPos(nextCursorOffset));
 	new Notice(`${ctx.t("command.proofread.fix_punctuation_errors.done")} ${fixedCount}`);
 }
@@ -82,7 +83,7 @@ async function runFixProofreadDictCommand(ctx: PluginContext, editor: Editor): P
 
 	const cursorOffset = editor.posToOffset(editor.getCursor());
 	editor.setValue(fixResult.text);
-	const nextCursorOffset = Math.max(0, Math.min(cursorOffset, fixResult.text.length));
+	const nextCursorOffset = clamp(cursorOffset, 0, fixResult.text.length);
 	editor.setCursor(editor.offsetToPos(nextCursorOffset));
 	new Notice(`${ctx.t("command.proofread.fix_proofread_dict_errors.done")} ${fixResult.replacedCount}`);
 }
