@@ -57,8 +57,8 @@ export function showStickyNoteCardMenu(args: ShowStickyNoteCardMenuArgs): void {
 	rootEl.createDiv({ cls: "cna-sticky-note-card-menu__divider" });
 
 	const pinItemEl = createMenuItemButton(rootEl, UI.ICON.PIN, args.isPinned
-		? args.t("feature.right_sidebar.sticky_note.card.menu.unpin")
-		: args.t("feature.right_sidebar.sticky_note.card.menu.pin"));
+		? args.t("feature.sticky_note.menu.unpin")
+		: args.t("feature.sticky_note.menu.pin"));
 	if (!allowPinToggle) {
 		pinItemEl.addClass("is-disabled");
 	} else {
@@ -71,7 +71,7 @@ export function showStickyNoteCardMenu(args: ShowStickyNoteCardMenuArgs): void {
 	const deleteItemEl = createMenuItemButton(
 		rootEl,
 		UI.ICON.DELETE,
-		args.t("feature.right_sidebar.sticky_note.card.menu.delete"),
+		args.t("feature.sticky_note.menu.delete"),
 		true,
 	);
 	if (!allowDelete) {
@@ -165,6 +165,8 @@ function toRgba(hex: string, alpha: number): string {
 	const clampedAlpha = Math.max(0, Math.min(1, alpha));
 	return `rgba(${red}, ${green}, ${blue}, ${clampedAlpha})`;
 }
+
+
 
 
 

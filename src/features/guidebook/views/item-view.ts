@@ -18,7 +18,7 @@ export class GuidebookSidebarView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return this.ctx.t("feature.right_sidebar.guidebook.tab.tooltip");
+		return this.ctx.t("feature.guidebook.tab.tooltip");
 	}
 
 	getIcon(): string {
@@ -40,5 +40,6 @@ export class GuidebookSidebarView extends ItemView {
 		return Promise.resolve();
 	}
 }
+
 
 

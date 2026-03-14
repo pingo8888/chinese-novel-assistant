@@ -295,7 +295,7 @@ class StickyNoteFloatingFeature {
 			await this.repository.deleteCard(card);
 		} catch (error) {
 			console.error("[Chinese Novel Assistant] Failed to delete floating sticky note.", error);
-			new Notice(this.ctx.t("feature.right_sidebar.sticky_note.notice.delete_failed"));
+			new Notice(this.ctx.t("feature.sticky_note.notice.delete_failed"));
 		} finally {
 			this.removeFloatingWindow(card.sourcePath);
 		}
@@ -324,7 +324,7 @@ class StickyNoteFloatingFeature {
 			await this.repository.saveCard(card);
 		} catch (error) {
 			console.error("[Chinese Novel Assistant] Failed to save floating sticky note.", error);
-			new Notice(this.ctx.t("feature.right_sidebar.sticky_note.notice.save_failed"));
+			new Notice(this.ctx.t("feature.sticky_note.notice.save_failed"));
 		}
 	}
 
@@ -667,4 +667,5 @@ function isStickyNoteTabActiveInRightSidebar(): boolean {
 	const selector = `.workspace-split.mod-right-split .workspace-tab-header.is-active[data-type="sticky-note-sidebar"]`;
 	return document.querySelector(selector) !== null;
 }
+
 

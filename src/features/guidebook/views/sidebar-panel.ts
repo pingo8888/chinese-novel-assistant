@@ -73,16 +73,16 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Plugi
 	};
 	const treeView = createGuidebookTreeViewComponent(scrollEl, {
 		menuLabels: {
-			createCollection: ctx.t("feature.right_sidebar.guidebook.menu.create_collection"),
-			renameCollection: ctx.t("feature.right_sidebar.guidebook.menu.rename_collection"),
-			deleteCollection: ctx.t("feature.right_sidebar.guidebook.menu.delete_collection"),
-			createCategory: ctx.t("feature.right_sidebar.guidebook.menu.create_category"),
-			renameCategory: ctx.t("feature.right_sidebar.guidebook.menu.rename_category"),
-			deleteCategory: ctx.t("feature.right_sidebar.guidebook.menu.delete_category"),
-			createSetting: ctx.t("feature.right_sidebar.guidebook.menu.create_setting"),
-			renameSetting: ctx.t("feature.right_sidebar.guidebook.menu.rename_setting"),
-			deleteSetting: ctx.t("feature.right_sidebar.guidebook.menu.delete_setting"),
-			editSetting: ctx.t("feature.right_sidebar.guidebook.menu.edit_setting"),
+			createCollection: ctx.t("feature.guidebook.menu.create_collection"),
+			renameCollection: ctx.t("feature.guidebook.menu.rename_collection"),
+			deleteCollection: ctx.t("feature.guidebook.menu.delete_collection"),
+			createCategory: ctx.t("feature.guidebook.menu.create_category"),
+			renameCategory: ctx.t("feature.guidebook.menu.rename_category"),
+			deleteCategory: ctx.t("feature.guidebook.menu.delete_category"),
+			createSetting: ctx.t("feature.guidebook.menu.create_setting"),
+			renameSetting: ctx.t("feature.guidebook.menu.rename_setting"),
+			deleteSetting: ctx.t("feature.guidebook.menu.delete_setting"),
+			editSetting: ctx.t("feature.guidebook.menu.edit_setting"),
 		},
 		onFileContextAction: (action, fileNode) => {
 			void (async () => {
@@ -178,8 +178,8 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Plugi
 		className: "cna-right-sidebar-guidebook__toggle-button",
 		onIcon: UI.ICON.COLLAPSE,
 		offIcon: UI.ICON.EXPAND,
-		onTooltip: ctx.t("feature.right_sidebar.guidebook.action.collapse_all"),
-		offTooltip: ctx.t("feature.right_sidebar.guidebook.action.expand_all"),
+		onTooltip: ctx.t("feature.guidebook.action.collapse_all"),
+		offTooltip: ctx.t("feature.guidebook.action.expand_all"),
 		initialOn: initialAllExpanded,
 		onToggle: (isOn) => treeView.setAllExpanded(isOn),
 	});
@@ -219,11 +219,11 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Plugi
 		}
 		renderedTreeSignature = treeSignature;
 		hasRenderedTree = true;
-		treeView.renderData(filteredTreeData, ctx.t("feature.right_sidebar.guidebook.tree.empty"));
+		treeView.renderData(filteredTreeData, ctx.t("feature.guidebook.tree.empty"));
 	};
 	const updateLocalizedText = (): void => {
-		searchInputEl?.setAttr("placeholder", ctx.t("feature.right_sidebar.guidebook.search.placeholder"));
-		searchClearButtonEl?.setAttr("aria-label", ctx.t("feature.right_sidebar.guidebook.search.clear"));
+		searchInputEl?.setAttr("placeholder", ctx.t("feature.guidebook.search.placeholder"));
+		searchClearButtonEl?.setAttr("aria-label", ctx.t("feature.guidebook.search.clear"));
 	};
 
 	const refreshGuidebook = async (preferredFilePath?: string | null): Promise<void> => {
@@ -235,7 +235,7 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Plugi
 		titleTextEl.setText(resolveCurrentNovelLibraryName(ctx, novelLibraryService, nextFilePath));
 		const currentSeq = ++refreshSeq;
 		if (!hasRenderedTree) {
-			treeView.renderLoading(ctx.t("feature.right_sidebar.guidebook.tree.loading"));
+			treeView.renderLoading(ctx.t("feature.guidebook.tree.loading"));
 		}
 
 		const treeData = (await loadGuidebookTreeData(ctx, nextFilePath ?? null)) ?? null;
@@ -319,14 +319,14 @@ function resolveCurrentNovelLibraryName(
 ): string {
 	const activeFilePath = typeof filePath === "string" && filePath.length > 0 ? filePath : null;
 	if (!activeFilePath) {
-		return ctx.t("feature.right_sidebar.guidebook.current_library.none");
+		return ctx.t("feature.guidebook.current_library.none");
 	}
 
 	const settings = ctx.settings;
 	const libraryRoots = novelLibraryService.normalizeLibraryRoots(settings.novelLibraries);
 	const matchedLibraryPath = novelLibraryService.resolveContainingLibraryRoot(activeFilePath, libraryRoots);
 	if (!matchedLibraryPath) {
-		return ctx.t("feature.right_sidebar.guidebook.current_library.none");
+		return ctx.t("feature.guidebook.current_library.none");
 	}
 
 	const segments = matchedLibraryPath.split("/").filter((segment) => segment.length > 0);
@@ -458,6 +458,7 @@ function filterGuidebookTreeExpandedState(source: Record<string, boolean>): Reco
 	}
 	return next;
 }
+
 
 
 

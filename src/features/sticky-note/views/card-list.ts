@@ -75,7 +75,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 				return;
 			}
 			console.error("[Chinese Novel Assistant] Failed to load sticky notes.", error);
-			new Notice(deps.t("feature.right_sidebar.sticky_note.notice.load_failed"));
+			new Notice(deps.t("feature.sticky_note.notice.load_failed"));
 		}
 	};
 
@@ -151,7 +151,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 				return;
 			}
 			console.error("[Chinese Novel Assistant] Failed to save sticky note.", error);
-			new Notice(deps.t("feature.right_sidebar.sticky_note.notice.save_failed"));
+			new Notice(deps.t("feature.sticky_note.notice.save_failed"));
 		}
 	};
 
@@ -162,7 +162,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 		} catch (error) {
 			if (!isDestroyed) {
 				console.error("[Chinese Novel Assistant] Failed to delete sticky note.", error);
-				new Notice(deps.t("feature.right_sidebar.sticky_note.notice.delete_failed"));
+				new Notice(deps.t("feature.sticky_note.notice.delete_failed"));
 			}
 			return false;
 		}
@@ -184,7 +184,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 		if (visibleCards.length === 0) {
 			listEl.createDiv({
 				cls: "cna-sticky-note-card-list__empty",
-				text: deps.t("feature.right_sidebar.sticky_note.list.empty"),
+				text: deps.t("feature.sticky_note.list.empty"),
 			});
 			return;
 		}
@@ -325,6 +325,7 @@ function revokeImageUrls(images: StickyNoteCard["images"]): void {
 		}
 	}
 }
+
 
 
 

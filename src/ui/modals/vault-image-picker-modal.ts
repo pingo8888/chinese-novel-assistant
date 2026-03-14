@@ -21,7 +21,7 @@ class VaultImagePickerModal extends FuzzySuggestModal<TFile> {
 		this.files = deps.files;
 		this.t = deps.t;
 		this.onResult = deps.onResult;
-		this.setPlaceholder(this.t("feature.right_sidebar.sticky_note.card.image.pick.placeholder"));
+		this.setPlaceholder(this.t("feature.sticky_note.image.pick.placeholder"));
 	}
 
 	getItems(): TFile[] {
@@ -81,7 +81,7 @@ export function promptVaultImageFile(app: App, t: (key: TranslationKey) => strin
 		.sort((left, right) => left.path.localeCompare(right.path, "zh-Hans-CN"));
 
 	if (imageFiles.length === 0) {
-		new Notice(t("feature.right_sidebar.sticky_note.card.image.pick.empty"));
+		new Notice(t("feature.sticky_note.image.pick.empty"));
 		return Promise.resolve(null);
 	}
 
@@ -94,3 +94,5 @@ export function promptVaultImageFile(app: App, t: (key: TranslationKey) => strin
 		}).open();
 	});
 }
+
+

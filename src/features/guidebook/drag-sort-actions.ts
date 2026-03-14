@@ -70,7 +70,7 @@ async function handleCollectionMove(
 ): Promise<boolean> {
 	const guidebookRootPath = context.treeData?.guidebookRootPath;
 	if (!guidebookRootPath) {
-		new Notice(context.t("feature.right_sidebar.guidebook.notice.node_not_found"));
+		new Notice(context.t("feature.guidebook.notice.node_not_found"));
 		return false;
 	}
 
@@ -102,19 +102,19 @@ async function handleH1Move(
 ): Promise<boolean> {
 	const sourceFile = resolveCollectionFileByPath(context.app, request.sourceH1Node.sourcePath);
 	if (!sourceFile) {
-		new Notice(context.t("feature.right_sidebar.guidebook.notice.node_not_found"));
+		new Notice(context.t("feature.guidebook.notice.node_not_found"));
 		return false;
 	}
 
 	const targetPath = request.targetH1Node?.sourcePath ?? resolveSingleSourcePath(request.targetFileNode);
 	if (!targetPath) {
-		new Notice(context.t("feature.right_sidebar.guidebook.notice.collection_multi_source_unsupported"));
+		new Notice(context.t("feature.guidebook.notice.collection_multi_source_unsupported"));
 		return false;
 	}
 
 	const targetFile = resolveCollectionFileByPath(context.app, targetPath);
 	if (!targetFile) {
-		new Notice(context.t("feature.right_sidebar.guidebook.notice.node_not_found"));
+		new Notice(context.t("feature.guidebook.notice.node_not_found"));
 		return false;
 	}
 
@@ -140,7 +140,7 @@ async function handleH1Move(
 		return true;
 	} catch (error) {
 		console.error(error);
-		new Notice(context.t("feature.right_sidebar.guidebook.notice.action_failed"));
+		new Notice(context.t("feature.guidebook.notice.action_failed"));
 		return false;
 	}
 }
@@ -152,7 +152,7 @@ async function handleH2Move(
 	const sourceFile = resolveCollectionFileByPath(context.app, request.sourceH2Node.sourcePath);
 	const targetFile = resolveCollectionFileByPath(context.app, request.targetH1Node.sourcePath);
 	if (!sourceFile || !targetFile) {
-		new Notice(context.t("feature.right_sidebar.guidebook.notice.node_not_found"));
+		new Notice(context.t("feature.guidebook.notice.node_not_found"));
 		return false;
 	}
 
@@ -178,7 +178,7 @@ async function handleH2Move(
 		return true;
 	} catch (error) {
 		console.error(error);
-		new Notice(context.t("feature.right_sidebar.guidebook.notice.action_failed"));
+		new Notice(context.t("feature.guidebook.notice.action_failed"));
 		return false;
 	}
 }
@@ -368,7 +368,7 @@ function resolveSingleSourceCollectionPath(
 	if (path) {
 		return path;
 	}
-	new Notice(context.t("feature.right_sidebar.guidebook.notice.collection_multi_source_unsupported"));
+	new Notice(context.t("feature.guidebook.notice.collection_multi_source_unsupported"));
 	return null;
 }
 
@@ -395,5 +395,6 @@ function movePathInArray(
 	next.splice(insertIndex, 0, sourcePath);
 	return next;
 }
+
 
 

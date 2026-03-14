@@ -58,7 +58,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 		cls: "cna-sticky-note-card__action-button cna-sticky-note-card__action-button--float",
 		attr: {
 			type: "button",
-			"aria-label": deps.t("feature.right_sidebar.sticky_note.card.action.float.tooltip"),
+			"aria-label": deps.t("feature.sticky_note.action.float.tooltip"),
 		},
 	});
 	setIcon(pinButtonEl, UI.ICON.SEND);
@@ -67,7 +67,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 		cls: "cna-sticky-note-card__action-button",
 		attr: {
 			type: "button",
-			"aria-label": deps.t("feature.right_sidebar.sticky_note.card.action.menu.tooltip"),
+			"aria-label": deps.t("feature.sticky_note.action.menu.tooltip"),
 		},
 	});
 	setIcon(menuButtonEl, UI.ICON.ELLIPSIS);
@@ -115,8 +115,8 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 		pinButtonEl.setAttr(
 			"aria-label",
 			card.isFloating
-				? deps.t("feature.right_sidebar.sticky_note.card.action.unfloat.tooltip")
-				: deps.t("feature.right_sidebar.sticky_note.card.action.float.tooltip"),
+				? deps.t("feature.sticky_note.action.unfloat.tooltip")
+				: deps.t("feature.sticky_note.action.float.tooltip"),
 		);
 	};
 
@@ -124,7 +124,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 		timeDragIndicatorEl.toggleClass("is-visible", card.isFloating);
 		timeTextEl.setText(formatDateTime(resolveHeaderTimestamp(card, deps.sortMode)));
 		timePinEl.toggleClass("is-hidden", !card.isPinned);
-		timePinEl.setAttr("aria-label", deps.t("feature.right_sidebar.sticky_note.card.menu.pin"));
+		timePinEl.setAttr("aria-label", deps.t("feature.sticky_note.menu.pin"));
 	};
 
 	const renderContentDisplay = (): void => {
@@ -133,7 +133,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 		if (card.contentPlainText.trim().length === 0) {
 			contentDisplayEl.createDiv({
 				cls: "cna-sticky-note-card__placeholder-text",
-				text: deps.t("feature.right_sidebar.sticky_note.card.content.placeholder"),
+				text: deps.t("feature.sticky_note.content.placeholder"),
 			});
 			return;
 		}
@@ -171,7 +171,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 			if (deps.viewOptions.tagHintTextEnabled) {
 				tagsEditorEl.createSpan({
 					cls: "cna-sticky-note-card__tags-placeholder",
-					text: deps.t("feature.right_sidebar.sticky_note.card.tags.placeholder"),
+					text: deps.t("feature.sticky_note.tags.placeholder"),
 				});
 			}
 			return;
@@ -239,8 +239,8 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 		imageToggleButtonEl.setAttr(
 			"aria-label",
 			card.isImageExpanded
-				? deps.t("feature.right_sidebar.sticky_note.card.image.toggle.collapse")
-				: deps.t("feature.right_sidebar.sticky_note.card.image.toggle.expand"),
+				? deps.t("feature.sticky_note.image.toggle.collapse")
+				: deps.t("feature.sticky_note.image.toggle.expand"),
 		);
 	};
 
@@ -277,7 +277,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 				cls: "cna-sticky-note-card__image-remove",
 				attr: {
 					type: "button",
-					"aria-label": deps.t("feature.right_sidebar.sticky_note.card.image.remove.tooltip"),
+					"aria-label": deps.t("feature.sticky_note.image.remove.tooltip"),
 				},
 			});
 			setIcon(removeButtonEl, UI.ICON.CLOSE);
@@ -301,7 +301,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 			cls: "cna-sticky-note-card__image-add",
 			attr: {
 				type: "button",
-				"aria-label": deps.t("feature.right_sidebar.sticky_note.card.image.add.tooltip"),
+				"aria-label": deps.t("feature.sticky_note.image.add.tooltip"),
 			},
 		});
 		setIcon(addButtonEl, UI.ICON.PLUS);
@@ -316,7 +316,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 			return;
 		}
 		if (card.images.some((image) => image.vaultPath === imageFile.path)) {
-			new Notice(deps.t("feature.right_sidebar.sticky_note.card.image.add.duplicate"));
+			new Notice(deps.t("feature.sticky_note.image.add.duplicate"));
 			return;
 		}
 		const preview = await resolveVaultImagePreview(deps.app, imageFile);
@@ -878,6 +878,9 @@ function extractPlainTextForCaretMapping(markdown: string): string {
 		.replace(/^\n+/, "")
 		.replace(/\n+$/, "");
 }
+
+
+
 
 
 

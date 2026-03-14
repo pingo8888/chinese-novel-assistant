@@ -68,7 +68,7 @@ export class GuidebookPreviewPopover {
 			cls: "cna-guidebook-preview-popover__action-button",
 			attr: {
 				type: "button",
-				"aria-label": this.t("feature.right_sidebar.guidebook.preview.action.locate"),
+				"aria-label": this.t("feature.guidebook.preview.action.locate"),
 			},
 		});
 		setIcon(this.locateButtonEl, UI.ICON.SEARCH);
@@ -76,7 +76,7 @@ export class GuidebookPreviewPopover {
 			cls: "cna-guidebook-preview-popover__action-button",
 			attr: {
 				type: "button",
-				"aria-label": this.t("feature.right_sidebar.guidebook.preview.action.open"),
+				"aria-label": this.t("feature.guidebook.preview.action.open"),
 			},
 		});
 		setIcon(this.openButtonEl, UI.ICON.PENCIL);
@@ -84,14 +84,14 @@ export class GuidebookPreviewPopover {
 		this.aliasSectionEl = this.rootEl.createDiv({ cls: "cna-guidebook-preview-popover__aliases" });
 		this.aliasLabelEl = this.aliasSectionEl.createDiv({
 			cls: "cna-guidebook-preview-popover__alias-label",
-			text: this.t("feature.right_sidebar.guidebook.preview.alias_label"),
+			text: this.t("feature.guidebook.preview.alias_label"),
 		});
 		this.aliasValueEl = this.aliasSectionEl.createDiv({ cls: "cna-guidebook-preview-popover__alias-value" });
 		this.contentEl = this.rootEl.createDiv({ cls: "cna-guidebook-preview-popover__content" });
 		this.contentEl.addClass("markdown-rendered");
 		this.emptyEl = this.rootEl.createDiv({
 			cls: "cna-guidebook-preview-popover__empty",
-			text: this.t("feature.right_sidebar.guidebook.preview.empty_content"),
+			text: this.t("feature.guidebook.preview.empty_content"),
 		});
 		this.locateButtonEl.addEventListener("click", () => {
 			if (!this.currentPreviewItem) {
@@ -336,5 +336,6 @@ function formatPreviewTitle(baseTitle: string, status: "死亡" | "失效" | nul
 	}
 	return `${baseTitle}【${status}】`;
 }
+
 
 

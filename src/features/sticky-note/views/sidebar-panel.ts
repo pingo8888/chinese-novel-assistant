@@ -9,10 +9,10 @@ import type { SettingDatas } from "../../../core/setting-datas";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../../core/novel-library-service";
 import { StickyNoteRepository } from "../repository";
 import { areStringArraysEqual } from "../../../utils/helpers";
-type StickyNoteSparklesTooltipKey = "feature.right_sidebar.sticky_note.action.sparkles.tooltip";
+type StickyNoteSparklesTooltipKey = "feature.sticky_note.action.sparkles.tooltip";
 type StickyNoteSortTooltipKey =
-	| "feature.right_sidebar.sticky_note.sort.tooltip.desc"
-	| "feature.right_sidebar.sticky_note.sort.tooltip.asc";
+	| "feature.sticky_note.sort.tooltip.desc"
+	| "feature.sticky_note.sort.tooltip.asc";
 
 const STICKY_NOTE_SORT_MENU_SECTION = "cna-sticky-note-sort";
 
@@ -178,8 +178,8 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Plug
 	const updateLocalizedText = () => {
 		updateTitleText();
 		actionButtonEl.setAttr("aria-label", ctx.t(getSparklesTooltipKey()));
-		searchInputEl?.setAttr("placeholder", ctx.t("feature.right_sidebar.sticky_note.search.placeholder"));
-		searchClearButtonEl?.setAttr("aria-label", ctx.t("feature.right_sidebar.sticky_note.search.clear"));
+		searchInputEl?.setAttr("placeholder", ctx.t("feature.sticky_note.search.placeholder"));
+		searchClearButtonEl?.setAttr("aria-label", ctx.t("feature.sticky_note.search.clear"));
 		updateSortButton();
 		cardList.rerender();
 	};
@@ -223,7 +223,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Plug
 	const openSortMenu = (event: MouseEvent): void => {
 		showContextMenuAtMouseEvent(event, [
 			{
-				title: ctx.t("feature.right_sidebar.sticky_note.sort.created_desc"),
+				title: ctx.t("feature.sticky_note.sort.created_desc"),
 				icon: UI.ICON.CALENDAR_ARROW_DOWN,
 				checked: sortMode === "created_desc",
 				section: STICKY_NOTE_SORT_MENU_SECTION,
@@ -234,7 +234,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Plug
 				},
 			},
 			{
-				title: ctx.t("feature.right_sidebar.sticky_note.sort.created_asc"),
+				title: ctx.t("feature.sticky_note.sort.created_asc"),
 				icon: UI.ICON.CALENDAR_ARROW_UP,
 				checked: sortMode === "created_asc",
 				section: STICKY_NOTE_SORT_MENU_SECTION,
@@ -246,7 +246,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Plug
 			},
 			{ kind: "separator" },
 			{
-				title: ctx.t("feature.right_sidebar.sticky_note.sort.modified_desc"),
+				title: ctx.t("feature.sticky_note.sort.modified_desc"),
 				icon: UI.ICON.CALENDAR_ARROW_DOWN,
 				checked: sortMode === "modified_desc",
 				section: STICKY_NOTE_SORT_MENU_SECTION,
@@ -257,7 +257,7 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Plug
 				},
 			},
 			{
-				title: ctx.t("feature.right_sidebar.sticky_note.sort.modified_asc"),
+				title: ctx.t("feature.sticky_note.sort.modified_asc"),
 				icon: UI.ICON.CALENDAR_ARROW_UP,
 				checked: sortMode === "modified_asc",
 				section: STICKY_NOTE_SORT_MENU_SECTION,
@@ -391,34 +391,36 @@ function resolveCurrentNovelLibraryName(
 		? filePath
 		: (ctx.app.workspace.getActiveFile()?.path ?? "");
 	if (!activeFilePath) {
-		return ctx.t("feature.right_sidebar.guidebook.current_library.none");
+		return ctx.t("feature.guidebook.current_library.none");
 	}
 	const settings = ctx.settings;
 	const libraryRoots = novelLibraryService.normalizeLibraryRoots(settings.novelLibraries);
 	const matchedLibraryPath = novelLibraryService.resolveContainingLibraryRoot(activeFilePath, libraryRoots);
 	if (!matchedLibraryPath) {
-		return ctx.t("feature.right_sidebar.guidebook.current_library.none");
+		return ctx.t("feature.guidebook.current_library.none");
 	}
 	const segments = matchedLibraryPath.split("/").filter((segment) => segment.length > 0);
 	return segments[segments.length - 1] ?? matchedLibraryPath;
 }
 
 function getSparklesTooltipKey(): StickyNoteSparklesTooltipKey {
-	return "feature.right_sidebar.sticky_note.action.sparkles.tooltip";
+	return "feature.sticky_note.action.sparkles.tooltip";
 }
 
 function getSortDirectionTooltipKey(mode: StickyNoteSortMode): StickyNoteSortTooltipKey {
 	switch (mode) {
 		case "created_desc":
 		case "modified_desc":
-			return "feature.right_sidebar.sticky_note.sort.tooltip.desc";
+			return "feature.sticky_note.sort.tooltip.desc";
 		case "created_asc":
 		case "modified_asc":
-			return "feature.right_sidebar.sticky_note.sort.tooltip.asc";
+			return "feature.sticky_note.sort.tooltip.asc";
 		default:
-			return "feature.right_sidebar.sticky_note.sort.tooltip.desc";
+			return "feature.sticky_note.sort.tooltip.desc";
 	}
 }
+
+
 
 
 

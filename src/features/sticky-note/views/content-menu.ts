@@ -26,22 +26,22 @@ interface ShowStickyNoteContentMenuArgs {
 const CONTENT_MENU_ITEMS: StickyNoteContentMenuOption[] = [
 	{
 		command: "bold",
-		labelKey: "feature.right_sidebar.sticky_note.card.rich_menu.bold",
+		labelKey: "feature.sticky_note.rich_menu.bold",
 		icon: UI.ICON.BOLD,
 	},
 	{
 		command: "italic",
-		labelKey: "feature.right_sidebar.sticky_note.card.rich_menu.italic",
+		labelKey: "feature.sticky_note.rich_menu.italic",
 		icon: UI.ICON.ITALIC,
 	},
 	{
 		command: "strikethrough",
-		labelKey: "feature.right_sidebar.sticky_note.card.rich_menu.strikethrough",
+		labelKey: "feature.sticky_note.rich_menu.strikethrough",
 		icon: UI.ICON.STRIKETHROUGH,
 	},
 	{
 		command: "highlight",
-		labelKey: "feature.right_sidebar.sticky_note.card.rich_menu.highlight",
+		labelKey: "feature.sticky_note.rich_menu.highlight",
 		icon: UI.ICON.HIGHLIGHTER,
 	},
 	{
@@ -49,12 +49,12 @@ const CONTENT_MENU_ITEMS: StickyNoteContentMenuOption[] = [
 	},
 	{
 		command: "unordered",
-		labelKey: "feature.right_sidebar.sticky_note.card.rich_menu.unordered",
+		labelKey: "feature.sticky_note.rich_menu.unordered",
 		icon: UI.ICON.LIST,
 	},
 	{
 		command: "ordered",
-		labelKey: "feature.right_sidebar.sticky_note.card.rich_menu.ordered",
+		labelKey: "feature.sticky_note.rich_menu.ordered",
 		icon: UI.ICON.LIST_ORDERED,
 	},
 	{
@@ -62,7 +62,7 @@ const CONTENT_MENU_ITEMS: StickyNoteContentMenuOption[] = [
 	},
 	{
 		command: "clear_format",
-		labelKey: "feature.right_sidebar.sticky_note.card.rich_menu.clear_format",
+		labelKey: "feature.sticky_note.rich_menu.clear_format",
 		icon: UI.ICON.ERASER,
 		warning: true,
 	},
@@ -108,6 +108,8 @@ function restoreSelectionRange(editorEl: HTMLTextAreaElement, range: { start: nu
 	editorEl.focus();
 	editorEl.setSelectionRange(range.start, range.end);
 }
+
+
 
 
 

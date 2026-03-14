@@ -59,13 +59,13 @@ export async function handleGuidebookBlankCreateCollection(context: GuidebookAct
 	const { app, t, treeData } = context;
 	const guidebookRootPath = treeData?.guidebookRootPath;
 	if (!guidebookRootPath) {
-		new Notice(t("feature.right_sidebar.guidebook.notice.node_not_found"));
+		new Notice(t("feature.guidebook.notice.node_not_found"));
 		return false;
 	}
 
 	const collectionName = await promptCollectionName(app, t, {
-		title: t("feature.right_sidebar.guidebook.dialog.create_collection.title"),
-		placeholder: t("feature.right_sidebar.guidebook.dialog.collection_name.placeholder"),
+		title: t("feature.guidebook.dialog.create_collection.title"),
+		placeholder: t("feature.guidebook.dialog.collection_name.placeholder"),
 		initialValue: "",
 		validate: (normalizedName) => {
 			const targetPath = buildCollectionPath(guidebookRootPath, normalizedName);
@@ -81,7 +81,7 @@ export async function handleGuidebookBlankCreateCollection(context: GuidebookAct
 		return true;
 	} catch (error) {
 		console.error(error);
-		new Notice(t("feature.right_sidebar.guidebook.notice.action_failed"));
+		new Notice(t("feature.guidebook.notice.action_failed"));
 		return false;
 	}
 }
@@ -103,8 +103,8 @@ export async function handleGuidebookFileContextAction(
 				return handleGuidebookBlankCreateCollection(context);
 			case "create_category": {
 				const categoryName = await promptCategoryName(app, t, file, treeData, {
-					title: t("feature.right_sidebar.guidebook.dialog.create_category.title"),
-					placeholder: t("feature.right_sidebar.guidebook.dialog.category_name.placeholder"),
+					title: t("feature.guidebook.dialog.create_category.title"),
+					placeholder: t("feature.guidebook.dialog.category_name.placeholder"),
 					initialValue: "",
 				});
 				if (!categoryName) {
@@ -115,8 +115,8 @@ export async function handleGuidebookFileContextAction(
 			}
 			case "rename_collection": {
 				const collectionName = await promptCollectionName(app, t, {
-					title: t("feature.right_sidebar.guidebook.dialog.rename_collection.title"),
-					placeholder: t("feature.right_sidebar.guidebook.dialog.collection_name.placeholder"),
+					title: t("feature.guidebook.dialog.rename_collection.title"),
+					placeholder: t("feature.guidebook.dialog.collection_name.placeholder"),
 					initialValue: file.basename,
 					validate: (normalizedName) => {
 						const nextPath = buildCollectionPath(getParentPath(file.path), normalizedName);
@@ -135,8 +135,8 @@ export async function handleGuidebookFileContextAction(
 			}
 			case "delete_collection": {
 				const confirmed = await askForConfirmation(app, {
-					title: t("feature.right_sidebar.guidebook.dialog.delete_collection.title"),
-					message: formatTemplate(t("feature.right_sidebar.guidebook.dialog.delete_collection.message"), {
+					title: t("feature.guidebook.dialog.delete_collection.title"),
+					message: formatTemplate(t("feature.guidebook.dialog.delete_collection.message"), {
 						name: file.basename,
 					}),
 					confirmText: t("settings.common.delete"),
@@ -154,11 +154,11 @@ export async function handleGuidebookFileContextAction(
 		}
 	} catch (error) {
 		if (isDuplicateGuidebookTitleError(error)) {
-			new Notice(t("feature.right_sidebar.guidebook.validation.exists"));
+			new Notice(t("feature.guidebook.validation.exists"));
 			return false;
 		}
 		console.error(error);
-		new Notice(t("feature.right_sidebar.guidebook.notice.action_failed"));
+		new Notice(t("feature.guidebook.notice.action_failed"));
 		return false;
 	}
 }
@@ -172,7 +172,7 @@ export async function handleGuidebookH1ContextAction(
 	const { app, t, treeData } = context;
 	const file = resolveCollectionFileByPath(app, h1Node.sourcePath);
 	if (!file) {
-		new Notice(t("feature.right_sidebar.guidebook.notice.node_not_found"));
+		new Notice(t("feature.guidebook.notice.node_not_found"));
 		return false;
 	}
 
@@ -180,8 +180,8 @@ export async function handleGuidebookH1ContextAction(
 		switch (action) {
 			case "create_category": {
 				const categoryName = await promptCategoryName(app, t, file, treeData, {
-					title: t("feature.right_sidebar.guidebook.dialog.create_category.title"),
-					placeholder: t("feature.right_sidebar.guidebook.dialog.category_name.placeholder"),
+					title: t("feature.guidebook.dialog.create_category.title"),
+					placeholder: t("feature.guidebook.dialog.category_name.placeholder"),
 					initialValue: "",
 				});
 				if (!categoryName) {
@@ -192,8 +192,8 @@ export async function handleGuidebookH1ContextAction(
 			}
 			case "create_setting": {
 				const settingName = await promptSettingName(app, t, file, treeData, {
-					title: t("feature.right_sidebar.guidebook.dialog.create_setting.title"),
-					placeholder: t("feature.right_sidebar.guidebook.dialog.setting_name.placeholder"),
+					title: t("feature.guidebook.dialog.create_setting.title"),
+					placeholder: t("feature.guidebook.dialog.setting_name.placeholder"),
 					initialValue: "",
 				});
 				if (!settingName) {
@@ -204,8 +204,8 @@ export async function handleGuidebookH1ContextAction(
 			}
 			case "rename_category": {
 				const renamed = await promptCategoryName(app, t, file, treeData, {
-					title: t("feature.right_sidebar.guidebook.dialog.rename_category.title"),
-					placeholder: t("feature.right_sidebar.guidebook.dialog.category_name.placeholder"),
+					title: t("feature.guidebook.dialog.rename_category.title"),
+					placeholder: t("feature.guidebook.dialog.category_name.placeholder"),
 					initialValue: h1Node.title,
 					ignoreTitle: h1Node.title,
 				});
@@ -217,8 +217,8 @@ export async function handleGuidebookH1ContextAction(
 			}
 			case "delete_category": {
 				const confirmed = await askForConfirmation(app, {
-					title: t("feature.right_sidebar.guidebook.dialog.delete_category.title"),
-					message: formatTemplate(t("feature.right_sidebar.guidebook.dialog.delete_category.message"), {
+					title: t("feature.guidebook.dialog.delete_category.title"),
+					message: formatTemplate(t("feature.guidebook.dialog.delete_category.message"), {
 						name: h1Node.title,
 					}),
 					confirmText: t("settings.common.delete"),
@@ -236,11 +236,11 @@ export async function handleGuidebookH1ContextAction(
 		}
 	} catch (error) {
 		if (isDuplicateGuidebookTitleError(error)) {
-			new Notice(t("feature.right_sidebar.guidebook.validation.exists"));
+			new Notice(t("feature.guidebook.validation.exists"));
 			return false;
 		}
 		console.error(error);
-		new Notice(t("feature.right_sidebar.guidebook.notice.action_failed"));
+		new Notice(t("feature.guidebook.notice.action_failed"));
 		return false;
 	}
 }
@@ -255,7 +255,7 @@ export async function handleGuidebookH2ContextAction(
 	const { app, t, treeData } = context;
 	const file = resolveCollectionFileByPath(app, h2Node.sourcePath);
 	if (!file) {
-		new Notice(t("feature.right_sidebar.guidebook.notice.node_not_found"));
+		new Notice(t("feature.guidebook.notice.node_not_found"));
 		return false;
 	}
 
@@ -263,8 +263,8 @@ export async function handleGuidebookH2ContextAction(
 		switch (action) {
 			case "create_setting": {
 				const settingName = await promptSettingName(app, t, file, treeData, {
-					title: t("feature.right_sidebar.guidebook.dialog.create_setting.title"),
-					placeholder: t("feature.right_sidebar.guidebook.dialog.setting_name.placeholder"),
+					title: t("feature.guidebook.dialog.create_setting.title"),
+					placeholder: t("feature.guidebook.dialog.setting_name.placeholder"),
 					initialValue: "",
 				});
 				if (!settingName) {
@@ -282,8 +282,8 @@ export async function handleGuidebookH2ContextAction(
 				return false;
 			case "rename_setting": {
 				const renamed = await promptSettingName(app, t, file, treeData, {
-					title: t("feature.right_sidebar.guidebook.dialog.rename_setting.title"),
-					placeholder: t("feature.right_sidebar.guidebook.dialog.setting_name.placeholder"),
+					title: t("feature.guidebook.dialog.rename_setting.title"),
+					placeholder: t("feature.guidebook.dialog.setting_name.placeholder"),
 					initialValue: h2Node.title,
 					ignoreTitle: h2Node.title,
 				});
@@ -295,8 +295,8 @@ export async function handleGuidebookH2ContextAction(
 			}
 			case "delete_setting": {
 				const confirmed = await askForConfirmation(app, {
-					title: t("feature.right_sidebar.guidebook.dialog.delete_setting.title"),
-					message: formatTemplate(t("feature.right_sidebar.guidebook.dialog.delete_setting.message"), {
+					title: t("feature.guidebook.dialog.delete_setting.title"),
+					message: formatTemplate(t("feature.guidebook.dialog.delete_setting.message"), {
 						name: h2Node.title,
 					}),
 					confirmText: t("settings.common.delete"),
@@ -316,11 +316,11 @@ export async function handleGuidebookH2ContextAction(
 		}
 	} catch (error) {
 		if (isDuplicateGuidebookTitleError(error)) {
-			new Notice(t("feature.right_sidebar.guidebook.validation.exists"));
+			new Notice(t("feature.guidebook.validation.exists"));
 			return false;
 		}
 		console.error(error);
-		new Notice(t("feature.right_sidebar.guidebook.notice.action_failed"));
+		new Notice(t("feature.guidebook.notice.action_failed"));
 		return false;
 	}
 }
@@ -335,12 +335,12 @@ export async function appendGuidebookSettingToCategoryByPath(
 	const { app, t, treeData } = context;
 	const file = resolveCollectionFileByPath(app, sourcePath);
 	if (!file) {
-		new Notice(t("feature.right_sidebar.guidebook.notice.node_not_found"));
+		new Notice(t("feature.guidebook.notice.node_not_found"));
 		return false;
 	}
 	const normalizedSettingName = settingName.trim();
 	if (normalizedSettingName.length === 0) {
-		new Notice(t("feature.right_sidebar.guidebook.validation.empty"));
+		new Notice(t("feature.guidebook.validation.empty"));
 		return false;
 	}
 
@@ -357,11 +357,11 @@ export async function appendGuidebookSettingToCategoryByPath(
 		return true;
 	} catch (error) {
 		if (isDuplicateGuidebookTitleError(error)) {
-			new Notice(t("feature.right_sidebar.guidebook.validation.exists"));
+			new Notice(t("feature.guidebook.validation.exists"));
 			return false;
 		}
 		console.error(error);
-		new Notice(t("feature.right_sidebar.guidebook.notice.action_failed"));
+		new Notice(t("feature.guidebook.notice.action_failed"));
 		return false;
 	}
 }
@@ -385,7 +385,7 @@ function resolveCollectionFileByPath(app: App, path: string): TFile | null {
 
 function resolveSingleSourceCollectionFile(app: App, t: (key: TranslationKey) => string, fileNode: GuidebookTreeFileNode): TFile | null {
 	if (fileNode.sourcePaths.length !== 1) {
-		new Notice(t("feature.right_sidebar.guidebook.notice.collection_multi_source_unsupported"));
+		new Notice(t("feature.guidebook.notice.collection_multi_source_unsupported"));
 		return null;
 	}
 	return resolveCollectionFileByPath(app, fileNode.sourcePaths[0] ?? "");
@@ -424,14 +424,14 @@ async function promptCollectionName(
 		normalize: (value) => normalizeCollectionName(value),
 		validate: (value) => {
 			if (!value) {
-				return t("feature.right_sidebar.guidebook.validation.empty");
+				return t("feature.guidebook.validation.empty");
 			}
 			if (/[\\/]/.test(value)) {
-				return t("feature.right_sidebar.guidebook.validation.invalid_name");
+				return t("feature.guidebook.validation.invalid_name");
 			}
 			const available = options.validate(value);
 			if (!available) {
-				return t("feature.right_sidebar.guidebook.validation.exists");
+				return t("feature.guidebook.validation.exists");
 			}
 			return null;
 		},
@@ -457,10 +457,10 @@ async function promptHeadingName(
 		normalize: (value) => value.trim(),
 		validate: (value) => {
 			if (!value) {
-				return t("feature.right_sidebar.guidebook.validation.empty");
+				return t("feature.guidebook.validation.empty");
 			}
 			if (/[\r\n]/.test(value)) {
-				return t("feature.right_sidebar.guidebook.validation.invalid_name");
+				return t("feature.guidebook.validation.invalid_name");
 			}
 			const customValidationMessage = options.validate?.(value);
 			if (customValidationMessage) {
@@ -487,7 +487,7 @@ async function promptSettingName(
 	return promptHeadingName(app, t, {
 		...options,
 		validate: (value) =>
-			existingTitles.has(value) ? t("feature.right_sidebar.guidebook.validation.exists") : null,
+			existingTitles.has(value) ? t("feature.guidebook.validation.exists") : null,
 	});
 }
 
@@ -507,7 +507,7 @@ async function promptCategoryName(
 	return promptHeadingName(app, t, {
 		...options,
 		validate: (value) =>
-			existingTitles.has(value) ? t("feature.right_sidebar.guidebook.validation.exists") : null,
+			existingTitles.has(value) ? t("feature.guidebook.validation.exists") : null,
 	});
 }
 
@@ -862,3 +862,4 @@ function joinLines(lines: string[]): string {
 function formatTemplate(template: string, values: Record<string, string>): string {
 	return template.replace(/\{(\w+)\}/g, (_match, token: string) => values[token] ?? "");
 }
+
