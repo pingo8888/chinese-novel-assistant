@@ -1,34 +1,36 @@
 import type { Extension } from "@codemirror/state";
-import type { EditorView } from "@codemirror/view";
 import { type Plugin } from "obsidian";
+
 import type { SettingDatas } from "../../../core/setting-datas";
 import { NovelLibraryService } from "../../../core/novel-library-service";
-import { resolveMarkdownViewByEditorView } from "../../../utils/markdown-editor-view";
-import {
-	createSharedAutocompleteExtension,
-	resolveLineSuffixTriggerMatch,
-} from "./shared-autocomplete";
+import { createSharedAutocompleteExt, resolveLineSuffixTriggerMatch } from "./shared-autocomplete";
 import { SnippetFragmentService, type SnippetFragment } from "../text-fragment-parser";
 
-interface FileContext {
-	libraryPath: string;
-}
+import { resolveFilePathByEditorView } from "../../../utils/markdown-editor-view";
 
 const CURSOR_PLACEHOLDER = "{$cursor}";
 
-export function createSnippetTextFragmentAutocompleteExtension(
+export function createTextFragmentAutocompleteExt(
 	plugin: Plugin,
 	getSettings: () => SettingDatas,
 ): Extension {
 	const snippetFragmentService = SnippetFragmentService.getInstance(plugin.app);
 	const novelLibraryService = new NovelLibraryService(plugin.app);
 
-	return createSharedAutocompleteExtension<SnippetFragment, FileContext>({
+	// 面板与刷新生命周期由 shared-autocomplete 统一处理；此文件只提供策略钩子。
+	return createSharedAutocompleteExt<SnippetFragment, { libraryPath: string }>({
 		getSettings,
 		isEnabled: (settings) => settings.snippetTextFragmentEnabled,
+		// 在当前行尾使用 //<query> 触发补全，仅匹配字母数字关键字。
 		resolveTriggerMatch: (view) => resolveLineSuffixTriggerMatch(view, /\/\/([A-Za-z0-9]+)$/),
-		resolveContext: (view, settings) =>
-			resolveFileContext(plugin, view, settings, novelLibraryService),
+		resolveContext: (view, settings) => {
+			const filePath = resolveFilePathByEditorView(plugin.app, view);
+			if (!filePath) {
+				return null;
+			}
+			return resolveLibraryContext(filePath, settings, novelLibraryService);
+		},
+		// 基于所属小说库与查询词检索片段候选。
 		queryCandidates: ({ settings, match, context }) =>
 			snippetFragmentService.querySnippetFragments({
 				settings,
@@ -42,43 +44,26 @@ export function createSnippetTextFragmentAutocompleteExtension(
 	});
 }
 
-function resolveFileContext(
-	plugin: Plugin,
-	view: EditorView,
+function resolveLibraryContext(
+	filePath: string,
 	settings: Pick<SettingDatas, "locale" | "novelLibraries">,
 	novelLibraryService: NovelLibraryService,
-): FileContext | null {
-	const markdownView = resolveMarkdownViewByEditorView(plugin.app, view);
-	const filePath = markdownView?.file?.path ?? "";
-	if (!filePath) {
+): { libraryPath: string } | null {
+	// 根据文件路径定位其所属小说库。
+	const normalizedLibraryRoots = novelLibraryService.normalizeLibraryRoots(settings.novelLibraries);
+	const libraryPath = novelLibraryService.resolveContainingLibraryRoot(filePath, normalizedLibraryRoots);
+	if (!libraryPath) {
 		return null;
 	}
 
-	const normalizedFilePath = novelLibraryService.normalizeVaultPath(filePath);
-	if (!normalizedFilePath) {
+	// 位于功能库目录内时不触发片段补全，避免在源数据区触发替换。
+	if (novelLibraryService.isInFeatureRoot(filePath, settings)) {
 		return null;
 	}
 
-	const normalizedLibraries = settings.novelLibraries
-		.map((path) => novelLibraryService.normalizeVaultPath(path))
-		.filter((path) => path.length > 0)
-		.sort((left, right) => right.length - left.length);
-	for (const libraryPath of normalizedLibraries) {
-		if (!novelLibraryService.isSameOrChildPath(normalizedFilePath, libraryPath)) {
-			continue;
-		}
-		const featureRoot = novelLibraryService.resolveNovelLibraryFeatureRootPath(
-			{ locale: settings.locale },
-			libraryPath,
-		);
-		if (featureRoot && novelLibraryService.isSameOrChildPath(normalizedFilePath, featureRoot)) {
-			return null;
-		}
-		return {
-			libraryPath,
-		};
-	}
-	return null;
+	return {
+		libraryPath,
+	};
 }
 
 function resolveInsertion(content: string): { insertText: string; cursorOffset: number } {
@@ -90,6 +75,7 @@ function resolveInsertion(content: string): { insertText: string; cursorOffset: 
 		};
 	}
 
+	// 删除占位符文本，并把光标放在首个占位符原位置。
 	return {
 		insertText: content.split(CURSOR_PLACEHOLDER).join(""),
 		cursorOffset: firstPlaceholderIndex,

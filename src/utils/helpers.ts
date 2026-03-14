@@ -85,3 +85,8 @@ export function areStringArraysEqual(left: string[], right: string[]): boolean {
 	}
 	return true;
 }
+
+// 判断字符串是否包含 CJK（中日韩统一表意文字）字符。
+export function containsCjk(value: string): boolean {
+	return /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/.test(value);
+}

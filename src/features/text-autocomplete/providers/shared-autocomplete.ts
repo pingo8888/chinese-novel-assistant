@@ -34,7 +34,7 @@ interface SharedAutocompleteOptions<TCandidate, TContext> {
 	emptyTextKey: TranslationKey;
 }
 
-export function createSharedAutocompleteExtension<TCandidate, TContext>(
+export function createSharedAutocompleteExt<TCandidate, TContext>(
 	options: SharedAutocompleteOptions<TCandidate, TContext>,
 ): Extension {
 	return Prec.high(

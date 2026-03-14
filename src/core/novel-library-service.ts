@@ -75,6 +75,25 @@ export class NovelLibraryService {
 		return this.resolveContainingLibraryRoot(path, libraryRoots) !== null;
 	}
 
+	isInFeatureRoot(path: string, settings: Pick<SettingDatas, "locale" | "novelLibraries">): boolean {
+		const normalizedLibraryRoots = this.normalizeLibraryRoots(settings.novelLibraries);
+		if (normalizedLibraryRoots.length === 0) {
+			return false;
+		}
+
+		const libraryRoot = this.resolveContainingLibraryRoot(path, normalizedLibraryRoots);
+		if (!libraryRoot) {
+			return false;
+		}
+
+		const featureRoot = this.resolveNovelLibraryFeatureRootPath({ locale: settings.locale }, libraryRoot);
+		if (!featureRoot) {
+			return false;
+		}
+
+		return this.isSameOrChildPath(path, featureRoot);
+	}
+
 	resolveNovelLibrarySubdirPaths(_settings: Pick<SettingDatas, "locale">, libraryPath: string): string[] {
 		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
 		if (!normalizedLibraryPath) {

@@ -1,21 +1,13 @@
 import type { Extension } from "@codemirror/state";
-import type { EditorView } from "@codemirror/view";
 import type { Plugin } from "obsidian";
+
 import type { SettingDatas } from "../../../core/setting-datas";
 import { NovelLibraryService } from "../../../core/novel-library-service";
-import { resolveMarkdownViewByEditorView } from "../../../utils/markdown-editor-view";
-import {
-	createSharedAutocompleteExtension,
-	resolveLineSuffixTriggerMatch,
-} from "./shared-autocomplete";
-import {
-	GuidebookQuickInsertService,
-	type GuidebookQuickInsertCandidate,
-} from "../../guidebook/quick-insert-keywords";
+import { createSharedAutocompleteExt, resolveLineSuffixTriggerMatch } from "./shared-autocomplete";
+import { GuidebookQuickInsertService, type GuidebookQuickInsertCandidate } from "../../guidebook/quick-insert-keywords";
 
-interface GuidebookQuickInsertContext {
-	filePath: string;
-}
+import { resolveFilePathByEditorView } from "../../../utils/markdown-editor-view";
+import { containsCjk } from "../../../utils/helpers";
 
 export function createGuidebookQuickInsertExt(
 	plugin: Plugin,
@@ -24,21 +16,26 @@ export function createGuidebookQuickInsertExt(
 ): Extension {
 	const novelLibraryService = new NovelLibraryService(plugin.app);
 
-	return createSharedAutocompleteExtension<GuidebookQuickInsertCandidate, GuidebookQuickInsertContext>({
+	// 面板与刷新生命周期由 shared-autocomplete 统一处理；此文件只提供策略钩子。
+	return createSharedAutocompleteExt<GuidebookQuickInsertCandidate, { filePath: string }>({
 		getSettings,
 		isEnabled: (settings) => settings.snippetQuickInsertEnabled,
+		// 在当前行尾使用 //<query> 触发补全。
 		resolveTriggerMatch: (view) => resolveLineSuffixTriggerMatch(view, /\/\/([^\s/]+)$/),
+		// 设定库快速插入仅对 CJK 关键字生效。
 		isMatchAllowed: (match) => containsCjk(match.query),
 		resolveContext: (view, settings) => {
-			const filePath = resolveActiveFilePath(plugin, view);
+			const filePath = resolveFilePathByEditorView(plugin.app, view);
 			if (!filePath) {
 				return null;
 			}
-			if (isInsideFeatureRoot(filePath, settings, novelLibraryService)) {
+			// 光标位于功能库目录内时不提供建议，避免在源数据区触发插入。
+			if (novelLibraryService.isInFeatureRoot(filePath, settings)) {
 				return null;
 			}
 			return { filePath };
 		},
+		// 基于当前文件路径与查询词向服务端请求候选项。
 		queryCandidates: ({ settings, match, context }) =>
 			guidebookQuickInsertService.queryGuidebookCandidates({
 				settings,
@@ -47,47 +44,11 @@ export function createGuidebookQuickInsertExt(
 			}),
 		getItemKey: (item, index) => `${item.keyword}-${index}`,
 		getItemLabel: (item) => item.keyword,
+		// 选中后用关键字替换触发文本，并将光标移动到插入内容末尾。
 		resolveInsertion: (item) => ({
 			insertText: item.keyword,
 			cursorOffset: item.keyword.length,
 		}),
 		emptyTextKey: "feature.snippet.quick_insert.candidate.empty",
 	});
-}
-
-function resolveActiveFilePath(plugin: Plugin, view: EditorView): string | null {
-	const markdownView = resolveMarkdownViewByEditorView(plugin.app, view);
-	return markdownView?.file?.path ?? null;
-}
-
-function isInsideFeatureRoot(
-	filePath: string,
-	settings: Pick<SettingDatas, "locale" | "novelLibraries">,
-	novelLibraryService: NovelLibraryService,
-): boolean {
-	const normalizedFilePath = novelLibraryService.normalizeVaultPath(filePath);
-	if (!normalizedFilePath) {
-		return false;
-	}
-	const normalizedLibraries = settings.novelLibraries
-		.map((path) => novelLibraryService.normalizeVaultPath(path))
-		.filter((path) => path.length > 0)
-		.sort((left, right) => right.length - left.length);
-	for (const libraryPath of normalizedLibraries) {
-		if (!novelLibraryService.isSameOrChildPath(normalizedFilePath, libraryPath)) {
-			continue;
-		}
-		const featureRoot = novelLibraryService.resolveNovelLibraryFeatureRootPath(
-			{ locale: settings.locale },
-			libraryPath,
-		);
-		if (featureRoot && novelLibraryService.isSameOrChildPath(normalizedFilePath, featureRoot)) {
-			return true;
-		}
-	}
-	return false;
-}
-
-function containsCjk(value: string): boolean {
-	return /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/.test(value);
 }

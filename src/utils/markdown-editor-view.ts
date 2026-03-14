@@ -39,3 +39,8 @@ export function resolveMarkdownViewByEditorView(app: App, editorView: ResolvedEd
 	}
 	return null;
 }
+
+export function resolveFilePathByEditorView(app: App, editorView: ResolvedEditorView): string | null {
+	const markdownView = resolveMarkdownViewByEditorView(app, editorView);
+	return markdownView?.file?.path ?? null;
+}
