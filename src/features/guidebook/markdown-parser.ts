@@ -1,3 +1,5 @@
+import { splitLines } from "../../utils/helpers";
+
 export interface GuidebookMarkdownTreeH2Node {
 	title: string;
 	content: string;
@@ -29,7 +31,7 @@ export interface GuidebookMarkdownSections {
 export class GuidebookMarkdownParser {
 	parseTree(content: string): GuidebookMarkdownTreeH1Node[] {
 		const h1List: GuidebookMarkdownTreeH1Node[] = [];
-		const lines = this.splitLines(content);
+		const lines = splitLines(content);
 		let currentH1: GuidebookMarkdownTreeH1Node | null = null;
 		let currentH2: GuidebookMarkdownTreeH2Node | null = null;
 		let currentH2ContentLines: string[] = [];
@@ -118,7 +120,7 @@ export class GuidebookMarkdownParser {
 	}
 
 	parseSections(content: string): GuidebookMarkdownSections {
-		const lines = this.splitLines(content);
+		const lines = splitLines(content);
 		const h1Sections: GuidebookMarkdownSectionH1[] = [];
 		let currentH1: GuidebookMarkdownSectionH1 | null = null;
 		let currentH2: GuidebookMarkdownSectionH2 | null = null;
@@ -187,13 +189,6 @@ export class GuidebookMarkdownParser {
 		finalizeCurrentH2(lines.length);
 		finalizeCurrentH1(lines.length);
 		return { h1Sections };
-	}
-
-	private splitLines(content: string): string[] {
-		if (!content) {
-			return [];
-		}
-		return content.split(/\r?\n/);
 	}
 
 	private parseAtxHeading(line: string): { level: number; title: string } | null {

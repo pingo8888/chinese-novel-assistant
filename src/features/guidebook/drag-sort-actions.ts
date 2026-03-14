@@ -1,7 +1,7 @@
 import { type App, Notice, TFile } from "obsidian";
 import type { TranslationKey } from "../../lang";
 import type { SettingDatas } from "../../core/setting-datas";
-import { areStringArraysEqual, clamp } from "../../utils/helpers";
+import { areStringArraysEqual, clamp, splitLines } from "../../utils/helpers";
 import { GuidebookMarkdownParser } from "./markdown-parser";
 import type {
 	GuidebookTreeData,
@@ -335,13 +335,6 @@ function removeLineRange(lines: string[], startLine: number, endLine: number): s
 function insertLineRange(lines: string[], insertLine: number, insertedLines: string[]): string[] {
 	const normalizedInsertLine = clamp(insertLine, 0, lines.length);
 	return [...lines.slice(0, normalizedInsertLine), ...insertedLines, ...lines.slice(normalizedInsertLine)];
-}
-
-function splitLines(content: string): string[] {
-	if (!content) {
-		return [];
-	}
-	return content.split(/\r?\n/);
 }
 
 function joinLines(lines: string[]): string {

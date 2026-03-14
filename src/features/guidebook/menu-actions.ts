@@ -9,6 +9,7 @@ import type {
 import { GuidebookMarkdownParser } from "./markdown-parser";
 import { askForConfirmation } from "../../ui/modals/confirm-modal";
 import { promptTextInput } from "../../ui/modals/text-input-modal";
+import { splitLines } from "../../utils/helpers";
 
 export type GuidebookFileContextAction =
 	| "create_collection"
@@ -852,13 +853,6 @@ function removeLineRange(lines: string[], startLine: number, endLine: number): v
 		removeEnd += 1;
 	}
 	lines.splice(removeStart, removeEnd - removeStart);
-}
-
-function splitLines(content: string): string[] {
-	if (!content) {
-		return [];
-	}
-	return content.split(/\r?\n/);
 }
 
 function joinLines(lines: string[]): string {

@@ -14,6 +14,14 @@ export function pad2(value: number): string {
 	return `${value}`.padStart(2, "0");
 }
 
+// 按行拆分文本，兼容 CRLF / LF。空文本返回空数组。
+export function splitLines(content: string): string[] {
+	if (!content) {
+		return [];
+	}
+	return content.split(/\r?\n/);
+}
+
 // 解析并校验 6 位十六进制颜色值（例如 #4A86E9）。
 export function parseColorHex(value: unknown): string | undefined {
 	if (typeof value !== "string") {
