@@ -56,7 +56,6 @@ export class CNASettingTab extends PluginSettingTab {
 			containerEl: searchWrapEl,
 			containerClassName: "cna-settings-search-input-container",
 			placeholder: this.ctx.t("settings.search.placeholder"),
-			clearAriaLabel: this.ctx.t("settings.search.clear"),
 			initialValue: this.searchKeyword,
 			onChange: (value) => {
 				const wasSearchMode = isSearchMode;
@@ -272,4 +271,5 @@ export class CNASettingTab extends PluginSettingTab {
 		});
 	}
 }
+
 

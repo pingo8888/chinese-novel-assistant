@@ -144,7 +144,6 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Plug
 		containerEl: searchWrapEl,
 		containerClassName: "cna-sticky-note-search-input-container",
 		placeholder: "",
-		clearAriaLabel: "",
 		onChange: (value) => {
 			searchKeyword = value;
 			cardList.setSearchKeyword(value);
@@ -431,6 +430,7 @@ function getSortDirectionTooltipKey(mode: StickyNoteSortMode): StickyNoteSortToo
 			return "feature.right_sidebar.sticky_note.sort.tooltip.desc";
 	}
 }
+
 
 
 

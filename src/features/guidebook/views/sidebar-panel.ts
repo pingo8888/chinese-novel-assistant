@@ -187,7 +187,6 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Plugi
 		containerEl: searchWrapEl,
 		containerClassName: "cna-guidebook-search-input-container",
 		placeholder: "",
-		clearAriaLabel: "",
 		onChange: (value) => {
 			searchKeyword = value;
 			applySearchFilterAndRender();
@@ -459,6 +458,7 @@ function filterGuidebookTreeExpandedState(source: Record<string, boolean>): Reco
 	}
 	return next;
 }
+
 
 
 

@@ -1,10 +1,8 @@
 export interface ClearableInputComponentOptions {
 	containerEl: HTMLElement;
 	placeholder: string;
-	clearAriaLabel: string;
 	initialValue?: string;
 	containerClassName?: string;
-	inputType?: "search" | "text";
 	onChange: (value: string) => void;
 }
 
@@ -22,16 +20,13 @@ export class ClearableInputComponent {
 			: "search-input-container";
 		this.rootEl = options.containerEl.createDiv({ cls: className });
 		this.inputEl = this.rootEl.createEl("input", {
-			type: options.inputType ?? "search",
+			type: "search",
 			attr: {
 				placeholder: options.placeholder,
 			},
 		});
 		this.clearButtonEl = this.rootEl.createDiv({
 			cls: "search-input-clear-button",
-			attr: {
-				"aria-label": options.clearAriaLabel,
-			},
 		});
 		this.onChange = options.onChange;
 
