@@ -5,9 +5,12 @@ import { askForConfirmation } from "../../../ui/modals/confirm-modal";
 import { createSettingsSectionHeading } from "./heading";
 import type { SettingsTabRenderContext } from "./types";
 
+const NOVEL_LIBRARY_FEATURE_DIR_NAMES = new Set(["00_功能库", "00-功能库"].map((name) => name.toLowerCase()));
+
 export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTabRenderContext): void {
 	const { app, ctx, refresh } = deps;
 	const novelLibraryService = new NovelLibraryService(app);
+	const normalizedLibraryRoots = novelLibraryService.normalizeLibraryRoots(ctx.settings.novelLibraries);
 	const panelEl = containerEl.createDiv({ cls: "cna-settings-panel" });
 	createSettingsSectionHeading(panelEl, ctx.t("settings.global.section.novel_library"));
 
@@ -54,7 +57,10 @@ export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTab
 				}),
 		);
 	if (pendingInputEl) {
-		attachFolderSuggest(app, pendingInputEl);
+		attachFolderSuggest(app, pendingInputEl, {
+			shouldIncludeFolderPath: (path) =>
+				shouldIncludeNovelLibrarySuggestion(path, normalizedLibraryRoots, novelLibraryService),
+		});
 	}
 
 	for (const libraryPath of ctx.settings.novelLibraries) {
@@ -101,5 +107,28 @@ function appendMissingNovelLibraryTag(deps: SettingsTabRenderContext, setting: S
 		cls: "cna-settings-missing-library",
 		text: deps.ctx.t("settings.global.novel_library.missing"),
 	});
+}
+
+
+function shouldIncludeNovelLibrarySuggestion(
+	path: string,
+	normalizedLibraryRoots: string[],
+	novelLibraryService: NovelLibraryService,
+): boolean {
+	const normalizedPath = novelLibraryService.normalizeVaultPath(path);
+	if (!normalizedPath) {
+		return false;
+	}
+	if (isFeatureLibraryPath(normalizedPath)) {
+		return false;
+	}
+	return !normalizedLibraryRoots.some((root) => novelLibraryService.isSameOrChildPath(normalizedPath, root));
+}
+
+function isFeatureLibraryPath(path: string): boolean {
+	return path
+		.split("/")
+		.filter((segment) => segment.length > 0)
+		.some((segment) => NOVEL_LIBRARY_FEATURE_DIR_NAMES.has(segment.toLowerCase()));
 }
 
