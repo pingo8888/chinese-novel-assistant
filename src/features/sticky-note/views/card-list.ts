@@ -24,7 +24,7 @@ interface StickyNoteCardListDeps {
 	t: (key: TranslationKey) => string;
 	getSettings: () => SettingDatas;
 	getStickyNoteRootPaths: () => string[];
-	onVisibleCountChange?: (count: number) => void;
+	onVisibleCountChange?: (stats: { visible: number; total: number }) => void;
 	initialSortMode: StickyNoteSortMode;
 	initialSearchKeyword?: string;
 	initialViewOptions: StickyNoteViewOptions;
@@ -180,7 +180,11 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 		deps.containerEl.empty();
 		const listEl = deps.containerEl.createDiv({ cls: "cna-sticky-note-card-list" });
 		const visibleCards = getVisibleCards(state);
-		deps.onVisibleCountChange?.(visibleCards.length);
+		const totalCards = state.cards.filter((card) => !card.isFloating).length;
+		deps.onVisibleCountChange?.({
+			visible: visibleCards.length,
+			total: totalCards,
+		});
 		if (visibleCards.length === 0) {
 			listEl.createDiv({
 				cls: "cna-sticky-note-card-list__empty",

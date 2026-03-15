@@ -60,8 +60,11 @@ export function renderStickyNoteSidebarPanel(containerEl: HTMLElement, ctx: Plug
 		t: (key) => ctx.t(key),
 		getSettings: () => ctx.settings,
 		getStickyNoteRootPaths: () => stickyNoteRootPaths,
-		onVisibleCountChange: (count) => {
-			noteCountEl?.setText(`${Math.max(0, count)}`);
+		onVisibleCountChange: (stats) => {
+			const total = Math.max(0, stats.total);
+			const visible = Math.max(0, stats.visible);
+			const hasFilter = searchKeyword.trim().length > 0;
+			noteCountEl?.setText(hasFilter ? `${visible}/${total}` : `${total}`);
 		},
 		initialSortMode: sortMode,
 		initialSearchKeyword: searchKeyword,

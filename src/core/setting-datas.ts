@@ -23,6 +23,10 @@ export interface SettingDatas {
 	stickyNoteDefaultRows: number;
 	stickyNoteTagHintTextEnabled: boolean;
 
+	// 标注
+	annotationEnabled: boolean;
+	annotationAutoLocateOnFileSwitch: boolean;
+
 	// 纠错
 	proofreadCommonPunctuationEnabled: boolean;
 	proofreadEnglishCommaEnabled: boolean;
@@ -83,6 +87,8 @@ export function createDefaultSettings(): SettingDatas {
 		stickyNoteEnabled: true,
 		stickyNoteDefaultRows: 5,
 		stickyNoteTagHintTextEnabled: true,
+		annotationEnabled: false,
+		annotationAutoLocateOnFileSwitch: true,
 
 		proofreadCommonPunctuationEnabled: false,
 		proofreadEnglishCommaEnabled: true,

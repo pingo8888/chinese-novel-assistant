@@ -5,6 +5,7 @@ import {
 	type SettingsTabRenderContext,
 	renderGlobalSettings,
 	renderGuidebookSettings,
+	renderAnnotationSettings,
 	renderStickyNoteSettings,
 	renderOtherSettings,
 	renderProofreadSettings,
@@ -93,6 +94,11 @@ export class CNASettingTab extends PluginSettingTab {
 				id: "sticky_note",
 				label: this.ctx.t("settings.tab.sticky_note"),
 				render: (panelEl) => renderStickyNoteSettings(panelEl, renderContext),
+			},
+			{
+				id: "annotation",
+				label: this.ctx.t("settings.tab.annotation"),
+				render: (panelEl) => renderAnnotationSettings(panelEl, renderContext),
 			},
 			{
 				id: "proofread",
@@ -270,8 +276,3 @@ export class CNASettingTab extends PluginSettingTab {
 		});
 	}
 }
-
-
-
-
-

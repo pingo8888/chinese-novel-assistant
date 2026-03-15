@@ -16,6 +16,7 @@ import { registerTextDetectionFeature } from "./features/text-detection";
 import { registerTextAutocompleteFeature } from "./features/text-autocomplete";
 import { registerTypesetFeature } from "./features/typeset";
 import { registerNovelLibraryFeature } from "./features/novel-library";
+import { registerAnnotationFeature, registerAnnotationSidebarView } from "./features/annotation";
 
 export default class CNAPlugin extends Plugin {
 	private settingStore = new SettingStore(this);
@@ -31,12 +32,14 @@ export default class CNAPlugin extends Plugin {
 		registerRibbonFeature(this, this.ctx);
 		registerGuidebookSidebarView(this, this.ctx);
 		registerStickyNoteSidebarView(this, this.ctx);
+		registerAnnotationSidebarView(this, this.ctx);
 		registerStickyNoteFloatingFeature(this, this.ctx);
 		registerSidebarFeature(this, this.ctx);
-		
+
 		// 注册功能
 		registerNovelLibraryFeature(this, this.ctx);
 		registerCommandsFeature(this, this.ctx);
+		registerAnnotationFeature(this, this.ctx);
 		registerCharacterCountFeature(this, this.ctx);
 		registerTextDetectionFeature(this, this.ctx);
 		registerTextAutocompleteFeature(this, this.ctx);
@@ -62,5 +65,3 @@ export default class CNAPlugin extends Plugin {
 		this.settingStore.notify();
 	}
 }
-
-

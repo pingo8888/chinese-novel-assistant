@@ -39,7 +39,9 @@ export const UI = {
 		LIST: "list",
 		LIST_ORDERED: "list-ordered",
 		ERASER: "eraser",
-		FUNNEL: "funnel",
+		FUNNEL: "funnel-plus",
+		BOOKMARK: "message-square-text",
+		MAP_PIN: "map-pin",
 	},
 } as const;
 
