@@ -275,7 +275,6 @@ export class GuidebookKeywordHighlightController {
 	}
 
 	private async collectGuidebookKeywordIndex(libraryRootPath: string): Promise<GuidebookLibraryKeywordIndex> {
-		const settings = this.getSettings();
 		const guidebookRootPath = this.novelLibraryService.resolveNovelLibrarySubdirPath(libraryRootPath,
 			NOVEL_LIBRARY_SUBDIR_NAMES.guidebook,
 		);
