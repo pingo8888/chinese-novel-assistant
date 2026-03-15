@@ -1,7 +1,6 @@
 import { Notice, Setting, TFolder } from "obsidian";
 import { NovelLibraryService } from "../../../core";
-import { attachFolderSuggest } from "../../../ui/componets/folder-suggest";
-import { askForConfirmation } from "../../../ui/modals/confirm-modal";
+import { askForConfirmation, attachFolderSuggest } from "../../../ui";
 import { createSettingsSectionHeading } from "./heading";
 import type { SettingsTabRenderContext } from "./types";
 
@@ -131,6 +130,8 @@ function isFeatureLibraryPath(path: string): boolean {
 		.filter((segment) => segment.length > 0)
 		.some((segment) => NOVEL_LIBRARY_FEATURE_DIR_NAMES.has(segment.toLowerCase()));
 }
+
+
 
 
 

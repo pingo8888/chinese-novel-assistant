@@ -2,8 +2,6 @@ import { Plugin } from "obsidian";
 import { normalizeLocale } from "./lang";
 import { createPluginContext, type ContextHost, type PluginContext, createDefaultSettings, type SettingDatas, SettingStore } from "./core";
 
-// 设置相关
-
 // 界面相关
 import { CNASettingTab } from "./features/setting-tabs/views/settings-tab";
 import { registerSidebarFeature } from "./features/sidebar";

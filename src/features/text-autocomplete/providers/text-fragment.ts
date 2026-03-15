@@ -5,7 +5,7 @@ import { type SettingDatas, NovelLibraryService } from "../../../core";
 import { createSharedAutocompleteExt, resolveLineSuffixTriggerMatch } from "./shared-autocomplete";
 import { SnippetFragmentService, type SnippetFragment } from "../text-fragment-parser";
 
-import { resolveFilePathByEditorView } from "../../../utils/markdown-editor-view";
+import { resolveFilePathByEditorView } from "../../../utils";
 
 const CURSOR_PLACEHOLDER = "{$cursor}";
 
@@ -80,4 +80,5 @@ function resolveInsertion(content: string): { insertText: string; cursorOffset: 
 		cursorOffset: firstPlaceholderIndex,
 	};
 }
+
 

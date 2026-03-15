@@ -1,5 +1,5 @@
 import { UI } from "../../../core";
-import { showContextMenuAtMouseEvent } from "../../../ui/componets/context-menu";
+import { showContextMenuAtMouseEvent } from "../../../ui";
 import type {
 	GuidebookTreeFileNode,
 	GuidebookTreeH1Node,
@@ -155,6 +155,7 @@ export function openGuidebookBlankContextMenu(
 		},
 	]);
 }
+
 
 
 

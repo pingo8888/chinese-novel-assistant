@@ -1,4 +1,4 @@
-import { splitLines } from "../../utils/helpers";
+import { splitLines } from "../../utils";
 
 export interface GuidebookMarkdownTreeH2Node {
 	title: string;
@@ -209,3 +209,4 @@ export class GuidebookMarkdownParser {
 		};
 	}
 }
+

@@ -1,8 +1,8 @@
 import type { EditorView } from "@codemirror/view";
 import { MarkdownView, TFile, type Plugin } from "obsidian";
-import { GuidebookMarkdownParser } from "../../guidebook/markdown-parser";
+import { GuidebookMarkdownParser } from "../../guidebook";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, type SettingDatas } from "../../../core";
-import { resolveMarkdownViewByEditorView } from "../../../utils/markdown-editor-view";
+import { resolveMarkdownViewByEditorView } from "../../../utils";
 import type { TextDetectionRange, TextDetectionRule } from "../engine";
 
 const GUIDEBOOK_KEYWORD_HIT_CLASS = "cna-guidebook-keyword-hit";
@@ -590,6 +590,7 @@ function areKeywordListsEqual(left: readonly string[], right: readonly string[])
 	}
 	return true;
 }
+
 
 
 

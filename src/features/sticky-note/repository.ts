@@ -2,8 +2,7 @@ import { TFile, type App } from "obsidian";
 import { type SettingDatas, NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, STICKY_NOTE_COLORS } from "../../core";
 
 import type { StickyNoteCard, StickyNoteImage } from "./views/types";
-import { extractPlainTextFromMarkdown, normalizeMarkdownLineEndings } from "../../utils/markdown-text";
-import { asBoolean, asNumber, buildRandomToken, isRecord, pad2, parseColorHex } from "../../utils/helpers";
+import { asBoolean, asNumber, buildRandomToken, extractPlainTextFromMarkdown, isRecord, normalizeMarkdownLineEndings, pad2, parseColorHex } from "../../utils";
 
 import {
 	STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
@@ -307,6 +306,8 @@ function parseCsvPaths(value: unknown, normalizeItem: (value: string) => string)
 		.filter((item) => item.length > 0);
 	return Array.from(new Set(parts));
 }
+
+
 
 
 

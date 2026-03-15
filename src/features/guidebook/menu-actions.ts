@@ -7,9 +7,8 @@ import type {
 	GuidebookTreeH2Node,
 } from "./tree-builder";
 import { GuidebookMarkdownParser } from "./markdown-parser";
-import { askForConfirmation } from "../../ui/modals/confirm-modal";
-import { promptTextInput } from "../../ui/modals/text-input-modal";
-import { splitLines } from "../../utils/helpers";
+import { askForConfirmation, promptTextInput } from "../../ui";
+import { splitLines } from "../../utils";
 
 export type GuidebookFileContextAction =
 	| "create_collection"
@@ -862,4 +861,5 @@ function joinLines(lines: string[]): string {
 function formatTemplate(template: string, values: Record<string, string>): string {
 	return template.replace(/\{(\w+)\}/g, (_match, token: string) => values[token] ?? "");
 }
+
 

@@ -1,4 +1,4 @@
-import { clamp } from "../../utils/helpers";
+import { clamp } from "../../utils";
 
 export interface CandidatePanelRenderContext<TItem> {
 	item: TItem;
@@ -366,3 +366,4 @@ export class CandidatePanelComponent<TItem> {
 	}
 
 }
+

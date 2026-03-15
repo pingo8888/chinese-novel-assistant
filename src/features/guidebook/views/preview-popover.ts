@@ -2,7 +2,7 @@ import { Component, type App, MarkdownRenderer, setIcon } from "obsidian";
 import type { GuidebookKeywordPreviewItem } from "../../../features/text-detection/rules/guidebook-keyword";
 import { UI } from "../../../core";
 import type { TranslationKey } from "../../../lang";
-import { clamp } from "../../../utils/helpers";
+import { clamp } from "../../../utils";
 
 export interface GuidebookPreviewDisplayOptions {
 	width: number;
@@ -336,6 +336,7 @@ function formatPreviewTitle(baseTitle: string, status: "死亡" | "失效" | nul
 	}
 	return `${baseTitle}【${status}】`;
 }
+
 
 
 

@@ -5,7 +5,7 @@ import { type PluginContext, bindVaultChangeWatcher, NovelLibraryService, NOVEL_
 import { StickyNoteRepository } from "./repository";
 import { renderStickyNoteCardItem } from "./views/card-item";
 import type { StickyNoteCard, StickyNoteViewOptions } from "./views/types";
-import { areStringArraysEqual, clamp, normalizePosition, normalizePositiveSize } from "../../utils/helpers";
+import { areStringArraysEqual, clamp, normalizePosition, normalizePositiveSize } from "../../utils";
 import {
 	STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
 	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
@@ -661,6 +661,7 @@ function isStickyNoteTabActiveInRightSidebar(): boolean {
 	const selector = `.workspace-split.mod-right-split .workspace-tab-header.is-active[data-type="sticky-note-sidebar"]`;
 	return document.querySelector(selector) !== null;
 }
+
 
 
 

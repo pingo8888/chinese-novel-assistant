@@ -11,10 +11,9 @@ import {
 } from "..";
 import { showStickyNoteContentMenu } from "./content-menu";
 import { applyStickyNoteCardMenuCommand, applyStickyNoteRichTextCommand } from "../menu-actions";
-import { promptVaultImageFile } from "../../../ui/modals/vault-image-picker-modal";
+import { openImagePreview, promptVaultImageFile } from "../../../ui";
 import { showStickyNoteCardMenu } from "./card-menu";
-import { openImagePreview } from "../../../ui/modals/image-preview-modal";
-import { extractPlainTextFromMarkdown, normalizeMarkdownLineEndings } from "../../../utils/markdown-text";
+import { extractPlainTextFromMarkdown, normalizeMarkdownLineEndings } from "../../../utils";
 
 interface StickyNoteCardItemDeps {
 	app: App;
@@ -876,6 +875,8 @@ function extractPlainTextForCaretMapping(markdown: string): string {
 		.replace(/^\n+/, "")
 		.replace(/\n+$/, "");
 }
+
+
 
 
 

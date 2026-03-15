@@ -1,16 +1,7 @@
-import type { Plugin } from "obsidian";
-import { GuidebookSidebarView } from "./views/item-view";
-import { type PluginContext } from "../../core";
-
-// 注册guidebook侧边栏视图函数
-export function registerGuidebookSidebarView(
-	plugin: Plugin,
-	ctx: PluginContext,
-): void {
-	plugin.registerView(
-		"guidebook-sidebar",
-		(leaf) => new GuidebookSidebarView(leaf, ctx),
-	);
-}
+export { registerGuidebookSidebarView } from "./register";
+export { GuidebookQuickInsertService, type GuidebookQuickInsertCandidate } from "./quick-insert-keywords";
+export { GuidebookPreviewController } from "./preview-controller";
+export { TextMenuGuidebookController } from "./text-menu-controller";
+export { GuidebookMarkdownParser } from "./markdown-parser";
 
 

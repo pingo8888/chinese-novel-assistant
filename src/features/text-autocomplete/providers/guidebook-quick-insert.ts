@@ -3,10 +3,9 @@ import type { Plugin } from "obsidian";
 
 import { type SettingDatas, NovelLibraryService } from "../../../core";
 import { createSharedAutocompleteExt, resolveLineSuffixTriggerMatch } from "./shared-autocomplete";
-import { GuidebookQuickInsertService, type GuidebookQuickInsertCandidate } from "../../guidebook/quick-insert-keywords";
+import { GuidebookQuickInsertService, type GuidebookQuickInsertCandidate } from "../../guidebook";
 
-import { resolveFilePathByEditorView } from "../../../utils/markdown-editor-view";
-import { containsCjk } from "../../../utils/helpers";
+import { containsCjk, resolveFilePathByEditorView } from "../../../utils";
 
 export function createGuidebookQuickInsertExt(
 	plugin: Plugin,
@@ -51,4 +50,6 @@ export function createGuidebookQuickInsertExt(
 		emptyTextKey: "feature.snippet.quick_insert.candidate.empty",
 	});
 }
+
+
 
