@@ -2,7 +2,7 @@ import { TFile, type App } from "obsidian";
 import { type SettingDatas, NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, STICKY_NOTE_COLORS } from "../../core";
 
 import type { StickyNoteCard, StickyNoteImage } from "./views/types";
-import { asBoolean, asNumber, buildRandomToken, extractPlainTextFromMarkdown, isRecord, normalizeMarkdownLineEndings, pad2, parseColorHex } from "../../utils";
+import { asBoolean, asNumber, buildRandomToken, extractPlainTextFromMarkdown, isRecord, pad2, parseColorHex } from "../../utils";
 
 import {
 	STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
@@ -132,7 +132,7 @@ export class StickyNoteRepository {
 			const parsed = parseStickyNoteFile(raw);
 			const imagePaths = parseCsvPaths(parsed.metadata["images"], (value) => this.novelLibraryService.normalizeVaultPath(value));
 			const images = this.resolveImageModels(file.path, imagePaths);
-			const contentMarkdown = normalizeMarkdownLineEndings(parsed.contentMarkdown);
+			const contentMarkdown = parsed.contentMarkdown.replace(/\r\n?/g, "\n");
 			return {
 				id: file.path,
 				sourcePath: file.path,
@@ -204,7 +204,7 @@ function buildStickyNoteMetadata(options?: CreateStickyNoteFileOptions): string 
 
 // 便签md数据解析
 function parseStickyNoteFile(source: string): ParseStickyNoteResult {
-	const normalized = normalizeMarkdownLineEndings(source);
+	const normalized = source.replace(/\r\n?/g, "\n");
 	const blockMatch = normalized.match(/^\uFEFF?\s*<!---(cw-data|cna-data)\s*([\s\S]*?)\s*--->/i);
 	if (!blockMatch) {
 		return {
@@ -259,7 +259,7 @@ function serializeStickyNoteFile(card: StickyNoteCard, novelLibraryService: Nove
 		floath: Math.round(card.floatH),
 	};
 	const header = `<!---cw-data\n${JSON.stringify(metadata, null, 2)}\n--->`;
-	const body = normalizeMarkdownLineEndings(card.contentMarkdown);
+	const body = card.contentMarkdown.replace(/\r\n?/g, "\n");
 	return body.length > 0 ? `${header}\n\n${body}` : `${header}\n`;
 }
 

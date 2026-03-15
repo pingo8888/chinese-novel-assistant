@@ -13,7 +13,7 @@ import { showStickyNoteContentMenu } from "./content-menu";
 import { applyStickyNoteCardMenuCommand, applyStickyNoteRichTextCommand } from "../menu-actions";
 import { openImagePreview, promptVaultImageFile } from "../../../ui";
 import { showStickyNoteCardMenu } from "./card-menu";
-import { extractPlainTextFromMarkdown, normalizeMarkdownLineEndings } from "../../../utils";
+import { extractPlainTextFromMarkdown } from "../../../utils";
 
 interface StickyNoteCardItemDeps {
 	app: App;
@@ -336,7 +336,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 	};
 
 	const commitContentEditorValue = (): void => {
-		const nextMarkdown = normalizeMarkdownValue(contentEditorEl.value);
+		const nextMarkdown = contentEditorEl.value.replace(/\r\n?/g, "\n");
 		const nextPlainText = extractPlainTextFromMarkdown(nextMarkdown);
 		const changed = nextMarkdown !== card.contentMarkdown;
 		card.contentMarkdown = nextMarkdown;
@@ -702,10 +702,6 @@ function insertPlainTextAtSelection(targetEl: HTMLElement, text: string): void {
 	activeRange.collapse(true);
 	selection.removeAllRanges();
 	selection.addRange(activeRange);
-}
-
-function normalizeMarkdownValue(source: string): string {
-	return normalizeMarkdownLineEndings(source);
 }
 
 function resolveMarkdownCaretIndexFromDisplayPoint(
