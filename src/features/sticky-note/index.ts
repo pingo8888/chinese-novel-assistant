@@ -1,5 +1,5 @@
 import type { Plugin, WorkspaceLeaf } from "obsidian";
-import type { PluginContext } from "../../core/context";
+import { type PluginContext } from "../../core";
 import { StickyNoteSidebarView } from "./views/item-view";
 
 // 浮动便签的初始参数
@@ -69,4 +69,5 @@ export async function openStickyNoteSidebar(plugin: Plugin, focus: boolean): Pro
 		focus,
 	});
 }
+
 

@@ -1,7 +1,7 @@
 import { Plugin } from "obsidian";
 import { EditorView, type ViewUpdate } from "@codemirror/view";
 
-import type { PluginContext } from "../../core/context";
+import { type PluginContext } from "../../core";
 import { createHeadingIconExtension } from "./heading-icons";
 
 const TYPESET_ENABLED_ATTR = "data-cna-typeset";
@@ -118,3 +118,4 @@ class TypesetFeature {
 		return workspaceContainerEl ?? document.body;
 	}
 }
+

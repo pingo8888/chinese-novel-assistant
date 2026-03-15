@@ -1,5 +1,5 @@
 import { Plugin } from "obsidian";
-import type { PluginContext } from "../../core/context";
+import { type PluginContext } from "../../core";
 import { createPairPunctuationAutocompleteExtension } from "./providers/pair-punctuation";
 import { createTextFragmentAutocompleteExt } from "./providers/text-fragment";
 import { createGuidebookQuickInsertExt } from "./providers/guidebook-quick-insert";
@@ -49,6 +49,7 @@ class TextAutocompleteFeature {
 		);
 	}
 }
+
 
 
 

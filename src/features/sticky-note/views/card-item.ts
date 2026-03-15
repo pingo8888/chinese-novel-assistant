@@ -1,7 +1,5 @@
 import { Component, MarkdownRenderer, Notice, setIcon, TextAreaComponent, type App, type TFile } from "obsidian";
-import {
-	UI,
-} from "../../../core/constants";
+import { UI } from "../../../core";
 import type { TranslationKey } from "../../../lang";
 import type { StickyNoteCard, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
 import {
@@ -878,6 +876,7 @@ function extractPlainTextForCaretMapping(markdown: string): string {
 		.replace(/^\n+/, "")
 		.replace(/\n+$/, "");
 }
+
 
 
 

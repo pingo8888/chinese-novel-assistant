@@ -1,8 +1,7 @@
 import type { Extension } from "@codemirror/state";
 import { type Plugin } from "obsidian";
 
-import type { SettingDatas } from "../../../core/setting-datas";
-import { NovelLibraryService } from "../../../core/novel-library-service";
+import { type SettingDatas, NovelLibraryService } from "../../../core";
 import { createSharedAutocompleteExt, resolveLineSuffixTriggerMatch } from "./shared-autocomplete";
 import { SnippetFragmentService, type SnippetFragment } from "../text-fragment-parser";
 
@@ -81,3 +80,4 @@ function resolveInsertion(content: string): { insertText: string; cursorOffset: 
 		cursorOffset: firstPlaceholderIndex,
 	};
 }
+

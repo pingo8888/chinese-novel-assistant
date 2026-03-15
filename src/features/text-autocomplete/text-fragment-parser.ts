@@ -1,7 +1,5 @@
 import { type App, type Plugin } from "obsidian";
-import type { SettingDatas } from "../../core/setting-datas";
-import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../core/novel-library-service";
-import { bindVaultChangeWatcher } from "../../core/vault-watcher";
+import { type SettingDatas, NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, bindVaultChangeWatcher } from "../../core";
 
 export interface SnippetFragment {
 	keyword: string;
@@ -254,6 +252,7 @@ export class SnippetFragmentService {
 		return path === root || path.startsWith(`${root}/`);
 	}
 }
+
 
 
 

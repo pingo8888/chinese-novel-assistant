@@ -1,6 +1,6 @@
 import { type App, Notice, TFile } from "obsidian";
 import type { TranslationKey } from "../../lang";
-import type { SettingDatas } from "../../core/setting-datas";
+import { type SettingDatas } from "../../core";
 import { areStringArraysEqual, clamp, splitLines } from "../../utils/helpers";
 import { GuidebookMarkdownParser } from "./markdown-parser";
 import type {
@@ -395,6 +395,7 @@ function movePathInArray(
 	next.splice(insertIndex, 0, sourcePath);
 	return next;
 }
+
 
 
 

@@ -1,9 +1,7 @@
 import { type App, type PluginSettingTab } from "obsidian";
 import { translate, type SupportedLocale, type TranslationKey } from "../lang";
 import type { SettingDatas } from "./setting-datas";
-import type { SettingStore } from "./setting-store";
-
-export type SettingsChangeListener = (settings: SettingDatas) => void;
+import type { SettingStore, SettingsChangeListener } from "./setting-store";
 
 export interface ContextHost {
 	app: App;
@@ -35,10 +33,7 @@ export function createPluginContext(host: ContextHost): PluginContext {
 			host.settingStore.patch(patch);
 			await host.settingStore.saveAndNotify();
 		},
-		onSettingsChange: (listener) =>
-			host.settingStore.subscribe((next) => {
-				listener(next);
-			}),
+		onSettingsChange: (listener) => host.settingStore.subscribe(listener),
 		t: (key) => translate(host.settingStore.data.locale, key),
 	};
 }

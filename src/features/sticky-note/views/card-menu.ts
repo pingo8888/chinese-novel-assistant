@@ -1,5 +1,5 @@
 import { setIcon } from "obsidian";
-import { STICKY_NOTE_COLORS, UI } from "../../../core/constants";
+import { STICKY_NOTE_COLORS, UI } from "../../../core";
 import type { TranslationKey } from "../../../lang";
 import type { StickyNoteCardMenuCommand } from "../menu-actions";
 
@@ -165,6 +165,7 @@ function toRgba(hex: string, alpha: number): string {
 	const clampedAlpha = Math.max(0, Math.min(1, alpha));
 	return `rgba(${red}, ${green}, ${blue}, ${clampedAlpha})`;
 }
+
 
 
 

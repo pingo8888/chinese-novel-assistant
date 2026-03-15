@@ -1,5 +1,5 @@
 import type { EditorView } from "@codemirror/view";
-import type { SettingDatas } from "../../../core/setting-datas";
+import { type SettingDatas } from "../../../core";
 import type { TextDetectionRule } from "../engine";
 
 interface PairToken {
@@ -241,5 +241,6 @@ export function createPairPunctuationRules(
 		};
 	});
 }
+
 
 

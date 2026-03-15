@@ -1,8 +1,6 @@
 import { type App, type Plugin } from "obsidian";
 import { buildGuidebookTreeData } from "./tree-builder";
-import type { SettingDatas } from "../../core/setting-datas";
-import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../core/novel-library-service";
-import { bindVaultChangeWatcher } from "../../core/vault-watcher";
+import { type SettingDatas, NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, bindVaultChangeWatcher } from "../../core";
 
 export interface GuidebookQuickInsertCandidate {
 	keyword: string;
@@ -213,6 +211,7 @@ export class GuidebookQuickInsertService {
 		return left.keyword.localeCompare(right.keyword);
 	}
 }
+
 
 
 

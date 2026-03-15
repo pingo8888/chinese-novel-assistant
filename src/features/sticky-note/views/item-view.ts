@@ -1,6 +1,5 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
-import { UI } from "../../../core/constants";
-import type { PluginContext } from "../../../core/context";
+import { UI, type PluginContext } from "../../../core";
 import { renderStickyNoteSidebarPanel } from "./sidebar-panel";
 
 export class StickyNoteSidebarView extends ItemView {
@@ -40,5 +39,6 @@ export class StickyNoteSidebarView extends ItemView {
 		return Promise.resolve();
 	}
 }
+
 
 

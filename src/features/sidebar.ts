@@ -1,5 +1,5 @@
 import type { Plugin } from "obsidian";
-import type { PluginContext } from "../core/context";
+import { type PluginContext } from "../core";
 import {
 	detachStickyNoteSidebars,
 	openStickyNoteSidebar,
@@ -63,3 +63,4 @@ function detachSidebarViews(plugin: Plugin): void {
 	}
 	detachStickyNoteSidebars(plugin);
 }
+

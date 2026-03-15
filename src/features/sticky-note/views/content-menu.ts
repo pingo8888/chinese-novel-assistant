@@ -1,5 +1,5 @@
 import type { TranslationKey } from "../../../lang";
-import { UI } from "../../../core/constants";
+import { UI } from "../../../core";
 import { showContextMenuAtMouseEvent } from "../../../ui/componets/context-menu";
 import type { StickyNoteRichTextCommand } from "../menu-actions";
 
@@ -108,6 +108,7 @@ function restoreSelectionRange(editorEl: HTMLTextAreaElement, range: { start: nu
 	editorEl.focus();
 	editorEl.setSelectionRange(range.start, range.end);
 }
+
 
 
 

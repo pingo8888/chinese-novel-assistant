@@ -1,7 +1,7 @@
 import { EditorSelection, Prec, type Extension } from "@codemirror/state";
 import { EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { translate, type TranslationKey } from "../../../lang";
-import type { SettingDatas } from "../../../core/setting-datas";
+import { type SettingDatas } from "../../../core";
 import { CandidatePanelComponent } from "../../../ui/componets/candidate-panel";
 
 export interface TriggerMatch {
@@ -259,3 +259,4 @@ function isInCodeContext(view: EditorView, cursor: number): boolean {
 	}
 	return activeFence !== null;
 }
+

@@ -1,5 +1,5 @@
 import type { EditorView } from "@codemirror/view";
-import type { SettingDatas } from "../../../core/setting-datas";
+import { type SettingDatas } from "../../../core";
 import type { TextDetectionRule } from "../engine";
 
 interface EnPunctuationRuleConfig {
@@ -220,5 +220,6 @@ export function createEnPunctuationRules(
 			findCharErrorIndicesInDoc(docText, config.char, config.allowContextRegex, config.allowPosition),
 	}));
 }
+
 
 

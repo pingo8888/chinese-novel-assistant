@@ -1,6 +1,5 @@
 import type { App, TFile } from "obsidian";
-import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../core/novel-library-service";
-import type { SettingDatas } from "../../core/setting-datas";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, type SettingDatas } from "../../core";
 import { GuidebookMarkdownParser } from "./markdown-parser";
 
 export interface GuidebookTreeH2Node {
@@ -234,6 +233,7 @@ function pruneGuidebookFileParseCache(guidebookRootPath: string, activeGuidebook
 		}
 	}
 }
+
 
 
 

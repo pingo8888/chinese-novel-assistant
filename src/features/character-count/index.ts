@@ -1,10 +1,7 @@
 import { Annotation, Prec } from "@codemirror/state";
 import { EditorView, gutter, GutterMarker, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { MarkdownView, Plugin, TFile } from "obsidian";
-import type { PluginContext } from "../../core/context";
-import type { SettingDatas } from "../../core/setting-datas";
-import { NovelLibraryService } from "../../core/novel-library-service";
-import { bindVaultChangeWatcher } from "../../core/vault-watcher";
+import { type PluginContext, type SettingDatas, NovelLibraryService, bindVaultChangeWatcher } from "../../core";
 import {
 	countMarkdownCharacters,
 	hasExcalidrawFrontmatter,
@@ -642,5 +639,6 @@ function resolveEditorViewFromMarkdownView(view: MarkdownView): MaybeEditorView 
 	};
 	return editorAny.cm ?? editorAny.editor?.cm ?? null;
 }
+
 
 

@@ -1,8 +1,6 @@
 import { MarkdownView, Notice, TFile, type Plugin } from "obsidian";
-import type { PluginContext } from "../../core/context";
+import { type PluginContext, bindVaultChangeWatcher, NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../core";
 
-import { bindVaultChangeWatcher } from "../../core/vault-watcher";
-import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../core/novel-library-service";
 
 import { StickyNoteRepository } from "./repository";
 import { renderStickyNoteCardItem } from "./views/card-item";
@@ -663,6 +661,7 @@ function isStickyNoteTabActiveInRightSidebar(): boolean {
 	const selector = `.workspace-split.mod-right-split .workspace-tab-header.is-active[data-type="sticky-note-sidebar"]`;
 	return document.querySelector(selector) !== null;
 }
+
 
 
 

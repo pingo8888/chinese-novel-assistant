@@ -1,17 +1,8 @@
 import { Plugin } from "obsidian";
 import { normalizeLocale } from "./lang";
-import {
-	createPluginContext,
-	type ContextHost,
-	type PluginContext,
-} from "./core/context";
+import { createPluginContext, type ContextHost, type PluginContext, createDefaultSettings, type SettingDatas, SettingStore } from "./core";
 
 // 设置相关
-import {
-	createDefaultSettings,
-	type SettingDatas,
-} from "./core/setting-datas";
-import { SettingStore } from "./core/setting-store";
 
 // 界面相关
 import { CNASettingTab } from "./features/setting-tabs/views/settings-tab";
@@ -73,4 +64,5 @@ export default class CNAPlugin extends Plugin {
 		this.settingStore.notify();
 	}
 }
+
 

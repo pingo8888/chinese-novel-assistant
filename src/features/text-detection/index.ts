@@ -1,8 +1,6 @@
 import type { EditorView } from "@codemirror/view";
 import { MarkdownView, Plugin } from "obsidian";
-import type { PluginContext } from "../../core/context";
-import { NovelLibraryService } from "../../core/novel-library-service";
-import { bindVaultChangeWatcher } from "../../core/vault-watcher";
+import { type PluginContext, NovelLibraryService, bindVaultChangeWatcher } from "../../core";
 import { createTextDetectionExtension, createTextDetectionForceRefreshTransaction } from "./engine";
 import { createProofreadDictRules } from "./rules/proofread-dict";
 import { createEnPunctuationRules } from "./rules/en-punctuation";
@@ -158,5 +156,6 @@ class TextDetectionFeature {
 		return path === root || path.startsWith(`${root}/`);
 	}
 }
+
 
 

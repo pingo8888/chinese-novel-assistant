@@ -1,6 +1,5 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
-import { UI } from "../../../core/constants";
-import type { PluginContext } from "../../../core/context";
+import { UI, type PluginContext } from "../../../core";
 import { renderGuidebookSidebarPanel } from "./sidebar-panel";
 
 export class GuidebookSidebarView extends ItemView {
@@ -40,6 +39,7 @@ export class GuidebookSidebarView extends ItemView {
 		return Promise.resolve();
 	}
 }
+
 
 
 

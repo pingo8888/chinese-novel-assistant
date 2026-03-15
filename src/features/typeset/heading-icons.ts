@@ -1,7 +1,7 @@
 import { RangeSetBuilder } from "@codemirror/state";
 import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate, WidgetType } from "@codemirror/view";
 import { setIcon } from "obsidian";
-import { UI } from "../../core/constants";
+import { UI } from "../../core";
 
 const TYPESET_HEADING_ICON_EL_CLASS = "cna-typeset-heading-icon";
 type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
@@ -90,5 +90,6 @@ export function createHeadingIconExtension() {
 		},
 	);
 }
+
 
 

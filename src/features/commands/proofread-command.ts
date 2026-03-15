@@ -1,5 +1,5 @@
 import { Notice, type Plugin, type Editor } from "obsidian";
-import type { PluginContext } from "../../core/context";
+import { type PluginContext } from "../../core";
 import { ProofreadDictService } from "../text-detection/proofread-dict-provider";
 import { fixEnPunctuationErrors } from "../text-detection/rules/en-punctuation";
 import { fixPairPunctuationErrors } from "../text-detection/rules/pair-punctuation";
@@ -87,3 +87,4 @@ async function runFixProofreadDictCommand(ctx: PluginContext, editor: Editor): P
 	editor.setCursor(editor.offsetToPos(nextCursorOffset));
 	new Notice(`${ctx.t("command.proofread.fix_proofread_dict_errors.done")} ${fixResult.replacedCount}`);
 }
+

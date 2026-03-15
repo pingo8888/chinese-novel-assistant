@@ -1,7 +1,5 @@
 import { TFolder, type Plugin } from "obsidian";
-import type { PluginContext } from "../../core/context";
-import { NovelLibraryService } from "../../core/novel-library-service";
-import { bindVaultChangeWatcher } from "../../core/vault-watcher";
+import { type PluginContext, NovelLibraryService, bindVaultChangeWatcher } from "../../core";
 
 export function registerNovelLibraryFeature(plugin: Plugin, ctx: PluginContext): void {
 	const novelLibraryService = new NovelLibraryService(plugin.app);
@@ -73,3 +71,4 @@ function dedupeLibraryPaths(paths: string[], novelLibraryService: NovelLibrarySe
 	}
 	return result;
 }
+

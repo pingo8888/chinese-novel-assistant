@@ -3,7 +3,7 @@ import type { TranslationKey } from "../../../lang";
 import { renderStickyNoteCardItem } from "./card-item";
 import type { StickyNoteCard, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
 import { closeStickyNoteCardMenu } from "./card-menu";
-import type { SettingDatas } from "../../../core/setting-datas";
+import { type SettingDatas } from "../../../core";
 import { StickyNoteRepository } from "../repository";
 
 export interface StickyNoteCardListController {
@@ -325,6 +325,7 @@ function revokeImageUrls(images: StickyNoteCard["images"]): void {
 		}
 	}
 }
+
 
 
 

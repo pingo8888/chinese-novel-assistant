@@ -1,6 +1,5 @@
 import { Notice, type Plugin } from "obsidian";
-import type { PluginContext } from "../../core/context";
-import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../core/novel-library-service";
+import { type PluginContext, NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../core";
 import {
 	STICKY_NOTE_FLOAT_DEFAULT_HEIGHT,
 	STICKY_NOTE_FLOAT_DEFAULT_WIDTH,
@@ -119,4 +118,5 @@ function queryRightSplitRect(): DOMRect | null {
 	}
 	return rightSplitEl.getBoundingClientRect();
 }
+
 

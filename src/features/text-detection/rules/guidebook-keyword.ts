@@ -1,8 +1,7 @@
 import type { EditorView } from "@codemirror/view";
 import { MarkdownView, TFile, type Plugin } from "obsidian";
 import { GuidebookMarkdownParser } from "../../guidebook/markdown-parser";
-import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES } from "../../../core/novel-library-service";
-import type { SettingDatas } from "../../../core/setting-datas";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, type SettingDatas } from "../../../core";
 import { resolveMarkdownViewByEditorView } from "../../../utils/markdown-editor-view";
 import type { TextDetectionRange, TextDetectionRule } from "../engine";
 
@@ -591,6 +590,7 @@ function areKeywordListsEqual(left: readonly string[], right: readonly string[])
 	}
 	return true;
 }
+
 
 
 

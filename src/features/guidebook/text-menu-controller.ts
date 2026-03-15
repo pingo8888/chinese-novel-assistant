@@ -1,8 +1,7 @@
 import type { EditorView } from "@codemirror/view";
 import { Editor, MarkdownFileInfo, MarkdownView, Menu, MenuItem, setIcon, type Plugin } from "obsidian";
-import { UI } from "../../core/constants";
+import { UI, type SettingDatas } from "../../core";
 import type { TranslationKey } from "../../lang";
-import type { SettingDatas } from "../../core/setting-datas";
 import { resolveEditorViewFromMarkdownView } from "../../utils/markdown-editor-view";
 import { appendGuidebookSettingToCategoryByPath } from "./menu-actions";
 import { buildGuidebookTreeData, type GuidebookTreeData } from "./tree-builder";
@@ -526,6 +525,7 @@ function normalizeSelection(value: string): string {
 	}
 	return normalized;
 }
+
 
 
 

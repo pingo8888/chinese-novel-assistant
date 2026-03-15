@@ -1,8 +1,7 @@
 import type { Extension } from "@codemirror/state";
 import type { Plugin } from "obsidian";
 
-import type { SettingDatas } from "../../../core/setting-datas";
-import { NovelLibraryService } from "../../../core/novel-library-service";
+import { type SettingDatas, NovelLibraryService } from "../../../core";
 import { createSharedAutocompleteExt, resolveLineSuffixTriggerMatch } from "./shared-autocomplete";
 import { GuidebookQuickInsertService, type GuidebookQuickInsertCandidate } from "../../guidebook/quick-insert-keywords";
 
@@ -52,3 +51,4 @@ export function createGuidebookQuickInsertExt(
 		emptyTextKey: "feature.snippet.quick_insert.candidate.empty",
 	});
 }
+

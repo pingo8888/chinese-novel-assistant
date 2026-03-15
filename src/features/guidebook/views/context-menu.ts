@@ -1,4 +1,4 @@
-import { UI } from "../../../core/constants";
+import { UI } from "../../../core";
 import { showContextMenuAtMouseEvent } from "../../../ui/componets/context-menu";
 import type {
 	GuidebookTreeFileNode,
@@ -155,6 +155,7 @@ export function openGuidebookBlankContextMenu(
 		},
 	]);
 }
+
 
 
 
