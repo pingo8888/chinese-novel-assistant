@@ -34,6 +34,19 @@ export function parseColorHex(value: unknown): string | undefined {
 	return /^#[0-9a-fA-F]{6}$/.test(normalized) ? normalized : undefined;
 }
 
+// 将 6 位十六进制颜色转换为 rgba 字符串，非法输入直接返回原值。
+export function toRgba(hex: string, alpha: number): string {
+	const normalized = hex.trim().replace("#", "");
+	if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
+		return hex;
+	}
+	const red = Number.parseInt(normalized.slice(0, 2), 16);
+	const green = Number.parseInt(normalized.slice(2, 4), 16);
+	const blue = Number.parseInt(normalized.slice(4, 6), 16);
+	const clampedAlpha = Math.max(0, Math.min(1, alpha));
+	return `rgba(${red}, ${green}, ${blue}, ${clampedAlpha})`;
+}
+
 // 从 unknown 中提取布尔值，类型不匹配时返回回退值。
 export function asBoolean(value: unknown, fallback: boolean): boolean {
 	return typeof value === "boolean" ? value : fallback;

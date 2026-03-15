@@ -6,7 +6,7 @@ import { AnnotationRepository } from "../repository";
 import { createAnnotationCardList } from "./card-list";
 import { emitAnnotationLocateFlash } from "../flash-bus";
 import { ANNOTATION_COLOR_TYPES } from "../color-types";
-import { normalizeVaultPath } from "../utils";
+import { normalizeVaultPath } from "../../../core/novel-library-service";
 import type { AnnotationCard } from "./types";
 
 const ANNOTATION_FILTER_MENU_SECTION = "cna-annotation-filter-color";

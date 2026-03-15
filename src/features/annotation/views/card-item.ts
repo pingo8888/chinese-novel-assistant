@@ -1,11 +1,10 @@
 import { Component, MarkdownRenderer, setIcon, TextAreaComponent, type App } from "obsidian";
 import { UI } from "../../../core";
 import type { TranslationKey } from "../../../lang";
-import { extractPlainTextFromMarkdown } from "../../../utils";
+import { extractPlainTextFromMarkdown, toRgba } from "../../../utils";
 import { resolveAnnotationTypeByColorHex } from "../color-types";
 import { applyAnnotationCardMenuCommand } from "../menu-actions";
 import { applyStickyNoteRichTextCommand } from "../../sticky-note/menu-actions";
-import { toRgba } from "../utils";
 import { showAnnotationCardMenu } from "./card-menu";
 import { showStickyNoteContentMenu } from "../../sticky-note/views/content-menu";
 import type { AnnotationCard } from "./types";

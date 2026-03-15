@@ -4,8 +4,8 @@ import { closeAnnotationCardMenu } from "./card-menu";
 import { renderAnnotationCardItem } from "./card-item";
 import type { AnnotationCard } from "./types";
 import type { SettingDatas } from "../../../core";
+import { normalizeVaultPath } from "../../../core";
 import { AnnotationRepository } from "../repository";
-import { normalizeVaultPath } from "../utils";
 
 export interface AnnotationCardListController {
 	setSearchKeyword(keyword: string): void;

@@ -2,12 +2,12 @@ import { Annotation, RangeSetBuilder, type Text } from "@codemirror/state";
 import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { Editor, MarkdownFileInfo, MarkdownView, Menu, MenuItem, Notice, Plugin, TFile } from "obsidian";
 import { UI, type PluginContext, bindVaultChangeWatcher } from "../../core";
-import { parseColorHex, resolveEditorViewFromMarkdownView, resolveMarkdownViewByEditorView } from "../../utils";
+import { normalizeVaultPath } from "../../core/novel-library-service";
+import { parseColorHex, resolveEditorViewFromMarkdownView, resolveMarkdownViewByEditorView, toRgba } from "../../utils";
 import { type AnnotationAnchorSnapshot, type AnnotationSelectionAnchor, AnnotationRepository } from "./repository";
 import { subscribeAnnotationLocateFlash, type AnnotationLocateFlashPayload } from "./flash-bus";
 import { scheduleAttachColorSwatchesToLatestMenu } from "../../ui";
 import { ANNOTATION_COLOR_TYPES, DEFAULT_ANNOTATION_COLOR, normalizeAnnotationColorHex } from "./color-types";
-import { normalizeVaultPath, toRgba } from "./utils";
 
 const ANNOTATION_RANGE_FORCE_REFRESH = Annotation.define<boolean>();
 const ANNOTATION_RANGE_MARK_CLASS = "cna-annotation-range-mark";

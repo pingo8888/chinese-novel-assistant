@@ -14,6 +14,14 @@ export const NOVEL_LIBRARY_SUBDIR_NAMES = {
 type NovelLibrarySubdirKey = keyof typeof NOVEL_LIBRARY_SUBDIR_NAMES;
 const NOVEL_LIBRARY_SUBDIR_KEYS = Object.keys(NOVEL_LIBRARY_SUBDIR_NAMES) as NovelLibrarySubdirKey[];
 
+export function normalizeVaultPath(value: string): string {
+	return value
+		.trim()
+		.replace(/\\/g, "/")
+		.replace(/^\/+/, "")
+		.replace(/\/+$/, "");
+}
+
 export class NovelLibraryService {
 	private app: App;
 
@@ -31,11 +39,7 @@ export class NovelLibraryService {
 	}
 
 	normalizeVaultPath(value: string): string {
-		return value
-			.trim()
-			.replace(/\\/g, "/")
-			.replace(/^\/+/, "")
-			.replace(/\/+$/, "");
+		return normalizeVaultPath(value);
 	}
 
 	normalizeLibraryRoots(libraryPaths: string[]): string[] {

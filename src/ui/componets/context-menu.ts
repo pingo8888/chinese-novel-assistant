@@ -1,4 +1,5 @@
 import { Menu, type IconName } from "obsidian";
+import { toRgba } from "../../utils";
 
 export interface ContextMenuItemOption {
 	kind?: "item";
@@ -223,14 +224,3 @@ function createColorChip(colorHex: string): HTMLSpanElement {
 	return colorChipEl;
 }
 
-function toRgba(hex: string, alpha: number): string {
-	const normalized = hex.trim().replace("#", "");
-	if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
-		return hex;
-	}
-	const red = Number.parseInt(normalized.slice(0, 2), 16);
-	const green = Number.parseInt(normalized.slice(2, 4), 16);
-	const blue = Number.parseInt(normalized.slice(4, 6), 16);
-	const clampedAlpha = Math.max(0, Math.min(1, alpha));
-	return `rgba(${red}, ${green}, ${blue}, ${clampedAlpha})`;
-}

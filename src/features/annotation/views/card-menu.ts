@@ -2,7 +2,7 @@ import { setIcon } from "obsidian";
 import { STICKY_NOTE_COLORS, UI } from "../../../core";
 import type { TranslationKey } from "../../../lang";
 import type { AnnotationCardMenuCommand } from "../menu-actions";
-import { toRgba } from "../utils";
+import { toRgba } from "../../../utils";
 
 interface ShowAnnotationCardMenuArgs {
 	anchorEl: HTMLElement;
