@@ -173,9 +173,7 @@ export class GuidebookQuickInsertService {
 			return;
 		}
 
-		const guidebookRoot = this.novelLibraryService.resolveNovelLibrarySubdirPath(
-			{ locale: settings.locale },
-			libraryRoot,
+		const guidebookRoot = this.novelLibraryService.resolveNovelLibrarySubdirPath(libraryRoot,
 			NOVEL_LIBRARY_SUBDIR_NAMES.guidebook,
 		);
 		if (!guidebookRoot) {
@@ -215,5 +213,6 @@ export class GuidebookQuickInsertService {
 		return left.keyword.localeCompare(right.keyword);
 	}
 }
+
 
 

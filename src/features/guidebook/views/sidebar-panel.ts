@@ -377,9 +377,7 @@ function shouldRefreshForVaultEvent(
 	}
 	const guidebookRootPath =
 		latestTreeData?.guidebookRootPath ||
-		novelLibraryService.resolveNovelLibrarySubdirPath(
-			{ locale: settings.locale },
-			activeLibraryRoot,
+		novelLibraryService.resolveNovelLibrarySubdirPath(activeLibraryRoot,
 			NOVEL_LIBRARY_SUBDIR_NAMES.guidebook,
 		);
 	if (!guidebookRootPath) {
@@ -458,6 +456,7 @@ function filterGuidebookTreeExpandedState(source: Record<string, boolean>): Reco
 	}
 	return next;
 }
+
 
 
 

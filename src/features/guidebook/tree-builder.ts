@@ -74,9 +74,7 @@ export async function buildGuidebookTreeData(
 		return null;
 	}
 
-	const guidebookRootPath = libraryService.resolveNovelLibrarySubdirPath(
-		{ locale: settings.locale },
-		containingLibraryRoot,
+	const guidebookRootPath = libraryService.resolveNovelLibrarySubdirPath(containingLibraryRoot,
 		NOVEL_LIBRARY_SUBDIR_NAMES.guidebook,
 	);
 	if (!guidebookRootPath) {
@@ -236,5 +234,6 @@ function pruneGuidebookFileParseCache(guidebookRootPath: string, activeGuidebook
 		}
 	}
 }
+
 
 

@@ -313,9 +313,7 @@ function resolveStickyNoteRootPaths(
 ): string[] {
 	const roots = settings.novelLibraries
 		.map((libraryPath) =>
-			novelLibraryService.resolveNovelLibrarySubdirPath(
-				settings,
-				libraryPath,
+			novelLibraryService.resolveNovelLibrarySubdirPath(libraryPath,
 				NOVEL_LIBRARY_SUBDIR_NAMES.stickyNote,
 			),
 		)
@@ -347,9 +345,7 @@ function resolveScopedStickyNoteRootPaths(
 	if (!matchedLibraryRoot) {
 		return [];
 	}
-	const stickyRootPath = novelLibraryService.resolveNovelLibrarySubdirPath(
-		settings,
-		matchedLibraryRoot,
+	const stickyRootPath = novelLibraryService.resolveNovelLibrarySubdirPath(matchedLibraryRoot,
 		NOVEL_LIBRARY_SUBDIR_NAMES.stickyNote,
 	);
 	const normalizedStickyRootPath = novelLibraryService.normalizeVaultPath(stickyRootPath);
@@ -373,9 +369,7 @@ function resolveTargetStickyNoteRootPath(
 	if (!targetLibraryRoot) {
 		return null;
 	}
-	const stickyRootPath = novelLibraryService.resolveNovelLibrarySubdirPath(
-		settings,
-		targetLibraryRoot,
+	const stickyRootPath = novelLibraryService.resolveNovelLibrarySubdirPath(targetLibraryRoot,
 		NOVEL_LIBRARY_SUBDIR_NAMES.stickyNote,
 	);
 	const normalizedStickyRootPath = novelLibraryService.normalizeVaultPath(stickyRootPath);
@@ -419,6 +413,7 @@ function getSortDirectionTooltipKey(mode: StickyNoteSortMode): StickyNoteSortToo
 			return "feature.sticky_note.sort.tooltip.desc";
 	}
 }
+
 
 
 

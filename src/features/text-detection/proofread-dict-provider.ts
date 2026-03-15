@@ -226,9 +226,7 @@ export class ProofreadDictService {
 	private resolveDictionaryRoots(settings: SettingDatas): string[] {
 		const roots: string[] = [];
 		for (const libraryPath of settings.novelLibraries) {
-			const dictionaryRoot = this.novelLibraryService.resolveNovelLibrarySubdirPath(
-				{ locale: settings.locale },
-				libraryPath,
+			const dictionaryRoot = this.novelLibraryService.resolveNovelLibrarySubdirPath(libraryPath,
 				NOVEL_LIBRARY_SUBDIR_NAMES.proofreadDictionary,
 			);
 			if (!dictionaryRoot) {
@@ -295,5 +293,6 @@ export class ProofreadDictService {
 		}
 	}
 }
+
 
 

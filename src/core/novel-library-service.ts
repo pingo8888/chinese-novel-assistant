@@ -1,5 +1,5 @@
 import { App, TFolder } from "obsidian";
-import type { SettingDatas } from "../core/setting-datas";
+import type { SettingDatas } from "./setting-datas";
 
 const NOVEL_LIBRARY_FEATURE_DIR_NAME = "00_功能库";
 
@@ -76,17 +76,12 @@ export class NovelLibraryService {
 	}
 
 	isInFeatureRoot(path: string, settings: Pick<SettingDatas, "locale" | "novelLibraries">): boolean {
-		const normalizedLibraryRoots = this.normalizeLibraryRoots(settings.novelLibraries);
-		if (normalizedLibraryRoots.length === 0) {
-			return false;
-		}
-
-		const libraryRoot = this.resolveContainingLibraryRoot(path, normalizedLibraryRoots);
+		const libraryRoot = this.resolveContainingLibraryRoot(path, settings.novelLibraries);
 		if (!libraryRoot) {
 			return false;
 		}
 
-		const featureRoot = this.resolveNovelLibraryFeatureRootPath({ locale: settings.locale }, libraryRoot);
+		const featureRoot = this.resolveNovelLibraryFeatureRootPath(libraryRoot);
 		if (!featureRoot) {
 			return false;
 		}
@@ -94,7 +89,7 @@ export class NovelLibraryService {
 		return this.isSameOrChildPath(path, featureRoot);
 	}
 
-	resolveNovelLibrarySubdirPaths(_settings: Pick<SettingDatas, "locale">, libraryPath: string): string[] {
+	resolveNovelLibrarySubdirPaths(libraryPath: string): string[] {
 		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
 		if (!normalizedLibraryPath) {
 			return [];
@@ -110,7 +105,6 @@ export class NovelLibraryService {
 	}
 
 	resolveNovelLibrarySubdirPath(
-		_settings: Pick<SettingDatas, "locale">,
 		libraryPath: string,
 		subdirName: string,
 	): string {
@@ -128,7 +122,7 @@ export class NovelLibraryService {
 		return this.normalizeVaultPath(`${featureRootPath}/${resolvedSubdirName}`);
 	}
 
-	resolveNovelLibraryFeatureRootPath(_settings: Pick<SettingDatas, "locale">, libraryPath: string): string {
+	resolveNovelLibraryFeatureRootPath(libraryPath: string): string {
 		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
 		if (!normalizedLibraryPath) {
 			return "";
@@ -136,7 +130,7 @@ export class NovelLibraryService {
 		return this.resolveFeatureRootPath(normalizedLibraryPath);
 	}
 
-	async ensureNovelLibraryStructure(_settings: Pick<SettingDatas, "locale">, libraryPath: string): Promise<void> {
+	async ensureNovelLibraryStructure(libraryPath: string): Promise<void> {
 		const normalizedLibraryPath = this.normalizeVaultPath(libraryPath);
 		if (!normalizedLibraryPath) {
 			return;
@@ -199,3 +193,4 @@ export class NovelLibraryService {
 		}
 	}
 }
+

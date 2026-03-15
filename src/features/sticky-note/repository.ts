@@ -119,9 +119,7 @@ export class StickyNoteRepository {
 		}
 		const roots = settings.novelLibraries
 			.map((libraryPath) =>
-				this.novelLibraryService.resolveNovelLibrarySubdirPath(
-					settings,
-					libraryPath,
+				this.novelLibraryService.resolveNovelLibrarySubdirPath(libraryPath,
 					NOVEL_LIBRARY_SUBDIR_NAMES.stickyNote,
 				),
 			)
@@ -311,4 +309,5 @@ function parseCsvPaths(value: unknown, normalizeItem: (value: string) => string)
 		.filter((item) => item.length > 0);
 	return Array.from(new Set(parts));
 }
+
 

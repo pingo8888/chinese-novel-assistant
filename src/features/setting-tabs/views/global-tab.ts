@@ -43,7 +43,7 @@ export function renderGlobalSettings(containerEl: HTMLElement, deps: SettingsTab
 					}
 
 					try {
-						await novelLibraryService.ensureNovelLibraryStructure(ctx.settings, next);
+						await novelLibraryService.ensureNovelLibraryStructure(next);
 					} catch (error) {
 						console.error("[Chinese Novel Assistant] Failed to create novel library structure.", error);
 						new Notice(ctx.t("settings.global.novel_library.create_subdirs_failed"));
@@ -131,4 +131,5 @@ function isFeatureLibraryPath(path: string): boolean {
 		.filter((segment) => segment.length > 0)
 		.some((segment) => NOVEL_LIBRARY_FEATURE_DIR_NAMES.has(segment.toLowerCase()));
 }
+
 

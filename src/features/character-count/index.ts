@@ -314,7 +314,7 @@ class CharacterCountFeature {
 
 		const excludedRootsByLibrary = new Map<string, string[]>();
 		for (const libraryRoot of libraryRoots) {
-			const excludedRoots = this.novelLibraryService.resolveNovelLibrarySubdirPaths(settings, libraryRoot);
+			const excludedRoots = this.novelLibraryService.resolveNovelLibrarySubdirPaths(libraryRoot);
 			excludedRootsByLibrary.set(libraryRoot, excludedRoots);
 		}
 
@@ -642,4 +642,5 @@ function resolveEditorViewFromMarkdownView(view: MarkdownView): MaybeEditorView 
 	};
 	return editorAny.cm ?? editorAny.editor?.cm ?? null;
 }
+
 

@@ -1,6 +1,6 @@
 import { App, TFile } from "obsidian";
-import type { SettingDatas } from "../core/setting-datas";
-import { NovelLibraryService } from "../core/novel-library-service";
+import type { SettingDatas } from "./setting-datas";
+import { NovelLibraryService } from "./novel-library-service";
 
 export interface MarkdownParseRequest {
 	settings: Pick<SettingDatas, "novelLibraries">;
@@ -28,14 +28,6 @@ export interface MarkdownParser<TParsed = unknown> {
 	parse(context: MarkdownParserContext): TParsed | Promise<TParsed>;
 }
 
-interface RegisterParserOptions {
-	replace?: boolean;
-}
-
-interface DefaultRawParseResult {
-	content: string;
-}
-
 export class MarkdownParseService {
 	private static readonly DEFAULT_PARSER_ID = "raw";
 
@@ -53,7 +45,7 @@ export class MarkdownParseService {
 		return Array.from(this.parsers.keys());
 	}
 
-	registerParser(parser: MarkdownParser, options: RegisterParserOptions = {}): void {
+	registerParser(parser: MarkdownParser, options: { replace?: boolean } = {}): void {
 		const normalizedId = parser.id.trim();
 		if (!normalizedId) {
 			throw new Error("Parser id cannot be empty.");
@@ -120,7 +112,7 @@ export class MarkdownParseService {
 	private registerDefaultParsers(): void {
 		this.registerParser({
 			id: MarkdownParseService.DEFAULT_PARSER_ID,
-			parse: ({ content }): DefaultRawParseResult => ({ content }),
+			parse: ({ content }) => ({ content }),
 		});
 	}
 }

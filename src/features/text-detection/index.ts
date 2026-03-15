@@ -147,9 +147,7 @@ class TextDetectionFeature {
 
 		const featureRoots = this.ctx.settings.novelLibraries
 			.map((libraryPath) =>
-				this.novelLibraryService.resolveNovelLibraryFeatureRootPath(
-					{ locale: this.ctx.settings.locale },
-					libraryPath,
+				this.novelLibraryService.resolveNovelLibraryFeatureRootPath(libraryPath,
 				),
 			)
 			.filter((path) => path.length > 0);
@@ -160,4 +158,5 @@ class TextDetectionFeature {
 		return path === root || path.startsWith(`${root}/`);
 	}
 }
+
 

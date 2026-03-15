@@ -5,6 +5,7 @@ import { bindVaultChangeWatcher } from "../../core/vault-watcher";
 
 export function registerNovelLibraryFeature(plugin: Plugin, ctx: PluginContext): void {
 	const novelLibraryService = new NovelLibraryService(plugin.app);
+	// 监听目录重命名，自动同步设置中的小说库路径。
 	bindVaultChangeWatcher(plugin, plugin.app, (event) => {
 		if (event.type !== "rename") {
 			return;
@@ -18,6 +19,7 @@ export function registerNovelLibraryFeature(plugin: Plugin, ctx: PluginContext):
 			return;
 		}
 
+		// 将受影响的库路径按新目录位置重映射。
 		const nextLibraries = remapNovelLibraryPaths(ctx.settings.novelLibraries, previousPath, nextPath, novelLibraryService);
 		if (nextLibraries === null) {
 			return;
@@ -36,6 +38,7 @@ function remapNovelLibraryPaths(
 	novelLibraryService: NovelLibraryService,
 ): string[] | null {
 	let changed = false;
+	// 仅重写“旧根目录及其子路径”对应的条目，其他路径保持不变。
 	const mapped = libraryPaths.map((path) => {
 		const normalizedPath = novelLibraryService.normalizeVaultPath(path);
 		if (!normalizedPath || !novelLibraryService.isSameOrChildPath(normalizedPath, previousRootPath)) {
@@ -55,6 +58,7 @@ function remapNovelLibraryPaths(
 function dedupeLibraryPaths(paths: string[], novelLibraryService: NovelLibraryService): string[] {
 	const seen = new Set<string>();
 	const result: string[] = [];
+	// 归一化后按不区分大小写去重，防止同一路径重复写入设置。
 	for (const path of paths) {
 		const normalized = novelLibraryService.normalizeVaultPath(path);
 		if (!normalized) {

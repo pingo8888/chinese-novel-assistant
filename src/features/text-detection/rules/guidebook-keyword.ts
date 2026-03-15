@@ -277,9 +277,7 @@ export class GuidebookKeywordHighlightController {
 
 	private async collectGuidebookKeywordIndex(libraryRootPath: string): Promise<GuidebookLibraryKeywordIndex> {
 		const settings = this.getSettings();
-		const guidebookRootPath = this.novelLibraryService.resolveNovelLibrarySubdirPath(
-			{ locale: settings.locale },
-			libraryRootPath,
+		const guidebookRootPath = this.novelLibraryService.resolveNovelLibrarySubdirPath(libraryRootPath,
 			NOVEL_LIBRARY_SUBDIR_NAMES.guidebook,
 		);
 		if (!guidebookRootPath) {
@@ -369,9 +367,7 @@ export class GuidebookKeywordHighlightController {
 		const settings = this.getSettings();
 		return settings.novelLibraries
 			.map((libraryPath) =>
-				this.novelLibraryService.resolveNovelLibrarySubdirPath(
-					{ locale: settings.locale },
-					libraryPath,
+				this.novelLibraryService.resolveNovelLibrarySubdirPath(libraryPath,
 					NOVEL_LIBRARY_SUBDIR_NAMES.guidebook,
 				),
 			)
@@ -595,5 +591,6 @@ function areKeywordListsEqual(left: readonly string[], right: readonly string[])
 	}
 	return true;
 }
+
 
 

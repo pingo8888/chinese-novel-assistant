@@ -575,9 +575,7 @@ function resolveStickyRootPaths(
 ): string[] {
 	const roots = settings.novelLibraries
 		.map((libraryPath) =>
-			novelLibraryService.resolveNovelLibrarySubdirPath(
-				settings,
-				libraryPath,
+			novelLibraryService.resolveNovelLibrarySubdirPath(libraryPath,
 				NOVEL_LIBRARY_SUBDIR_NAMES.stickyNote,
 			),
 		)
@@ -604,9 +602,7 @@ function resolveScopedStickyRootPaths(
 	if (!matchedLibraryRoot) {
 		return [];
 	}
-	const stickyRootPath = novelLibraryService.resolveNovelLibrarySubdirPath(
-		settings,
-		matchedLibraryRoot,
+	const stickyRootPath = novelLibraryService.resolveNovelLibrarySubdirPath(matchedLibraryRoot,
 		NOVEL_LIBRARY_SUBDIR_NAMES.stickyNote,
 	);
 	const normalizedStickyRootPath = novelLibraryService.normalizeVaultPath(stickyRootPath);
@@ -667,5 +663,6 @@ function isStickyNoteTabActiveInRightSidebar(): boolean {
 	const selector = `.workspace-split.mod-right-split .workspace-tab-header.is-active[data-type="sticky-note-sidebar"]`;
 	return document.querySelector(selector) !== null;
 }
+
 
 

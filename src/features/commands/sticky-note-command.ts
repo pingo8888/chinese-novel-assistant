@@ -72,9 +72,7 @@ function resolveTargetStickyNoteRootPath(ctx: PluginContext, novelLibraryService
 		return null;
 	}
 
-	const stickyRootPath = novelLibraryService.resolveNovelLibrarySubdirPath(
-		ctx.settings,
-		targetLibraryRoot,
+	const stickyRootPath = novelLibraryService.resolveNovelLibrarySubdirPath(targetLibraryRoot,
 		NOVEL_LIBRARY_SUBDIR_NAMES.stickyNote,
 	);
 	const normalizedStickyRootPath = novelLibraryService.normalizeVaultPath(stickyRootPath);
@@ -121,3 +119,4 @@ function queryRightSplitRect(): DOMRect | null {
 	}
 	return rightSplitEl.getBoundingClientRect();
 }
+

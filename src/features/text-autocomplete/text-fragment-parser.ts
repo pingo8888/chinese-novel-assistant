@@ -108,9 +108,7 @@ export class SnippetFragmentService {
 		settings: Pick<SettingDatas, "locale" | "novelLibraries">,
 		libraryPath: string,
 	): Promise<SnippetLibrarySnapshot> {
-		const snippetRoot = this.novelLibraryService.resolveNovelLibrarySubdirPath(
-			{ locale: settings.locale },
-			libraryPath,
+		const snippetRoot = this.novelLibraryService.resolveNovelLibrarySubdirPath(libraryPath,
 			NOVEL_LIBRARY_SUBDIR_NAMES.snippet,
 		);
 		if (!snippetRoot) {
@@ -213,9 +211,7 @@ export class SnippetFragmentService {
 	): string[] {
 		const roots: string[] = [];
 		for (const libraryPath of settings.novelLibraries) {
-			const snippetRoot = this.novelLibraryService.resolveNovelLibrarySubdirPath(
-				{ locale: settings.locale },
-				libraryPath,
+			const snippetRoot = this.novelLibraryService.resolveNovelLibrarySubdirPath(libraryPath,
 				NOVEL_LIBRARY_SUBDIR_NAMES.snippet,
 			);
 			if (!snippetRoot) {
@@ -258,6 +254,7 @@ export class SnippetFragmentService {
 		return path === root || path.startsWith(`${root}/`);
 	}
 }
+
 
 
 
