@@ -12,6 +12,14 @@ export function registerStickyNoteCommands(plugin: Plugin, ctx: PluginContext): 
 	const novelLibraryService = new NovelLibraryService(ctx.app);
 
 	plugin.addCommand({
+		id: "toggle-sticky-note-feature",
+		name: ctx.t("command.sticky_note.toggle.name"),
+		callback: () => {
+			void runToggleStickyNoteCommand(ctx);
+		},
+	});
+
+	plugin.addCommand({
 		id: "create-sticky-note",
 		name: ctx.t("command.sticky_note.create.name"),
 		checkCallback: (checking) => {
@@ -25,6 +33,16 @@ export function registerStickyNoteCommands(plugin: Plugin, ctx: PluginContext): 
 			return true;
 		},
 	});
+}
+
+async function runToggleStickyNoteCommand(ctx: PluginContext): Promise<void> {
+	const nextEnabled = !ctx.settings.stickyNoteEnabled;
+	await ctx.setSettings({ stickyNoteEnabled: nextEnabled });
+	new Notice(
+		nextEnabled
+			? ctx.t("command.sticky_note.toggle.enabled")
+			: ctx.t("command.sticky_note.toggle.disabled"),
+	);
 }
 
 async function runCreateStickyNoteCommand(
