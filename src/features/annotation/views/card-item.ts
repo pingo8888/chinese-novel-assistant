@@ -2,7 +2,6 @@ import { Component, MarkdownRenderer, setIcon, TextAreaComponent, type App } fro
 import { UI } from "../../../core";
 import type { TranslationKey } from "../../../lang";
 import { extractPlainTextFromMarkdown, toRgba } from "../../../utils";
-import { resolveAnnotationTypeByColorHex } from "../color-types";
 import { applyAnnotationCardMenuCommand } from "../menu-actions";
 import { applyStickyNoteRichTextCommand } from "../../sticky-note/menu-actions";
 import { showAnnotationCardMenu } from "./card-menu";
@@ -76,10 +75,8 @@ export function renderAnnotationCardItem(deps: AnnotationCardItemDeps): () => vo
 	};
 
 	const renderTitle = (): void => {
-		const annotationType = resolveAnnotationTypeByColorHex(card.colorHex);
-		const typeLabel = deps.t(annotationType.labelKey);
 		const anchorText = card.anchorText.trim() || card.title.trim() || deps.t("feature.annotation.default_title");
-		titleDisplayEl.setText(`${typeLabel}：${anchorText}`);
+		titleDisplayEl.setText(anchorText);
 	};
 
 	const renderContentDisplay = (): void => {
