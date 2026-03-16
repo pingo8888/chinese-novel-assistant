@@ -1848,7 +1848,7 @@ button.cna-sticky-note-card__image-remove:hover {
 	background: var(--background-secondary);
 	border: 1px solid var(--background-modifier-border);
 	border-radius: 4px;
-	padding: 8px 8px 10px;
+	padding: 0px 0px 10px;
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
@@ -1886,7 +1886,7 @@ button.cna-sticky-note-card__image-remove:hover {
 	gap: 8px;
 	padding: 2px 6px;
 	background: var(--cna-annotation-card-accent-alpha);
-	border-radius: 4px;
+	border-radius: 0px;
 }
 
 .cna-annotation-card__title-main {
@@ -2221,8 +2221,8 @@ button.cna-sticky-note-card__image-remove:hover {
 .markdown-source-view.mod-cm6 .cm-line .cna-annotation-range-mark {
 	border: 0px solid color-mix(in srgb, var(--cna-annotation-range-color, var(--interactive-accent)) 76%, transparent);
 	border-radius: 2px;
-	padding-top: 0.15em;
-	padding-bottom: 0.15em;
+	padding-top: 0.4em;
+	padding-bottom: 0.4em;
 	padding-left: 0.15em;
 	padding-right: 0.15em;
 	background: var(--cna-annotation-range-color-alpha, color-mix(in srgb, var(--interactive-accent) 10%, transparent));
