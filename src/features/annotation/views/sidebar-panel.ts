@@ -21,7 +21,9 @@ export function renderAnnotationSidebarPanel(containerEl: HTMLElement, ctx: Plug
 	const titleIconEl = titleEl.createSpan({ cls: "cna-right-sidebar-guidebook__title-icon" });
 	setIcon(titleIconEl, UI.ICON.BOOKMARK);
 	const titleTextEl = titleEl.createSpan({ cls: "cna-right-sidebar-guidebook__title-text" });
-	headerEl.createDiv({ cls: "cna-right-sidebar-guidebook__header-spacer" });
+	headerEl.createDiv({
+		cls: "cna-right-sidebar-guidebook__toggle-button cna-right-sidebar-guidebook__toggle-button--placeholder",
+	});
 
 	rootEl.createDiv({ cls: "cna-right-sidebar-guidebook__divider" });
 	const contentEl = rootEl.createDiv({ cls: "cna-right-sidebar-annotation__content" });
