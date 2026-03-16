@@ -5,7 +5,7 @@ import { UI, type PluginContext, bindVaultChangeWatcher } from "../../core";
 import { normalizeVaultPath } from "../../core/novel-library-service";
 import { parseColorHex, resolveEditorViewFromMarkdownView, resolveMarkdownViewByEditorView, toRgba } from "../../utils";
 import { type AnnotationAnchorSnapshot, type AnnotationSelectionAnchor, AnnotationRepository } from "./repository";
-import { subscribeAnnotationLocateFlash, type AnnotationLocateFlashPayload } from "./flash-bus";
+import { emitAnnotationCreated, subscribeAnnotationLocateFlash, type AnnotationLocateFlashPayload } from "./flash-bus";
 import { scheduleAttachColorSwatchesToLatestMenu } from "../../ui";
 import { ANNOTATION_COLOR_TYPES, DEFAULT_ANNOTATION_COLOR, normalizeAnnotationColorHex } from "./color-types";
 
@@ -155,7 +155,7 @@ class AnnotationFeature {
 		colorHex?: string,
 	): Promise<void> {
 		try {
-			await this.repository.createEntryAtSelection(
+			const createdCard = await this.repository.createEntryAtSelection(
 				this.ctx.settings,
 				sourcePath,
 				selection,
@@ -167,6 +167,11 @@ class AnnotationFeature {
 			this.loadedAnchorPaths.delete(normalizedPath);
 			this.requestAnchorSnapshotsLoad(normalizedPath);
 			this.refreshRangeDecorations();
+			emitAnnotationCreated({
+				sourcePath: normalizeVaultPath(createdCard.sourcePath),
+				annotationPath: normalizeVaultPath(createdCard.annoPath),
+				annotationId: createdCard.id,
+			});
 		} catch (error) {
 			console.error("[Chinese Novel Assistant] Failed to create annotation.", error);
 			new Notice(this.ctx.t("feature.annotation.notice.create_failed"));

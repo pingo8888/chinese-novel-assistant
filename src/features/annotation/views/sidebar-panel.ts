@@ -4,7 +4,7 @@ import { ClearableInputComponent, showContextMenuAtMouseEvent } from "../../../u
 import { areStringArraysEqual, resolveEditorViewFromMarkdownView } from "../../../utils";
 import { AnnotationRepository } from "../repository";
 import { createAnnotationCardList } from "./card-list";
-import { emitAnnotationLocateFlash } from "../flash-bus";
+import { emitAnnotationLocateFlash, subscribeAnnotationCreated } from "../flash-bus";
 import { ANNOTATION_COLOR_TYPES } from "../color-types";
 import { normalizeVaultPath } from "../../../core/novel-library-service";
 import type { AnnotationCard } from "./types";
@@ -46,6 +46,8 @@ export function renderAnnotationSidebarPanel(containerEl: HTMLElement, ctx: Plug
 	let activeEditorInteractionDom: HTMLElement | null = null;
 	let activeEditorSyncRaf = 0;
 	let manualLocateGuardUntil = 0;
+	let focusCreatedCardRetryTimer: number | null = null;
+	let isDisposed = false;
 
 	const cardList = createAnnotationCardList({
 		app: ctx.app,
@@ -121,6 +123,48 @@ export function renderAnnotationSidebarPanel(containerEl: HTMLElement, ctx: Plug
 			return false;
 		}
 		return annotationRootPaths.some((rootPath) => novelLibraryService.isSameOrChildPath(path, rootPath));
+	};
+
+	const clearFocusCreatedCardRetryTimer = (): void => {
+		if (focusCreatedCardRetryTimer !== null) {
+			window.clearTimeout(focusCreatedCardRetryTimer);
+			focusCreatedCardRetryTimer = null;
+		}
+	};
+
+	const findRenderedCardElementById = (annotationId: string): HTMLElement | null => {
+		const cardElements = listWrapEl.querySelectorAll<HTMLElement>(".cna-annotation-card");
+		for (const cardEl of Array.from(cardElements)) {
+			if (cardEl.getAttribute("data-annotation-id") === annotationId) {
+				return cardEl;
+			}
+		}
+		return null;
+	};
+
+	const focusCreatedCardById = (annotationId: string, remainingAttempts = 12): void => {
+		if (isDisposed || !annotationId) {
+			return;
+		}
+		cardList.setActiveCardId(annotationId);
+		const cardEl = findRenderedCardElementById(annotationId);
+		if (cardEl) {
+			clearFocusCreatedCardRetryTimer();
+			cardEl.scrollIntoView({
+				block: "center",
+				inline: "nearest",
+				behavior: "smooth",
+			});
+			return;
+		}
+		if (remainingAttempts <= 0) {
+			clearFocusCreatedCardRetryTimer();
+			return;
+		}
+		clearFocusCreatedCardRetryTimer();
+		focusCreatedCardRetryTimer = window.setTimeout(() => {
+			focusCreatedCardById(annotationId, remainingAttempts - 1);
+		}, 80);
 	};
 
 	const onVaultFileChanged = (file: TAbstractFile): void => {
@@ -350,6 +394,17 @@ export function renderAnnotationSidebarPanel(containerEl: HTMLElement, ctx: Plug
 
 	filterButtonEl.addEventListener("click", openFilterMenu);
 
+	const disposeAnnotationCreated = subscribeAnnotationCreated((payload) => {
+		if (isDisposed) {
+			return;
+		}
+		if (!isAnnotationFileInScope(payload.annotationPath)) {
+			return;
+		}
+		cardList.applyVaultFileCreateOrModify(payload.annotationPath);
+		focusCreatedCardById(payload.annotationId);
+	});
+
 	const workspaceEventRefs: EventRef[] = [
 		ctx.app.workspace.on("file-open", (file) => {
 			const filePath = file?.path ?? null;
@@ -412,6 +467,8 @@ export function renderAnnotationSidebarPanel(containerEl: HTMLElement, ctx: Plug
 	scheduleSyncActiveCardByEditorCursor();
 
 	return () => {
+		isDisposed = true;
+		clearFocusCreatedCardRetryTimer();
 		filterButtonEl.removeEventListener("click", openFilterMenu);
 		for (const ref of vaultEventRefs) {
 			ctx.app.vault.offref(ref);
@@ -425,6 +482,7 @@ export function renderAnnotationSidebarPanel(containerEl: HTMLElement, ctx: Plug
 			activeEditorSyncRaf = 0;
 		}
 		disposeSettingsChange();
+		disposeAnnotationCreated();
 		cardList.destroy();
 	};
 }
