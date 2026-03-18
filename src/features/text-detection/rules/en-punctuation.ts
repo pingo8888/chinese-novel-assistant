@@ -30,6 +30,7 @@ const PUNCTUATION_RULE_CONFIGS: EnPunctuationRuleConfig[] = [
 		enabled: (settings) => settings.proofreadEnglishPeriodEnabled,
 		// 1.2 / 1. 
 		allowContextRegex: /^(?:\d\.\d.|\d\. .)$/,
+		allowPosition: isLatinLetterBeforePeriod,
 	},
 	{
 		char: ":",
@@ -148,6 +149,14 @@ function isMarkdownFootnoteDefinitionColon(docText: string, index: number, targe
 
 	const beforeColon = lineText.slice(0, colonOffset + 1);
 	return /^\s{0,3}\[\^[^\]\r\n]+\]:$/.test(beforeColon);
+}
+
+function isLatinLetterBeforePeriod(docText: string, index: number, targetChar: string): boolean {
+	if (targetChar !== ".") {
+		return false;
+	}
+	const prev = docText.charAt(index - 1);
+	return /^[A-Za-z]$/.test(prev);
 }
 
 function getReplacementChar(char: string, state: EnPunctuationFixState): string | null {
