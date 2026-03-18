@@ -2,6 +2,7 @@ import { Notice, type Plugin, type Editor } from "obsidian";
 import { type PluginContext } from "../../core";
 import {
 	ProofreadDictService,
+	collectPunctuationIgnoredRanges,
 	fixEnPunctuationErrors,
 	fixPairPunctuationErrors,
 	fixProofreadDictErrors,
@@ -43,8 +44,9 @@ export function registerProofreadCommands(plugin: Plugin, ctx: PluginContext): v
 
 function runFixPunctuationCommand(ctx: PluginContext, editor: Editor): void {
 	const sourceText = editor.getValue();
-	const enFixResult = fixEnPunctuationErrors(sourceText, ctx.settings);
-	const pairFixResult = fixPairPunctuationErrors(enFixResult.text, ctx.settings);
+	const ignoredRanges = collectPunctuationIgnoredRanges(sourceText);
+	const enFixResult = fixEnPunctuationErrors(sourceText, ctx.settings, ignoredRanges);
+	const pairFixResult = fixPairPunctuationErrors(enFixResult.text, ctx.settings, ignoredRanges);
 	const fixedText = pairFixResult.text;
 	const fixedCount = enFixResult.replacedCount + pairFixResult.replacedCount;
 

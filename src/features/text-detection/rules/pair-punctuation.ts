@@ -1,6 +1,7 @@
 import type { EditorView } from "@codemirror/view";
 import { type SettingDatas } from "../../../core";
-import type { TextDetectionRule } from "../engine";
+import type { TextDetectionRange, TextDetectionRule } from "../engine";
+import { collectPunctuationIgnoredRanges, isIndexInRanges } from "./markdown-skip-ranges";
 
 interface PairToken {
 	open: string;
@@ -86,15 +87,21 @@ function isLineLeadingBlockquoteMarker(docText: string, index: number): boolean 
 }
 
 // When > appears at the beginning of a line, it will be treated as a quote by Obsidian. Skip such leading >
-function createStackPairErrorFinder(pairTokens: PairToken[]): (docText: string) => number[] {
+function createStackPairErrorFinder(
+	pairTokens: PairToken[],
+): (docText: string, ignoredRanges?: readonly TextDetectionRange[]) => number[] {
 	const openToClose = new Map<string, string>(pairTokens.map((token) => [token.open, token.close]));
 	const closers = new Set<string>(pairTokens.map((token) => token.close));
 
-	return (docText: string): number[] => {
+	return (docText: string, ignoredRanges: readonly TextDetectionRange[] = []): number[] => {
 		const errorIndices = new Set<number>();
 		const stack: StackEntry[] = [];
 
 		for (let i = 0; i < docText.length; i += 1) {
+			if (isIndexInRanges(i, ignoredRanges)) {
+				continue;
+			}
+
 			const char = docText.charAt(i);
 			const close = openToClose.get(char);
 			if (close) {
@@ -145,13 +152,19 @@ function createStackPairErrorFinder(pairTokens: PairToken[]): (docText: string) 
 	};
 }
 
-function createAlternatingPairErrorFinder(pairToken: PairToken): (docText: string) => number[] {
-	return (docText: string): number[] => {
+function createAlternatingPairErrorFinder(
+	pairToken: PairToken,
+): (docText: string, ignoredRanges?: readonly TextDetectionRange[]) => number[] {
+	return (docText: string, ignoredRanges: readonly TextDetectionRange[] = []): number[] => {
 		const errorIndices = new Set<number>();
 		let expectOpen = true;
 		let pendingPairStartIndex = -1;
 
 		for (let i = 0; i < docText.length; i += 1) {
+			if (isIndexInRanges(i, ignoredRanges)) {
+				continue;
+			}
+
 			const char = docText.charAt(i);
 			if (char !== pairToken.open && char !== pairToken.close) {
 				continue;
@@ -176,7 +189,7 @@ function createAlternatingPairErrorFinder(pairToken: PairToken): (docText: strin
 function createPairErrorFinder(
 	pairTokens: PairToken[],
 	strategy: PairRuleConfig["strategy"],
-): (docText: string) => number[] {
+): (docText: string, ignoredRanges?: readonly TextDetectionRange[]) => number[] {
 	if (strategy === "alternating" && pairTokens.length === 1) {
 		const token = pairTokens[0];
 		if (token) {
@@ -186,11 +199,19 @@ function createPairErrorFinder(
 	return createStackPairErrorFinder(pairTokens);
 }
 
-function buildAlternatingExpectedCharMap(docText: string, pairToken: PairToken): Map<number, string> {
+function buildAlternatingExpectedCharMap(
+	docText: string,
+	pairToken: PairToken,
+	ignoredRanges: readonly TextDetectionRange[] = [],
+): Map<number, string> {
 	const expectedCharByIndex = new Map<number, string>();
 	let expectOpen = true;
 
 	for (let i = 0; i < docText.length; i += 1) {
+		if (isIndexInRanges(i, ignoredRanges)) {
+			continue;
+		}
+
 		const char = docText.charAt(i);
 		if (char !== pairToken.open && char !== pairToken.close) {
 			continue;
@@ -219,11 +240,16 @@ function getEnabledPairTokens(settings: SettingDatas): PairToken[] {
 	return COMMON_PAIR_TOKENS.filter((token) => enabledGroups.has(token.group));
 }
 
-function collectPairPunctuationErrorIndices(docText: string, settings: SettingDatas): number[] {
+function collectPairPunctuationErrorIndices(
+	docText: string,
+	settings: SettingDatas,
+	ignoredRanges?: readonly TextDetectionRange[],
+): number[] {
 	if (!settings.proofreadCommonPunctuationEnabled) {
 		return [];
 	}
 
+	const effectiveIgnoredRanges = ignoredRanges ?? collectPunctuationIgnoredRanges(docText);
 	const errorIndices = new Set<number>();
 	for (const config of PAIR_RULE_CONFIGS) {
 		if (!config.isSubEnabled(settings)) {
@@ -231,7 +257,7 @@ function collectPairPunctuationErrorIndices(docText: string, settings: SettingDa
 		}
 		const tokens = COMMON_PAIR_TOKENS.filter((token) => token.group === config.group);
 		const findPairErrors = createPairErrorFinder(tokens, config.strategy);
-		const indices = findPairErrors(docText);
+		const indices = findPairErrors(docText, effectiveIgnoredRanges);
 		for (const index of indices) {
 			errorIndices.add(index);
 		}
@@ -243,8 +269,10 @@ function collectPairPunctuationErrorIndices(docText: string, settings: SettingDa
 export function fixPairPunctuationErrors(
 	docText: string,
 	settings: SettingDatas,
+	ignoredRanges?: readonly TextDetectionRange[],
 ): PairPunctuationFixResult {
-	const errorIndices = new Set<number>(collectPairPunctuationErrorIndices(docText, settings));
+	const effectiveIgnoredRanges = ignoredRanges ?? collectPunctuationIgnoredRanges(docText);
+	const errorIndices = new Set<number>(collectPairPunctuationErrorIndices(docText, settings, effectiveIgnoredRanges));
 	if (errorIndices.size === 0) {
 		return { text: docText, replacedCount: 0 };
 	}
@@ -274,7 +302,7 @@ export function fixPairPunctuationErrors(
 			continue;
 		}
 
-		const expectedByIndex = buildAlternatingExpectedCharMap(docText, token);
+		const expectedByIndex = buildAlternatingExpectedCharMap(docText, token, effectiveIgnoredRanges);
 		for (const [index, expectedChar] of expectedByIndex) {
 			alternatingExpectedCharByIndex.set(index, expectedChar);
 		}
@@ -319,6 +347,16 @@ export function createPairPunctuationRules(
 	getSettings: () => SettingDatas,
 	shouldDetectInView?: (view: EditorView) => boolean,
 ): TextDetectionRule[] {
+	let cachedDocText = "";
+	let cachedIgnoredRanges: TextDetectionRange[] = [];
+	const resolveIgnoredRanges = (docText: string): readonly TextDetectionRange[] => {
+		if (docText !== cachedDocText) {
+			cachedDocText = docText;
+			cachedIgnoredRanges = collectPunctuationIgnoredRanges(docText);
+		}
+		return cachedIgnoredRanges;
+	};
+
 	return PAIR_RULE_CONFIGS.map((config) => {
 		const tokens = COMMON_PAIR_TOKENS.filter((token) => token.group === config.group);
 		const findPairErrors = createPairErrorFinder(tokens, config.strategy);
@@ -330,7 +368,7 @@ export function createPairPunctuationRules(
 				const settings = getSettings();
 				return settings.proofreadCommonPunctuationEnabled && config.isSubEnabled(settings);
 			},
-			matchDocumentIndices: (docText: string) => findPairErrors(docText),
+			matchDocumentIndices: (docText: string) => findPairErrors(docText, resolveIgnoredRanges(docText)),
 		};
 	});
 }

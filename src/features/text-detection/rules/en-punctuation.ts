@@ -1,6 +1,7 @@
 import type { EditorView } from "@codemirror/view";
 import { type SettingDatas } from "../../../core";
-import type { TextDetectionRule } from "../engine";
+import type { TextDetectionRange, TextDetectionRule } from "../engine";
+import { collectPunctuationIgnoredRanges, isIndexInRanges } from "./markdown-skip-ranges";
 
 interface EnPunctuationRuleConfig {
 	char: string;
@@ -108,10 +109,14 @@ function findCharErrorIndicesInDoc(
 	targetChar: string,
 	allowContextRegex?: RegExp,
 	allowPosition?: (docText: string, index: number, targetChar: string) => boolean,
+	ignoredRanges: readonly TextDetectionRange[] = [],
 ): number[] {
 	const indices: number[] = [];
 	for (let i = 0; i < docText.length; i += 1) {
 		if (docText[i] !== targetChar) {
+			continue;
+		}
+		if (isIndexInRanges(i, ignoredRanges)) {
 			continue;
 		}
 
@@ -166,11 +171,13 @@ function getReplacementChar(char: string, state: EnPunctuationFixState): string 
 export function fixEnPunctuationErrors(
 	docText: string,
 	settings: SettingDatas,
+	ignoredRanges?: readonly TextDetectionRange[],
 ): EnPunctuationFixResult {
 	if (!settings.proofreadCommonPunctuationEnabled) {
 		return { text: docText, replacedCount: 0 };
 	}
 
+	const effectiveIgnoredRanges = ignoredRanges ?? collectPunctuationIgnoredRanges(docText);
 	const outputChars = Array.from(docText);
 	const sourceText = docText;
 	let replacedCount = 0;
@@ -180,6 +187,10 @@ export function fixEnPunctuationErrors(
 	};
 
 	for (let i = 0; i < sourceText.length; i += 1) {
+		if (isIndexInRanges(i, effectiveIgnoredRanges)) {
+			continue;
+		}
+
 		const char = sourceText.charAt(i);
 		for (const config of PUNCTUATION_RULE_CONFIGS) {
 			if (!config.enabled(settings) || config.char !== char) {
@@ -208,6 +219,16 @@ export function createEnPunctuationRules(
 	getSettings: () => SettingDatas,
 	shouldDetectInView?: (view: EditorView) => boolean,
 ): TextDetectionRule[] {
+	let cachedDocText = "";
+	let cachedIgnoredRanges: TextDetectionRange[] = [];
+	const resolveIgnoredRanges = (docText: string): readonly TextDetectionRange[] => {
+		if (docText !== cachedDocText) {
+			cachedDocText = docText;
+			cachedIgnoredRanges = collectPunctuationIgnoredRanges(docText);
+		}
+		return cachedIgnoredRanges;
+	};
+
 	return PUNCTUATION_RULE_CONFIGS.map((config) => ({
 		isEnabled: (view) => {
 			if (shouldDetectInView && !shouldDetectInView(view)) {
@@ -217,7 +238,13 @@ export function createEnPunctuationRules(
 			return settings.proofreadCommonPunctuationEnabled && config.enabled(settings);
 		},
 		matchDocumentIndices: (docText) =>
-			findCharErrorIndicesInDoc(docText, config.char, config.allowContextRegex, config.allowPosition),
+			findCharErrorIndicesInDoc(
+				docText,
+				config.char,
+				config.allowContextRegex,
+				config.allowPosition,
+				resolveIgnoredRanges(docText),
+			),
 	}));
 }
 
