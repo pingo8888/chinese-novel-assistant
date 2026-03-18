@@ -16,6 +16,7 @@ interface StackEntry {
 interface PairRuleConfig {
 	group: PairToken["group"];
 	isSubEnabled: (settings: SettingDatas) => boolean;
+	strategy: "stack" | "alternating";
 }
 
 export interface PairPunctuationFixResult {
@@ -44,14 +45,17 @@ const PAIR_RULE_CONFIGS: PairRuleConfig[] = [
 	{
 		group: "common",
 		isSubEnabled: (settings) => settings.proofreadPairPunctuationEnabled,
+		strategy: "stack",
 	},
 	{
 		group: "double-quote",
 		isSubEnabled: (settings) => settings.proofreadQuoteEnabled,
+		strategy: "alternating",
 	},
 	{
 		group: "single-quote",
 		isSubEnabled: (settings) => settings.proofreadSingleQuoteEnabled,
+		strategy: "alternating",
 	},
 ];
 
@@ -82,7 +86,7 @@ function isLineLeadingBlockquoteMarker(docText: string, index: number): boolean 
 }
 
 // When > appears at the beginning of a line, it will be treated as a quote by Obsidian. Skip such leading >
-function createPairErrorFinder(pairTokens: PairToken[]): (docText: string) => number[] {
+function createStackPairErrorFinder(pairTokens: PairToken[]): (docText: string) => number[] {
 	const openToClose = new Map<string, string>(pairTokens.map((token) => [token.open, token.close]));
 	const closers = new Set<string>(pairTokens.map((token) => token.close));
 
@@ -141,6 +145,65 @@ function createPairErrorFinder(pairTokens: PairToken[]): (docText: string) => nu
 	};
 }
 
+function createAlternatingPairErrorFinder(pairToken: PairToken): (docText: string) => number[] {
+	return (docText: string): number[] => {
+		const errorIndices = new Set<number>();
+		let expectOpen = true;
+		let pendingPairStartIndex = -1;
+
+		for (let i = 0; i < docText.length; i += 1) {
+			const char = docText.charAt(i);
+			if (char !== pairToken.open && char !== pairToken.close) {
+				continue;
+			}
+
+			const expectedChar = expectOpen ? pairToken.open : pairToken.close;
+			if (char !== expectedChar) {
+				errorIndices.add(i);
+			}
+			expectOpen = !expectOpen;
+			pendingPairStartIndex = expectOpen ? -1 : i;
+		}
+
+		if (!expectOpen && pendingPairStartIndex >= 0) {
+			errorIndices.add(pendingPairStartIndex);
+		}
+
+		return Array.from(errorIndices).sort((a, b) => a - b);
+	};
+}
+
+function createPairErrorFinder(
+	pairTokens: PairToken[],
+	strategy: PairRuleConfig["strategy"],
+): (docText: string) => number[] {
+	if (strategy === "alternating" && pairTokens.length === 1) {
+		const token = pairTokens[0];
+		if (token) {
+			return createAlternatingPairErrorFinder(token);
+		}
+	}
+	return createStackPairErrorFinder(pairTokens);
+}
+
+function buildAlternatingExpectedCharMap(docText: string, pairToken: PairToken): Map<number, string> {
+	const expectedCharByIndex = new Map<number, string>();
+	let expectOpen = true;
+
+	for (let i = 0; i < docText.length; i += 1) {
+		const char = docText.charAt(i);
+		if (char !== pairToken.open && char !== pairToken.close) {
+			continue;
+		}
+
+		const expectedChar = expectOpen ? pairToken.open : pairToken.close;
+		expectedCharByIndex.set(i, expectedChar);
+		expectOpen = !expectOpen;
+	}
+
+	return expectedCharByIndex;
+}
+
 function getEnabledPairTokens(settings: SettingDatas): PairToken[] {
 	if (!settings.proofreadCommonPunctuationEnabled) {
 		return [];
@@ -167,7 +230,7 @@ function collectPairPunctuationErrorIndices(docText: string, settings: SettingDa
 			continue;
 		}
 		const tokens = COMMON_PAIR_TOKENS.filter((token) => token.group === config.group);
-		const findPairErrors = createPairErrorFinder(tokens);
+		const findPairErrors = createPairErrorFinder(tokens, config.strategy);
 		const indices = findPairErrors(docText);
 		for (const index of indices) {
 			errorIndices.add(index);
@@ -192,6 +255,30 @@ export function fixPairPunctuationErrors(
 		charToToken.set(token.open, token);
 		charToToken.set(token.close, token);
 	}
+	const strategyByGroup = new Map<PairToken["group"], PairRuleConfig["strategy"]>();
+	for (const config of PAIR_RULE_CONFIGS) {
+		if (!config.isSubEnabled(settings)) {
+			continue;
+		}
+		strategyByGroup.set(config.group, config.strategy);
+	}
+	const alternatingExpectedCharByIndex = new Map<number, string>();
+	for (const config of PAIR_RULE_CONFIGS) {
+		if (!config.isSubEnabled(settings) || config.strategy !== "alternating") {
+			continue;
+		}
+
+		const tokens = COMMON_PAIR_TOKENS.filter((token) => token.group === config.group);
+		const token = tokens[0];
+		if (!token || tokens.length !== 1) {
+			continue;
+		}
+
+		const expectedByIndex = buildAlternatingExpectedCharMap(docText, token);
+		for (const [index, expectedChar] of expectedByIndex) {
+			alternatingExpectedCharByIndex.set(index, expectedChar);
+		}
+	}
 
 	const outputChars = Array.from(docText);
 	const nextShouldOpenByToken = new Map<string, boolean>();
@@ -208,10 +295,16 @@ export function fixPairPunctuationErrors(
 			continue;
 		}
 
-		const tokenKey = `${token.open}|${token.close}`;
-		const nextShouldOpen = nextShouldOpenByToken.get(tokenKey) ?? true;
-		const replacementChar = nextShouldOpen ? token.open : token.close;
-		nextShouldOpenByToken.set(tokenKey, !nextShouldOpen);
+		let replacementChar = sourceChar;
+		const strategy = strategyByGroup.get(token.group) ?? "stack";
+		if (strategy === "alternating") {
+			replacementChar = alternatingExpectedCharByIndex.get(i) ?? sourceChar;
+		} else {
+			const tokenKey = `${token.open}|${token.close}`;
+			const nextShouldOpen = nextShouldOpenByToken.get(tokenKey) ?? true;
+			replacementChar = nextShouldOpen ? token.open : token.close;
+			nextShouldOpenByToken.set(tokenKey, !nextShouldOpen);
+		}
 
 		if (outputChars[i] !== replacementChar) {
 			outputChars[i] = replacementChar;
@@ -228,7 +321,7 @@ export function createPairPunctuationRules(
 ): TextDetectionRule[] {
 	return PAIR_RULE_CONFIGS.map((config) => {
 		const tokens = COMMON_PAIR_TOKENS.filter((token) => token.group === config.group);
-		const findPairErrors = createPairErrorFinder(tokens);
+		const findPairErrors = createPairErrorFinder(tokens, config.strategy);
 		return {
 			isEnabled: (view) => {
 				if (shouldDetectInView && !shouldDetectInView(view)) {
