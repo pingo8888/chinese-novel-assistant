@@ -4,6 +4,7 @@ import { type SettingDatas } from "../../core";
 import type { GuidebookKeywordPreviewItem } from "../text-detection/rules/guidebook-keyword";
 import { GuidebookPreviewPopover } from "./views/preview-popover";
 import type { TranslationKey } from "../../lang";
+import { openMarkdownFileWithoutDuplicate } from "../../utils";
 
 interface GuidebookPreviewControllerOptions {
 	getSettings: () => SettingDatas;
@@ -359,13 +360,12 @@ export class GuidebookPreviewController {
 			return;
 		}
 		const targetPosition = await this.resolveH2HeadingPosition(file, headingTitle);
-		await this.plugin.app.workspace.openLinkText(file.path, file.path, this.getSettings().openFileInNewTab);
-		if (!targetPosition) {
-			return;
-		}
-
-		const targetView = this.resolveOpenedMarkdownView(file.path);
-		if (!targetView) {
+		const targetView = await openMarkdownFileWithoutDuplicate(
+			this.plugin.app,
+			file.path,
+			this.getSettings().openFileInNewTab,
+		);
+		if (!targetPosition || !targetView) {
 			return;
 		}
 		const editorAny = targetView.editor as unknown as {
@@ -380,19 +380,6 @@ export class GuidebookPreviewController {
 			},
 			true,
 		);
-	}
-
-	private resolveOpenedMarkdownView(filePath: string): MarkdownView | null {
-		const activeView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
-		if (activeView?.file?.path === filePath) {
-			return activeView;
-		}
-		for (const leaf of this.plugin.app.workspace.getLeavesOfType("markdown")) {
-			if (leaf.view instanceof MarkdownView && leaf.view.file?.path === filePath) {
-				return leaf.view;
-			}
-		}
-		return null;
 	}
 
 	private async resolveH2HeadingPosition(file: TFile, headingTitle: string): Promise<{ line: number; ch: number } | null> {
@@ -446,7 +433,4 @@ function parseH2HeadingTitle(line: string): string | null {
 	title = title.replace(/[ \t]+#+[ \t]*$/, "").trim();
 	return title.length > 0 ? title : null;
 }
-
-
-
 

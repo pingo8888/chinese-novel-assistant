@@ -1,4 +1,4 @@
-import { type App, Notice, TFile } from "obsidian";
+import { type App, Notice, TFile, type MarkdownView } from "obsidian";
 import type { TranslationKey } from "../../lang";
 import type {
 	GuidebookTreeData,
@@ -8,7 +8,7 @@ import type {
 } from "./tree-builder";
 import { GuidebookMarkdownParser } from "./markdown-parser";
 import { askForConfirmation, promptTextInput } from "../../ui";
-import { splitLines } from "../../utils";
+import { openMarkdownFileWithoutDuplicate, splitLines } from "../../utils";
 
 export type GuidebookFileContextAction =
 	| "create_collection"
@@ -272,13 +272,18 @@ export async function handleGuidebookH2ContextAction(
 				await appendH2WithUniquenessCheck(app, file, treeData, h1Node.h1IndexInSource, settingName);
 				return true;
 			}
-			case "edit_setting":
-				await app.workspace.openLinkText(
-					`${file.path}#${h2Node.title}`,
+			case "edit_setting": {
+				const targetPosition = await resolveH2HeadingPosition(app, file, h2Node.title);
+				const targetView = await openMarkdownFileWithoutDuplicate(
+					app,
 					file.path,
 					context.openFileInNewTab ?? false,
 				);
+				if (targetPosition && targetView) {
+					setMarkdownViewCursor(targetView, targetPosition);
+				}
 				return false;
+			}
 			case "rename_setting": {
 				const renamed = await promptSettingName(app, t, file, treeData, {
 					title: t("feature.guidebook.dialog.rename_setting.title"),
@@ -375,6 +380,58 @@ async function resolveH1IndexByTitle(app: App, file: TFile, h1Title: string): Pr
 		}
 	}
 	return -1;
+}
+
+async function resolveH2HeadingPosition(
+	app: App,
+	file: TFile,
+	headingTitle: string,
+): Promise<{ line: number; ch: number } | null> {
+	const normalizedTitle = headingTitle.trim();
+	if (normalizedTitle.length === 0) {
+		return null;
+	}
+	const content = await app.vault.cachedRead(file);
+	const lines = content.split(/\r?\n/);
+	for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+		const lineText = lines[lineIndex] ?? "";
+		const parsedTitle = parseH2HeadingTitle(lineText);
+		if (parsedTitle && parsedTitle === normalizedTitle) {
+			return {
+				line: lineIndex,
+				ch: lineText.length,
+			};
+		}
+	}
+	return null;
+}
+
+function parseH2HeadingTitle(line: string): string | null {
+	const match = line.match(/^\s{0,3}(#{2})[ \t]+(.*)$/);
+	if (!match || !match[1]) {
+		return null;
+	}
+	let title = (match[2] ?? "").trim();
+	title = title.replace(/[ \t]+#+[ \t]*$/, "").trim();
+	return title.length > 0 ? title : null;
+}
+
+function setMarkdownViewCursor(view: MarkdownView, position: { line: number; ch: number }): void {
+	const editorAny = view.editor as unknown as {
+		setCursor?: (line: number, ch: number) => void;
+		scrollIntoView?: (
+			range: { from: { line: number; ch: number }; to: { line: number; ch: number } },
+			center?: boolean,
+		) => void;
+	};
+	editorAny.setCursor?.(position.line, position.ch);
+	editorAny.scrollIntoView?.(
+		{
+			from: { line: position.line, ch: position.ch },
+			to: { line: position.line, ch: position.ch },
+		},
+		true,
+	);
 }
 
 function resolveCollectionFileByPath(app: App, path: string): TFile | null {
@@ -861,5 +918,4 @@ function joinLines(lines: string[]): string {
 function formatTemplate(template: string, values: Record<string, string>): string {
 	return template.replace(/\{(\w+)\}/g, (_match, token: string) => values[token] ?? "");
 }
-
 

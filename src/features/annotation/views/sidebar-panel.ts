@@ -1,7 +1,7 @@
 import { MarkdownView, Notice, TFile, TFolder, setIcon, type EventRef, type TAbstractFile } from "obsidian";
 import { UI, type PluginContext, NovelLibraryService } from "../../../core";
 import { ClearableInputComponent, showContextMenuAtMouseEvent } from "../../../ui";
-import { areStringArraysEqual, resolveEditorViewFromMarkdownView } from "../../../utils";
+import { areStringArraysEqual, openMarkdownFileWithoutDuplicate, resolveEditorViewFromMarkdownView } from "../../../utils";
 import { AnnotationRepository } from "../repository";
 import { createAnnotationCardList } from "./card-list";
 import { emitAnnotationLocateFlash, subscribeAnnotationCreated } from "../flash-bus";
@@ -495,17 +495,7 @@ async function locateCard(card: AnnotationCard, ctx: PluginContext): Promise<voi
 		new Notice(ctx.t("feature.annotation.notice.source_missing"));
 		return;
 	}
-	const currentFilePath = normalizeVaultPath(ctx.app.workspace.getActiveFile()?.path ?? "");
-	const targetFilePath = normalizeVaultPath(file.path);
-	if (currentFilePath !== targetFilePath) {
-		await ctx.app.workspace.openLinkText(file.path, file.path, false);
-	}
-	let targetView = resolveOpenedMarkdownView(ctx, file.path);
-	if (!targetView) {
-		// Fallback: ensure a markdown leaf is opened for cursor positioning.
-		await ctx.app.workspace.openLinkText(file.path, file.path, false);
-		targetView = resolveOpenedMarkdownView(ctx, file.path);
-	}
+	const targetView = await openMarkdownFileWithoutDuplicate(ctx.app, file.path, false);
 	if (!targetView) {
 		return;
 	}
@@ -547,19 +537,6 @@ async function locateCard(card: AnnotationCard, ctx: PluginContext): Promise<voi
 	});
 }
 
-function resolveOpenedMarkdownView(ctx: PluginContext, filePath: string): MarkdownView | null {
-	const activeView = ctx.app.workspace.getActiveViewOfType(MarkdownView);
-	if (activeView?.file?.path === filePath) {
-		return activeView;
-	}
-	for (const leaf of ctx.app.workspace.getLeavesOfType("markdown")) {
-		if (leaf.view instanceof MarkdownView && leaf.view.file?.path === filePath) {
-			return leaf.view;
-		}
-	}
-	return null;
-}
-
 
 function resolveCurrentNovelLibraryName(
 	ctx: PluginContext,
@@ -581,13 +558,4 @@ function resolveCurrentNovelLibraryName(
 	const segments = matchedLibraryPath.split("/").filter((segment) => segment.length > 0);
 	return segments[segments.length - 1] ?? matchedLibraryPath;
 }
-
-
-
-
-
-
-
-
-
 
