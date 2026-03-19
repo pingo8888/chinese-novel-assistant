@@ -139,16 +139,20 @@ export class GuidebookQuickInsertService {
 			for (const h1Node of fileNode.h1List) {
 				for (const h2Node of h1Node.h2List) {
 					const keyword = h2Node.title.trim();
-						if (!keyword || candidateByKeyword.has(keyword)) {
+					const aliases = parseAliasesFromGuidebookContent(h2Node.content);
+					for (const candidateKeyword of [keyword, ...aliases]) {
+						const normalizedKeyword = candidateKeyword.trim();
+						if (!normalizedKeyword || candidateByKeyword.has(normalizedKeyword)) {
 							continue;
 						}
-						candidateByKeyword.set(keyword, {
-							keyword,
-							keywordLower: keyword.toLowerCase(),
+						candidateByKeyword.set(normalizedKeyword, {
+							keyword: normalizedKeyword,
+							keywordLower: normalizedKeyword.toLowerCase(),
 						});
 					}
 				}
 			}
+		}
 
 		return {
 			candidates: Array.from(candidateByKeyword.values()),
@@ -210,6 +214,27 @@ export class GuidebookQuickInsertService {
 		}
 		return left.keyword.localeCompare(right.keyword);
 	}
+}
+
+function parseAliasesFromGuidebookContent(content: string): string[] {
+	const aliasSet = new Set<string>();
+	for (const line of content.split(/\r?\n/)) {
+		const aliasMatch = line.match(/【别名】\s*[:：]?\s*(.+)$/);
+		if (!aliasMatch) {
+			continue;
+		}
+		const aliasText = (aliasMatch[1] ?? "").trim();
+		if (aliasText.length === 0) {
+			continue;
+		}
+		for (const alias of aliasText.split(/[，,]/)) {
+			const normalizedAlias = alias.trim();
+			if (normalizedAlias.length > 0) {
+				aliasSet.add(normalizedAlias);
+			}
+		}
+	}
+	return Array.from(aliasSet);
 }
 
 
