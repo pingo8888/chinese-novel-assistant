@@ -2007,9 +2007,11 @@ button.cna-sticky-note-card__image-remove:hover {
 	font-size: calc(var(--font-text-size) - 1px);
 	font-weight: var(--font-normal);
 	line-height: var(--line-height-normal);
+	--indent-size: 0;
 	overflow-y: hidden !important;
 	scrollbar-width: none;
 	-ms-overflow-style: none;
+	text-indent: 0 !important;
 }
 
 .cna-annotation-card__surface-display.markdown-rendered::-webkit-scrollbar {
@@ -2043,6 +2045,7 @@ button.cna-sticky-note-card__image-remove:hover {
 
 .cna-annotation-card__surface-display.markdown-rendered p {
 	margin: 0;
+	text-indent: 0 !important;
 }
 
 .cna-annotation-card__surface-display.markdown-rendered ul,
@@ -2285,7 +2288,6 @@ button.cna-sticky-note-card__image-remove:hover {
 	margin-right: 0;
 	vertical-align: 0;
 }
-
 
 
 
