@@ -32,11 +32,13 @@ interface GuidebookFileKeywordCacheEntry {
 	mtime: number;
 	size: number;
 	keywords: readonly string[];
+	keywordMatchGroups: readonly (readonly string[])[];
 	previewsByKeyword: ReadonlyMap<string, GuidebookKeywordPreviewItem>;
 }
 
 interface GuidebookLibraryKeywordIndex {
 	keywords: readonly string[];
+	keywordMatchGroups: readonly (readonly string[])[];
 	previewsByKeyword: ReadonlyMap<string, GuidebookKeywordPreviewItem>;
 }
 
@@ -48,6 +50,7 @@ export class GuidebookKeywordHighlightController {
 	private readonly novelLibraryService: NovelLibraryService;
 	private readonly guidebookMarkdownParser: GuidebookMarkdownParser;
 	private readonly guidebookKeywordsByLibraryRoot = new Map<string, readonly string[]>();
+	private readonly guidebookKeywordMatchGroupsByLibraryRoot = new Map<string, readonly (readonly string[])[]>();
 	private readonly guidebookKeywordPreviewByLibraryRoot = new Map<string, ReadonlyMap<string, GuidebookKeywordPreviewItem>>();
 	private readonly loadingGuidebookKeywordRoots = new Set<string>();
 	private readonly dirtyGuidebookKeywordRoots = new Set<string>();
@@ -74,6 +77,7 @@ export class GuidebookKeywordHighlightController {
 		return createGuidebookKeywordRules(
 			() => this.getSettings(),
 			(view) => this.getGuidebookKeywordsByEditorView(view),
+			(view) => this.getGuidebookKeywordMatchGroupsByEditorView(view),
 			(view) => this.shouldDetectInView(view),
 		);
 	}
@@ -184,6 +188,28 @@ export class GuidebookKeywordHighlightController {
 		return [];
 	}
 
+	private getGuidebookKeywordMatchGroupsByEditorView(editorView: EditorView): readonly (readonly string[])[] {
+		const markdownView = resolveMarkdownViewByEditorView(this.plugin.app, editorView);
+		const filePath = markdownView?.file?.path ?? null;
+		const libraryRoot = this.resolveContainingLibraryRoot(filePath);
+		if (!libraryRoot) {
+			return [];
+		}
+
+		const cached = this.guidebookKeywordMatchGroupsByLibraryRoot.get(libraryRoot);
+		if (cached) {
+			return cached;
+		}
+
+		void (async () => {
+			const changed = await this.refreshKeywordsForLibrary(libraryRoot);
+			if (changed) {
+				this.forceRefreshEditorViews();
+			}
+		})();
+		return [];
+	}
+
 	private schedulePrefetchKeywords(preferredFilePath?: string | null): void {
 		if (this.isDisposed) {
 			return;
@@ -259,10 +285,15 @@ export class GuidebookKeywordHighlightController {
 			if (this.isDisposed || cacheVersionAtStart !== this.keywordCacheVersion) {
 				return false;
 			}
-			const { keywords, previewsByKeyword } = keywordIndex;
+			const { keywords, keywordMatchGroups, previewsByKeyword } = keywordIndex;
 			const previousKeywords = this.guidebookKeywordsByLibraryRoot.get(libraryRootPath) ?? [];
+			const previousKeywordMatchGroups = this.guidebookKeywordMatchGroupsByLibraryRoot.get(libraryRootPath) ?? [];
 			this.guidebookKeywordPreviewByLibraryRoot.set(libraryRootPath, previewsByKeyword);
-			if (areKeywordListsEqual(previousKeywords, keywords)) {
+			this.guidebookKeywordMatchGroupsByLibraryRoot.set(libraryRootPath, keywordMatchGroups);
+			if (
+				areKeywordListsEqual(previousKeywords, keywords) &&
+				areKeywordMatchGroupsEqual(previousKeywordMatchGroups, keywordMatchGroups)
+			) {
 				this.dirtyGuidebookKeywordRoots.delete(libraryRootPath);
 				return false;
 			}
@@ -281,6 +312,7 @@ export class GuidebookKeywordHighlightController {
 		if (!guidebookRootPath) {
 			return {
 				keywords: [],
+				keywordMatchGroups: [],
 				previewsByKeyword: new Map(),
 			};
 		}
@@ -291,6 +323,8 @@ export class GuidebookKeywordHighlightController {
 			.sort((left, right) => left.stat.ctime - right.stat.ctime || left.path.localeCompare(right.path));
 
 		const keywordSet = new Set<string>();
+		const keywordMatchGroups: string[][] = [];
+		const groupedKeywordSet = new Set<string>();
 		const previewByKeyword = new Map<string, GuidebookKeywordPreviewItem>();
 		const activeGuidebookPaths = new Set<string>();
 		for (const file of guidebookMarkdownFiles) {
@@ -304,11 +338,32 @@ export class GuidebookKeywordHighlightController {
 					previewByKeyword.set(keyword, previewItem);
 				}
 			}
+			for (const group of fileKeywordIndex.keywordMatchGroups) {
+				const nextGroup: string[] = [];
+				for (const keyword of group) {
+					if (groupedKeywordSet.has(keyword)) {
+						continue;
+					}
+					groupedKeywordSet.add(keyword);
+					nextGroup.push(keyword);
+				}
+				if (nextGroup.length > 0) {
+					keywordMatchGroups.push(sortKeywordsByPriority(nextGroup));
+				}
+			}
 		}
 		this.pruneGuidebookFileKeywordCache(guidebookRootPath, activeGuidebookPaths);
+		for (const keyword of keywordSet) {
+			if (groupedKeywordSet.has(keyword)) {
+				continue;
+			}
+			groupedKeywordSet.add(keyword);
+			keywordMatchGroups.push([keyword]);
+		}
 
 		return {
-			keywords: Array.from(keywordSet).sort((left, right) => right.length - left.length || left.localeCompare(right)),
+			keywords: sortKeywordsByPriority(Array.from(keywordSet)),
+			keywordMatchGroups,
 			previewsByKeyword: previewByKeyword,
 		};
 	}
@@ -316,6 +371,7 @@ export class GuidebookKeywordHighlightController {
 	private clearKeywordCache(): void {
 		this.keywordCacheVersion += 1;
 		this.guidebookKeywordsByLibraryRoot.clear();
+		this.guidebookKeywordMatchGroupsByLibraryRoot.clear();
 		this.guidebookKeywordPreviewByLibraryRoot.clear();
 		this.loadingGuidebookKeywordRoots.clear();
 		this.dirtyGuidebookKeywordRoots.clear();
@@ -332,6 +388,11 @@ export class GuidebookKeywordHighlightController {
 		for (const libraryRoot of this.guidebookKeywordPreviewByLibraryRoot.keys()) {
 			if (!validLibraryRoots.has(libraryRoot)) {
 				this.guidebookKeywordPreviewByLibraryRoot.delete(libraryRoot);
+			}
+		}
+		for (const libraryRoot of this.guidebookKeywordMatchGroupsByLibraryRoot.keys()) {
+			if (!validLibraryRoots.has(libraryRoot)) {
+				this.guidebookKeywordMatchGroupsByLibraryRoot.delete(libraryRoot);
 			}
 		}
 		for (const libraryRoot of this.dirtyGuidebookKeywordRoots) {
@@ -433,35 +494,59 @@ export class GuidebookKeywordHighlightController {
 				mtime,
 				size,
 				keywords: [],
+				keywordMatchGroups: [],
 				previewsByKeyword: new Map(),
 			};
 		}
 		const markdown = await this.plugin.app.vault.cachedRead(file);
 		const h1List = this.guidebookMarkdownParser.parseTree(markdown);
 		const keywordSet = new Set<string>();
+		const keywordMatchGroups: string[][] = [];
+		const groupedKeywordSet = new Set<string>();
 		const previewsByKeyword = new Map<string, GuidebookKeywordPreviewItem>();
 		for (const h1Node of h1List) {
 			for (const h2Node of h1Node.h2List) {
 				const keyword = h2Node.title.trim();
 				if (keyword.length > 0) {
-					keywordSet.add(keyword);
-					if (!previewsByKeyword.has(keyword)) {
-						previewsByKeyword.set(keyword, {
-							keyword,
-							title: h2Node.title,
-							categoryTitle: h1Node.title,
-							content: h2Node.content,
-							sourcePath: filePath,
-						});
+					const aliases = parseAliasesFromGuidebookContent(h2Node.content);
+					const matchGroup = normalizeKeywordMatchGroup([keyword, ...aliases]);
+					const uniqueGroup: string[] = [];
+					for (const groupKeyword of matchGroup) {
+						keywordSet.add(groupKeyword);
+						if (!previewsByKeyword.has(groupKeyword)) {
+							previewsByKeyword.set(groupKeyword, {
+								keyword: groupKeyword,
+								title: h2Node.title,
+								categoryTitle: h1Node.title,
+								content: h2Node.content,
+								sourcePath: filePath,
+							});
+						}
+						if (groupedKeywordSet.has(groupKeyword)) {
+							continue;
+						}
+						groupedKeywordSet.add(groupKeyword);
+						uniqueGroup.push(groupKeyword);
+					}
+					if (uniqueGroup.length > 0) {
+						keywordMatchGroups.push(sortKeywordsByPriority(uniqueGroup));
 					}
 				}
 			}
 		}
-		const keywords = Array.from(keywordSet).sort((left, right) => right.length - left.length || left.localeCompare(right));
+		for (const keyword of keywordSet) {
+			if (groupedKeywordSet.has(keyword)) {
+				continue;
+			}
+			groupedKeywordSet.add(keyword);
+			keywordMatchGroups.push([keyword]);
+		}
+		const keywords = sortKeywordsByPriority(Array.from(keywordSet));
 		const nextEntry: GuidebookFileKeywordCacheEntry = {
 			mtime,
 			size,
 			keywords,
+			keywordMatchGroups,
 			previewsByKeyword,
 		};
 		this.guidebookFileKeywordCacheByPath.set(filePath, nextEntry);
@@ -488,10 +573,13 @@ export class GuidebookKeywordHighlightController {
 export function createGuidebookKeywordRules(
 	getSettings: () => SettingDatas,
 	getKeywordsByView: (view: EditorView) => readonly string[],
+	getKeywordMatchGroupsByView: (view: EditorView) => readonly (readonly string[])[],
 	shouldDetectInView?: (view: EditorView) => boolean,
 ): TextDetectionRule[] {
 	let cachedSourceKeywords: readonly string[] | null = null;
 	let cachedNormalizedKeywords: readonly string[] = [];
+	let cachedSourceKeywordGroups: readonly (readonly string[])[] | null = null;
+	let cachedNormalizedKeywordGroups: readonly (readonly string[])[] = [];
 
 	return [
 		{
@@ -505,6 +593,7 @@ export function createGuidebookKeywordRules(
 			matchDocumentRanges: (docText, view): TextDetectionRange[] => {
 				const settings = getSettings();
 				const keywords = getNormalizedKeywordsByView(view);
+				const keywordGroups = getNormalizedKeywordGroupsByView(view);
 				if (docText.length === 0 || keywords.length === 0) {
 					return [];
 				}
@@ -512,7 +601,7 @@ export function createGuidebookKeywordRules(
 				const ranges =
 					settings.guidebookKeywordHighlightMode === "all"
 						? collectAllMatchRanges(docText, keywords)
-						: collectFirstMatchRanges(docText, keywords);
+						: collectFirstMatchRangesByGroup(docText, keywordGroups);
 				if (ranges.length === 0) {
 					return [];
 				}
@@ -528,7 +617,18 @@ export function createGuidebookKeywordRules(
 		}
 		cachedSourceKeywords = keywords;
 		cachedNormalizedKeywords = normalizeKeywords(keywords);
+		cachedSourceKeywordGroups = null;
 		return cachedNormalizedKeywords;
+	}
+
+	function getNormalizedKeywordGroupsByView(view: EditorView): readonly (readonly string[])[] {
+		const keywordGroups = getKeywordMatchGroupsByView(view);
+		if (keywordGroups === cachedSourceKeywordGroups) {
+			return cachedNormalizedKeywordGroups;
+		}
+		cachedSourceKeywordGroups = keywordGroups;
+		cachedNormalizedKeywordGroups = normalizeKeywordGroups(keywordGroups, getNormalizedKeywordsByView(view));
+		return cachedNormalizedKeywordGroups;
 	}
 }
 
@@ -544,16 +644,32 @@ function normalizeKeywords(keywords: readonly string[]): string[] {
 	return Array.from(deduped).sort((left, right) => right.length - left.length || left.localeCompare(right));
 }
 
-function collectFirstMatchRanges(docText: string, keywords: readonly string[]): MatchRange[] {
+function collectFirstMatchRangesByGroup(docText: string, keywordGroups: readonly (readonly string[])[]): MatchRange[] {
 	const ranges: MatchRange[] = [];
-	for (const keyword of keywords) {
-		const firstIndex = docText.indexOf(keyword);
-		if (firstIndex < 0) {
+	for (const group of keywordGroups) {
+		let firstIndex = -1;
+		let firstKeyword = "";
+		for (const keyword of group) {
+			const matchIndex = docText.indexOf(keyword);
+			if (matchIndex < 0) {
+				continue;
+			}
+			if (
+				firstIndex < 0 ||
+				matchIndex < firstIndex ||
+				(matchIndex === firstIndex && keyword.length > firstKeyword.length) ||
+				(matchIndex === firstIndex && keyword.length === firstKeyword.length && keyword.localeCompare(firstKeyword) < 0)
+			) {
+				firstIndex = matchIndex;
+				firstKeyword = keyword;
+			}
+		}
+		if (firstIndex < 0 || firstKeyword.length === 0) {
 			continue;
 		}
 		ranges.push({
 			from: firstIndex,
-			to: firstIndex + keyword.length,
+			to: firstIndex + firstKeyword.length,
 		});
 	}
 	return ranges;
@@ -588,6 +704,87 @@ function areKeywordListsEqual(left: readonly string[], right: readonly string[])
 		}
 	}
 	return true;
+}
+
+function areKeywordMatchGroupsEqual(
+	left: readonly (readonly string[])[],
+	right: readonly (readonly string[])[],
+): boolean {
+	if (left.length !== right.length) {
+		return false;
+	}
+	for (let i = 0; i < left.length; i += 1) {
+		const leftGroup = left[i] ?? [];
+		const rightGroup = right[i] ?? [];
+		if (leftGroup.length !== rightGroup.length) {
+			return false;
+		}
+		for (let j = 0; j < leftGroup.length; j += 1) {
+			if (leftGroup[j] !== rightGroup[j]) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+function normalizeKeywordGroups(
+	keywordGroups: readonly (readonly string[])[],
+	fallbackKeywords: readonly string[],
+): string[][] {
+	const groupedKeywords = new Set<string>();
+	const normalizedGroups: string[][] = [];
+	for (const group of keywordGroups) {
+		const normalizedGroup = normalizeKeywordMatchGroup(group);
+		const uniqueGroup: string[] = [];
+		for (const keyword of normalizedGroup) {
+			if (groupedKeywords.has(keyword)) {
+				continue;
+			}
+			groupedKeywords.add(keyword);
+			uniqueGroup.push(keyword);
+		}
+		if (uniqueGroup.length > 0) {
+			normalizedGroups.push(uniqueGroup);
+		}
+	}
+	for (const keyword of normalizeKeywords(fallbackKeywords)) {
+		if (groupedKeywords.has(keyword)) {
+			continue;
+		}
+		groupedKeywords.add(keyword);
+		normalizedGroups.push([keyword]);
+	}
+	return normalizedGroups;
+}
+
+function normalizeKeywordMatchGroup(keywords: readonly string[]): string[] {
+	return sortKeywordsByPriority(normalizeKeywords(keywords));
+}
+
+function parseAliasesFromGuidebookContent(content: string): string[] {
+	const aliasSet = new Set<string>();
+	for (const line of content.split(/\r?\n/)) {
+		const aliasMatch = line.match(/【别名】\s*[:：]?\s*(.+)$/);
+		if (!aliasMatch) {
+			continue;
+		}
+		const aliasText = (aliasMatch[1] ?? "").trim();
+		if (aliasText.length === 0) {
+			continue;
+		}
+		for (const alias of aliasText.split(/[，,]/)) {
+			const normalizedAlias = alias.trim();
+			if (normalizedAlias.length > 0) {
+				aliasSet.add(normalizedAlias);
+			}
+		}
+	}
+	return Array.from(aliasSet);
+}
+
+function sortKeywordsByPriority(keywords: readonly string[]): string[] {
+	return [...keywords].sort((left, right) => right.length - left.length || left.localeCompare(right));
 }
 
 
