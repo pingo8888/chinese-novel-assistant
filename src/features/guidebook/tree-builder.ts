@@ -7,6 +7,7 @@ export interface GuidebookTreeH2Node {
 	content: string;
 	sourcePath: string;
 	sourceFileCtime: number;
+	sourceFileMtime: number;
 	h1IndexInSource: number;
 	h2IndexInH1: number;
 }
@@ -16,6 +17,7 @@ export interface GuidebookTreeH1Node {
 	h2List: GuidebookTreeH2Node[];
 	sourcePath: string;
 	sourceFileCtime: number;
+	sourceFileMtime: number;
 	h1IndexInSource: number;
 }
 
@@ -190,7 +192,12 @@ function buildCollectionOrderMap(orderedSourcePaths: string[]): Map<string, numb
 	return orderMap;
 }
 
-function mapParsedGuidebookTree(content: string, sourcePath: string, sourceFileCtime: number): GuidebookTreeH1Node[] {
+function mapParsedGuidebookTree(
+	content: string,
+	sourcePath: string,
+	sourceFileCtime: number,
+	sourceFileMtime: number,
+): GuidebookTreeH1Node[] {
 	return guidebookMarkdownParser.parseTree(content).map((h1Node) => ({
 		title: h1Node.title,
 		h2List: h1Node.h2List.map((h2Node): GuidebookTreeH2Node => ({
@@ -198,11 +205,13 @@ function mapParsedGuidebookTree(content: string, sourcePath: string, sourceFileC
 			content: h2Node.content,
 			sourcePath,
 			sourceFileCtime,
+			sourceFileMtime,
 			h1IndexInSource: h2Node.h1IndexInSource,
 			h2IndexInH1: h2Node.h2IndexInH1,
 		})),
 		sourcePath,
 		sourceFileCtime,
+		sourceFileMtime,
 		h1IndexInSource: h1Node.h1IndexInSource,
 	}));
 }
@@ -213,7 +222,7 @@ async function resolveParsedGuidebookTreeByFile(app: App, file: TFile): Promise<
 		return cached.h1List;
 	}
 	const markdown = await app.vault.cachedRead(file);
-	const h1List = mapParsedGuidebookTree(markdown, file.path, file.stat.ctime);
+	const h1List = mapParsedGuidebookTree(markdown, file.path, file.stat.ctime, file.stat.mtime);
 	parsedGuidebookFileCacheByPath.set(file.path, {
 		mtime: file.stat.mtime,
 		size: file.stat.size,

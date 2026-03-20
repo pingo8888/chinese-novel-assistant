@@ -430,7 +430,7 @@ function buildGuidebookTreeSignature(treeData: GuidebookTreeData | null): string
 		for (const h1Node of fileNode.h1List) {
 			signature += `\u0003${h1Node.h1IndexInSource}\u0000${h1Node.title}\u0000${h1Node.h2List.length}\u0000${h1Node.sourcePath}`;
 			for (const h2Node of h1Node.h2List) {
-				signature += `\u0004${h2Node.h1IndexInSource}\u0000${h2Node.h2IndexInH1}\u0000${h2Node.title}\u0000${h2Node.sourcePath}\u0000${h2Node.sourceFileCtime}`;
+				signature += `\u0004${h2Node.h1IndexInSource}\u0000${h2Node.h2IndexInH1}\u0000${h2Node.title}\u0000${h2Node.sourcePath}\u0000${h2Node.sourceFileCtime}\u0000${h2Node.sourceFileMtime}`;
 			}
 		}
 	}
