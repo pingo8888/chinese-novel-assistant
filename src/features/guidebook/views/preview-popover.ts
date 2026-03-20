@@ -3,10 +3,12 @@ import type { GuidebookKeywordPreviewItem } from "../../../features/text-detecti
 import { UI } from "../../../core";
 import type { TranslationKey } from "../../../lang";
 import { clamp } from "../../../utils";
+import { collectGuidebookAliases } from "../alias-utils";
 
 export interface GuidebookPreviewDisplayOptions {
 	width: number;
 	maxLines: number;
+	enableWesternNameAutoAlias: boolean;
 }
 
 export interface GuidebookPreviewPopoverActions {
@@ -116,7 +118,11 @@ export class GuidebookPreviewPopover {
 		const maxLines = clamp(options.maxLines, PREVIEW_MIN_LINES, PREVIEW_MAX_LINES);
 
 		this.currentPreviewItem = previewItem;
-		const parsed = parseAliasesAndContent(typeof previewItem.content === "string" ? previewItem.content : "");
+		const parsed = parseAliasesAndContent(
+			typeof previewItem.content === "string" ? previewItem.content : "",
+			previewItem.title,
+			options.enableWesternNameAutoAlias,
+		);
 		this.titleEl.setText(formatPreviewTitle(previewItem.title, parsed.status));
 		this.metaEl.setText(this.resolveMetaText(previewItem));
 		const normalizedContent = parsed.content;
@@ -269,9 +275,12 @@ export class GuidebookPreviewPopover {
 	}
 }
 
-function parseAliasesAndContent(content: string): { aliases: string[]; content: string; status: "死亡" | "失效" | null } {
+function parseAliasesAndContent(
+	content: string,
+	keyword: string,
+	enableWesternNameAutoAlias: boolean,
+): { aliases: string[]; content: string; status: "死亡" | "失效" | null } {
 	const lines = content.split(/\r?\n/);
-	const aliasSet = new Set<string>();
 	const keptLines: string[] = [];
 	let status: "死亡" | "失效" | null = null;
 	for (const line of lines) {
@@ -288,21 +297,15 @@ function parseAliasesAndContent(content: string): { aliases: string[]; content: 
 			keptLines.push(line);
 			continue;
 		}
-		const aliasText = (aliasMatch[1] ?? "").trim();
-		if (aliasText.length === 0) {
-			continue;
-		}
-		for (const alias of aliasText.split(/[，,]/)) {
-			const normalizedAlias = alias.trim();
-			if (normalizedAlias.length > 0) {
-				aliasSet.add(normalizedAlias);
-			}
-		}
 	}
 	const normalizedLines = normalizeListBoundaryLines(keptLines);
 	const normalizedContent = normalizedLines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
 	return {
-		aliases: Array.from(aliasSet),
+		aliases: collectGuidebookAliases({
+			keyword,
+			content,
+			enableWesternNameAutoAlias,
+		}),
 		content: normalizedContent,
 		status,
 	};

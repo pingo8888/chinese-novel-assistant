@@ -183,6 +183,7 @@ export class GuidebookPreviewController {
 			this.previewPopover.show(currentPreviewItem, currentAnchorEl.getBoundingClientRect(), {
 				width: currentSettings.guidebookPreviewWidth,
 				maxLines: currentSettings.guidebookPreviewMaxLines,
+				enableWesternNameAutoAlias: currentSettings.guidebookWesternNameAutoAliasEnabled,
 			});
 		}, PREVIEW_SHOW_DELAY);
 	}

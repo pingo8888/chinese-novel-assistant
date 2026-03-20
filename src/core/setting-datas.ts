@@ -17,6 +17,7 @@ export interface SettingDatas {
 	guidebookPreviewSidebarHoverEnabled: boolean;
 	guidebookPreviewWidth: number;
 	guidebookPreviewMaxLines: number;
+	guidebookWesternNameAutoAliasEnabled: boolean;
 
 	// 便签
 	stickyNoteEnabled: boolean;
@@ -84,6 +85,7 @@ export function createDefaultSettings(): SettingDatas {
 		guidebookPreviewSidebarHoverEnabled: false,
 		guidebookPreviewWidth: 320,
 		guidebookPreviewMaxLines: 8,
+		guidebookWesternNameAutoAliasEnabled: false,
 		stickyNoteEnabled: true,
 		stickyNoteDefaultRows: 5,
 		stickyNoteTagHintTextEnabled: true,

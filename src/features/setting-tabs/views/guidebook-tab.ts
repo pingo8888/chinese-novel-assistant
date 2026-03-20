@@ -172,6 +172,18 @@ export function renderGuidebookSettings(containerEl: HTMLElement, deps: Settings
 					await ctx.setSettings({ guidebookPreviewMaxLines: Math.round(value) });
 				}),
 		);
+
+	createSettingsSectionHeading(panelEl, ctx.t("settings.guidebook.section.other_features"));
+
+	new Setting(panelEl)
+		.setName(ctx.t("settings.guidebook.other.western_name_auto_alias.name"))
+		.setDesc(ctx.t("settings.guidebook.other.western_name_auto_alias.desc"))
+		.setClass("cna-settings-item")
+		.addToggle((toggle) =>
+			toggle.setValue(ctx.settings.guidebookWesternNameAutoAliasEnabled).onChange(async (value) => {
+				await ctx.setSettings({ guidebookWesternNameAutoAliasEnabled: value });
+			}),
+		);
 }
 
 function isKeywordHighlightMode(value: string): value is "first" | "all" {
@@ -189,6 +201,4 @@ function isKeywordFontWeight(value: string): value is "normal" | "bold" {
 function isKeywordFontStyle(value: string): value is "normal" | "italic" {
 	return value === "normal" || value === "italic";
 }
-
-
 

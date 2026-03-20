@@ -1,6 +1,7 @@
 import type { EditorView } from "@codemirror/view";
 import { MarkdownView, TFile, type Plugin } from "obsidian";
 import { GuidebookMarkdownParser } from "../../guidebook";
+import { collectGuidebookAliases } from "../../guidebook/alias-utils";
 import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, type SettingDatas } from "../../../core";
 import { resolveMarkdownViewByEditorView } from "../../../utils";
 import type { TextDetectionRange, TextDetectionRule } from "../engine";
@@ -500,6 +501,7 @@ export class GuidebookKeywordHighlightController {
 		}
 		const markdown = await this.plugin.app.vault.cachedRead(file);
 		const h1List = this.guidebookMarkdownParser.parseTree(markdown);
+		const settings = this.getSettings();
 		const keywordSet = new Set<string>();
 		const keywordMatchGroups: string[][] = [];
 		const groupedKeywordSet = new Set<string>();
@@ -508,7 +510,11 @@ export class GuidebookKeywordHighlightController {
 			for (const h2Node of h1Node.h2List) {
 				const keyword = h2Node.title.trim();
 				if (keyword.length > 0) {
-					const aliases = parseAliasesFromGuidebookContent(h2Node.content);
+					const aliases = collectGuidebookAliases({
+						keyword,
+						content: h2Node.content,
+						enableWesternNameAutoAlias: settings.guidebookWesternNameAutoAliasEnabled,
+					});
 					const matchGroup = normalizeKeywordMatchGroup([keyword, ...aliases]);
 					const uniqueGroup: string[] = [];
 					for (const groupKeyword of matchGroup) {
@@ -760,27 +766,6 @@ function normalizeKeywordGroups(
 
 function normalizeKeywordMatchGroup(keywords: readonly string[]): string[] {
 	return sortKeywordsByPriority(normalizeKeywords(keywords));
-}
-
-function parseAliasesFromGuidebookContent(content: string): string[] {
-	const aliasSet = new Set<string>();
-	for (const line of content.split(/\r?\n/)) {
-		const aliasMatch = line.match(/【别名】\s*[:：]?\s*(.+)$/);
-		if (!aliasMatch) {
-			continue;
-		}
-		const aliasText = (aliasMatch[1] ?? "").trim();
-		if (aliasText.length === 0) {
-			continue;
-		}
-		for (const alias of aliasText.split(/[，,]/)) {
-			const normalizedAlias = alias.trim();
-			if (normalizedAlias.length > 0) {
-				aliasSet.add(normalizedAlias);
-			}
-		}
-	}
-	return Array.from(aliasSet);
 }
 
 function sortKeywordsByPriority(keywords: readonly string[]): string[] {
