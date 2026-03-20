@@ -1,4 +1,4 @@
-import { Annotation, Prec } from "@codemirror/state";
+import { Annotation, Compartment, Prec } from "@codemirror/state";
 import { EditorView, gutter, GutterMarker, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { MarkdownView, Plugin, TFile } from "obsidian";
 import { type PluginContext, type SettingDatas, NovelLibraryService, bindVaultChangeWatcher } from "../../core";
@@ -568,43 +568,8 @@ function createCharacterMilestoneGutterExtension(
 	getSettings: () => SettingDatas,
 ) {
 	const milestoneByLineByView = new WeakMap<EditorView, Map<number, number>>();
-
-	const pluginExtension = ViewPlugin.fromClass(
-		class {
-			private readonly view: EditorView;
-
-			constructor(view: EditorView) {
-				this.view = view;
-				this.recomputeMilestones();
-			}
-
-			update(update: ViewUpdate): void {
-				const forced = update.transactions.some((tr) => tr.annotation(CHARACTER_MILESTONE_FORCE_REFRESH));
-				if (forced || update.docChanged) {
-					this.recomputeMilestones();
-				}
-			}
-
-			destroy(): void {
-				milestoneByLineByView.delete(this.view);
-			}
-
-			private recomputeMilestones(): void {
-				const settings = getSettings();
-				if (!settings.enableCharacterCount || !settings.enableCharacterMilestone) {
-					milestoneByLineByView.set(this.view, new Map());
-					return;
-				}
-				const content = this.view.state.doc.toString();
-				const milestones = resolveCharacterMilestoneLines(content, CHARACTER_MILESTONE_STEP);
-				const map = new Map<number, number>();
-				for (const item of milestones) {
-					map.set(item.lineNumber, item.milestone);
-				}
-				milestoneByLineByView.set(this.view, map);
-			}
-		},
-	);
+	const gutterEnabledByView = new WeakMap<EditorView, boolean>();
+	const gutterCompartment = new Compartment();
 
 	const gutterExtension = gutter({
 		class: CHARACTER_MILESTONE_GUTTER_CLASS,
@@ -612,6 +577,9 @@ function createCharacterMilestoneGutterExtension(
 			update.docChanged ||
 			update.transactions.some((tr) => tr.annotation(CHARACTER_MILESTONE_FORCE_REFRESH)),
 		lineMarker: (view, line) => {
+			if (isTableCellInlineEditorView(view)) {
+				return null;
+			}
 			const settings = getSettings();
 			if (!settings.enableCharacterCount || !settings.enableCharacterMilestone) {
 				return null;
@@ -628,8 +596,90 @@ function createCharacterMilestoneGutterExtension(
 			return new CharacterMilestoneMarker(String(milestone));
 		},
 	});
+	const configuredGutterExtension = Prec.low(gutterExtension);
 
-	return [pluginExtension, Prec.low(gutterExtension)];
+	const pluginExtension = ViewPlugin.fromClass(
+		class {
+			private readonly view: EditorView;
+			private reconfigureTimer: number | null = null;
+			private pendingShouldEnableGutter: boolean | null = null;
+			private isDestroyed = false;
+
+			constructor(view: EditorView) {
+				this.view = view;
+				this.applyGutterRegistration();
+				this.recomputeMilestones();
+			}
+
+			update(update: ViewUpdate): void {
+				if (update.geometryChanged) {
+					this.applyGutterRegistration();
+				}
+				const forced = update.transactions.some((tr) => tr.annotation(CHARACTER_MILESTONE_FORCE_REFRESH));
+				if (forced || update.docChanged) {
+					this.recomputeMilestones();
+				}
+			}
+
+			destroy(): void {
+				this.isDestroyed = true;
+				if (this.reconfigureTimer !== null) {
+					window.clearTimeout(this.reconfigureTimer);
+					this.reconfigureTimer = null;
+				}
+				milestoneByLineByView.delete(this.view);
+				gutterEnabledByView.delete(this.view);
+			}
+
+			private recomputeMilestones(): void {
+				if (isTableCellInlineEditorView(this.view)) {
+					milestoneByLineByView.set(this.view, new Map());
+					return;
+				}
+				const settings = getSettings();
+				if (!settings.enableCharacterCount || !settings.enableCharacterMilestone) {
+					milestoneByLineByView.set(this.view, new Map());
+					return;
+				}
+				const content = this.view.state.doc.toString();
+				const milestones = resolveCharacterMilestoneLines(content, CHARACTER_MILESTONE_STEP);
+				const map = new Map<number, number>();
+				for (const item of milestones) {
+					map.set(item.lineNumber, item.milestone);
+				}
+				milestoneByLineByView.set(this.view, map);
+			}
+
+			private applyGutterRegistration(): void {
+				const shouldEnableGutter = !isTableCellInlineEditorView(this.view);
+				this.pendingShouldEnableGutter = shouldEnableGutter;
+				if (this.reconfigureTimer !== null) {
+					return;
+				}
+				const hasEnabled = gutterEnabledByView.get(this.view);
+				if (hasEnabled === shouldEnableGutter) {
+					return;
+				}
+				this.reconfigureTimer = window.setTimeout(() => {
+					this.reconfigureTimer = null;
+					if (this.isDestroyed) {
+						return;
+					}
+					const nextShouldEnable = this.pendingShouldEnableGutter ?? false;
+					const currentEnabled = gutterEnabledByView.get(this.view);
+					if (currentEnabled === nextShouldEnable) {
+						return;
+					}
+					gutterEnabledByView.set(this.view, nextShouldEnable);
+					this.view.dispatch({
+						effects: gutterCompartment.reconfigure(nextShouldEnable ? configuredGutterExtension : []),
+					});
+				}, 0);
+			}
+		},
+	);
+
+	return [pluginExtension, gutterCompartment.of([])];
 }
 
 function resolveEditorViewFromMarkdownView(view: MarkdownView): MaybeEditorView {
@@ -638,6 +688,10 @@ function resolveEditorViewFromMarkdownView(view: MarkdownView): MaybeEditorView 
 		editor?: { cm?: ResolvedEditorView };
 	};
 	return editorAny.cm ?? editorAny.editor?.cm ?? null;
+}
+
+function isTableCellInlineEditorView(view: EditorView): boolean {
+	return Boolean(view.dom.closest(".table-cell-wrapper"));
 }
 
 
