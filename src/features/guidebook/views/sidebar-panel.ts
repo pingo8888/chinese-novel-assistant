@@ -206,9 +206,18 @@ export function renderGuidebookSidebarPanel(containerEl: HTMLElement, ctx: Plugi
 	let refreshTimer: number | null = null;
 	let renderedTreeSignature: string | null = null;
 	let hasRenderedTree = false;
+	const resolveTotalH2Count = (treeData: GuidebookTreeData | null): number => {
+		if (!treeData) {
+			return 0;
+		}
+		return treeData.files.reduce((total, fileNode) => total + fileNode.h2Count, 0);
+	};
 	const applySearchFilterAndRender = (forceRender = false): void => {
 		const { treeData: filteredTreeData, matchedH2Count } = filterGuidebookTreeByKeyword(latestTreeData, searchKeyword);
-		searchCountEl?.setText(`${Math.max(0, matchedH2Count)}`);
+		const visibleCount = Math.max(0, matchedH2Count);
+		const totalCount = Math.max(0, resolveTotalH2Count(latestTreeData));
+		const hasFilter = searchKeyword.trim().length > 0;
+		searchCountEl?.setText(hasFilter ? `${visibleCount}/${totalCount}` : `${totalCount}`);
 		const treeSignature = buildGuidebookTreeSignature(filteredTreeData);
 		if (!forceRender && hasRenderedTree && treeSignature === renderedTreeSignature) {
 			return;
