@@ -1470,12 +1470,12 @@ button.cna-sticky-note-card__image-remove:hover {
 	font-variant-numeric: tabular-nums;
 }
 
-.cna-character-milestone-enabled .markdown-source-view.mod-cm6 .cm-gutter.cna-character-milestone-gutter {
+.cna-character-milestone-enabled .markdown-source-view.mod-cm6 > .cm-editor > .cm-scroller > .cm-gutters.cm-gutters-before > .cm-gutter.cna-character-milestone-gutter {
 	border-right: none;
 	min-width: 3.5em;
 }
 
-.cna-character-milestone-enabled .markdown-source-view.mod-cm6 .cm-gutter.cna-character-milestone-gutter .cm-gutterElement {
+.cna-character-milestone-enabled .markdown-source-view.mod-cm6 > .cm-editor > .cm-scroller > .cm-gutters.cm-gutters-before > .cm-gutter.cna-character-milestone-gutter .cm-gutterElement {
 	color: inherit;
 	font: inherit;
 	font-variant-numeric: inherit;
@@ -1483,7 +1483,7 @@ button.cna-sticky-note-card__image-remove:hover {
 	text-align: right;
 }
 
-:not(.cna-character-milestone-enabled) .markdown-source-view.mod-cm6 .cm-gutter.cna-character-milestone-gutter {
+:not(.cna-character-milestone-enabled) .markdown-source-view.mod-cm6 > .cm-editor > .cm-scroller > .cm-gutters.cm-gutters-before > .cm-gutter.cna-character-milestone-gutter {
 	display: none;
 }
 
@@ -1493,15 +1493,14 @@ button.cna-sticky-note-card__image-remove:hover {
 	color: var(--text-on-accent);
 }
 
-[data-cna-typeset="on"] .markdown-source-view.mod-cm6 .cm-line:not(.HyperMD-codeblock):not(.HyperMD-header):not(.HyperMD-list-line):not(.HyperMD-quote) {
+[data-cna-typeset="on"] .markdown-source-view.mod-cm6 > .cm-editor > .cm-scroller > .cm-content > .cm-line:not(.HyperMD-codeblock):not(.HyperMD-header):not(.HyperMD-list-line):not(.HyperMD-quote) {
 	text-indent: calc(var(--cna-indent-chars, 0) * 1em);
 	line-height: calc(var(--cna-line-spacing, 1) + 1);
 	padding-top: calc(var(--cna-paragraph-spacing, 0px) / 2);
 	padding-bottom: calc(var(--cna-paragraph-spacing, 0px) / 2);
 }
 
-[data-cna-justify="on"] .markdown-source-view.mod-cm6 .cm-s-obsidian,
-[data-cna-justify="on"] .markdown-source-view.mod-cm6 .cm-content {
+[data-cna-justify="on"] .markdown-source-view.mod-cm6 > .cm-editor > .cm-scroller > .cm-content {
 	text-align: justify;
 	hyphens: auto;
 }
@@ -2288,11 +2287,6 @@ button.cna-sticky-note-card__image-remove:hover {
 	margin-right: 0;
 	vertical-align: 0;
 }
-
-
-
-
-
 
 
 
