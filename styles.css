@@ -1493,14 +1493,15 @@ button.cna-sticky-note-card__image-remove:hover {
 	color: var(--text-on-accent);
 }
 
-[data-cna-typeset="on"] .markdown-source-view.mod-cm6 > .cm-editor > .cm-scroller > .cm-content > .cm-line:not(.HyperMD-codeblock):not(.HyperMD-header):not(.HyperMD-list-line):not(.HyperMD-quote) {
+[data-cna-typeset="on"] .markdown-source-view.mod-cm6 .cm-line:not(.HyperMD-codeblock):not(.HyperMD-header):not(.HyperMD-list-line):not(.HyperMD-quote):not(.table-cell-wrapper .cm-line) {
 	text-indent: calc(var(--cna-indent-chars, 0) * 1em);
 	line-height: calc(var(--cna-line-spacing, 1) + 1);
 	padding-top: calc(var(--cna-paragraph-spacing, 0px) / 2);
 	padding-bottom: calc(var(--cna-paragraph-spacing, 0px) / 2);
 }
 
-[data-cna-justify="on"] .markdown-source-view.mod-cm6 > .cm-editor > .cm-scroller > .cm-content {
+[data-cna-justify="on"] .markdown-source-view.mod-cm6 .cm-s-obsidian:not(.table-cell-wrapper .cm-s-obsidian),
+[data-cna-justify="on"] .markdown-source-view.mod-cm6 .cm-content:not(.table-cell-wrapper .cm-content) {
 	text-align: justify;
 	hyphens: auto;
 }
@@ -2287,7 +2288,6 @@ button.cna-sticky-note-card__image-remove:hover {
 	margin-right: 0;
 	vertical-align: 0;
 }
-
 
 
 
