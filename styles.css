@@ -496,8 +496,8 @@ body:has(.modal-container .modal) .cna-sticky-note-floating-window {
 }
 
 .cna-sticky-note-card__content-section .cna-sticky-note-card__surface {
-	min-height: calc(var(--cna-sticky-note-content-rows, 6) * 1.6em + 16px);
-	max-height: calc(var(--cna-sticky-note-content-rows, 6) * 1.6em + 16px);
+	min-height: calc(var(--cna-sticky-note-content-rows, 6) * var(--line-height-normal) * 1em);
+	max-height: calc(var(--cna-sticky-note-content-rows, 6) * var(--line-height-normal) * 1em);
 	overflow-y: auto;
 }
 
@@ -2288,6 +2288,5 @@ button.cna-sticky-note-card__image-remove:hover {
 	margin-right: 0;
 	vertical-align: 0;
 }
-
 
 
