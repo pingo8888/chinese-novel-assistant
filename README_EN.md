@@ -1,7 +1,7 @@
 <div align="center">
 	<h1>Chinese Novel Assistant - Chinese Fiction Writing Assistant</h1>
 	<img src="https://img.shields.io/github/downloads/pingo8888/chinese-novel-assistant/total" alt="GitHub Downloads (all assets, all releases)" />
-	<img src="https://img.shields.io/github/license/RAIT-09/obsidian-agent-client" alt="License">
+	<img src="https://img.shields.io/github/license/pingo8888/chinese-novel-assistant" alt="License">
 	<img src="https://img.shields.io/github/v/release/pingo8888/chinese-novel-assistant" alt="GitHub release (latest by date)" />
 	<img src="https://img.shields.io/github/last-commit/pingo8888/chinese-novel-assistant" alt="GitHub last commit" />
 	<img src="https://img.shields.io/github/stars/pingo8888/chinese-novel-assistant?style=social" alt="GitHub stars" />
