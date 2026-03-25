@@ -1,6 +1,7 @@
 import type { Plugin } from "obsidian";
 import { type PluginContext } from "../../core";
 import { registerAnnotationCommands } from "./annotation-command";
+import { registerChapterCommands } from "./chapter-command";
 import { registerProofreadCommands } from "./proofread-command";
 import { registerStickyNoteCommands } from "./sticky-note-command";
 import { registerTypesetCommands } from "./typeset-command";
@@ -10,4 +11,5 @@ export function registerCommandsFeature(plugin: Plugin, ctx: PluginContext): voi
 	registerProofreadCommands(plugin, ctx);
 	registerAnnotationCommands(plugin, ctx);
 	registerStickyNoteCommands(plugin, ctx);
+	registerChapterCommands(plugin, ctx);
 }

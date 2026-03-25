@@ -32,6 +32,9 @@
 	"settings.common.cancel": "取消",
 	"settings.other.section.common": "通用",
 	"settings.other.section.word_count": "字數統計",
+	"settings.other.section.generate_chapter": "生成章節",
+	"settings.other.chapter_name_format.name": "章節名格式",
+	"settings.other.chapter_name_format.desc": "用於新建章節檔名，支援 {num}、{num:N}（如 {num:3}）代表顯示為3位數字",
 	"settings.other.open_file_in_new_tab.name": "檔案在新分頁開啟",
 	"settings.other.open_file_in_new_tab.desc": "透過外掛內相關功能開啟或新建檔案時，是否在新分頁開啟（已開啟則重用現有分頁）",
 	"settings.other.enable_character_count.name": "啟用字數統計",
@@ -162,6 +165,10 @@
 	"command.sticky_note.create.no_library": "未配置小說庫，無法新增便箋。",
 	"command.sticky_note.create.done": "已建立便箋：",
 	"command.sticky_note.create.failed": "新增便箋失敗，請檢查主控台日誌。",
+	"command.chapter.create.name": "新建章節檔案",
+	"command.chapter.create.no_active_markdown": "請先開啟一個 Markdown 檔案。",
+	"command.chapter.create.done": "已建立章節檔案：",
+	"command.chapter.create.failed": "生成章節檔案失敗，請檢查主控台日誌。",
 	"feature.snippet.candidate.empty": "沒有匹配片段",
 	"feature.snippet.quick_insert.candidate.empty": "沒有匹配設定",
 	"feature.snippet.candidate.footer": "第 {current}/{total} 頁（←/→ 翻頁，↑/↓ 選擇，Enter 確認）",
@@ -279,3 +286,4 @@
 	"feature.annotation.type.comment": "「評論」",
 	"feature.annotation.type.pending": "「待定」"
 }
+

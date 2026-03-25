@@ -32,6 +32,9 @@
 	"settings.common.cancel": "取消",
 	"settings.other.section.common": "通用",
 	"settings.other.section.word_count": "字数统计",
+	"settings.other.section.generate_chapter": "生成章节",
+	"settings.other.chapter_name_format.name": "章节名格式",
+	"settings.other.chapter_name_format.desc": "用于新建章节文件名，支持 {num}、{num:N}（如 {num:3}）代表显示为3位数字",
 	"settings.other.open_file_in_new_tab.name": "文件在新标签页打开",
 	"settings.other.open_file_in_new_tab.desc": "通过插件内相关功能打开或新建文件时，是否在新标签页打开（已打开则复用现有标签）",
 	"settings.other.enable_character_count.name": "启用字数统计",
@@ -162,6 +165,10 @@
 	"command.sticky_note.create.no_library": "未配置小说库，无法新增便签。",
 	"command.sticky_note.create.done": "已创建便签：",
 	"command.sticky_note.create.failed": "新增便签失败，请检查控制台日志。",
+	"command.chapter.create.name": "新建章节文件",
+	"command.chapter.create.no_active_markdown": "请先打开一个 Markdown 文件。",
+	"command.chapter.create.done": "已创建章节文件：",
+	"command.chapter.create.failed": "生成章节文件失败，请检查控制台日志。",
 	"feature.snippet.candidate.empty": "没有匹配片段",
 	"feature.snippet.quick_insert.candidate.empty": "没有匹配设定",
 	"feature.snippet.candidate.footer": "第 {current}/{total} 页（←/→ 翻页，↑/↓ 选择，Enter 确认）",
@@ -279,3 +286,4 @@
 	"feature.annotation.type.comment": "「评论」",
 	"feature.annotation.type.pending": "「待定」"
 }
+

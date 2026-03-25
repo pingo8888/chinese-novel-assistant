@@ -1,4 +1,5 @@
 import { Setting } from "obsidian";
+import { DEFAULT_CHAPTER_NAME_FORMAT } from "../../../core";
 import type { SupportedLocale } from "../../../lang";
 import { createSettingsSectionHeading } from "./heading";
 import type { SettingsTabRenderContext } from "./types";
@@ -77,8 +78,29 @@ export function renderOtherSettings(containerEl: HTMLElement, deps: SettingsTabR
 					await ctx.setSettings({ countOnlyNovelLibrary: value });
 				}),
 		);
+
+	createSettingsSectionHeading(panelEl, ctx.t("settings.other.section.generate_chapter"));
+
+	new Setting(panelEl)
+		.setName(ctx.t("settings.other.chapter_name_format.name"))
+		.setDesc(ctx.t("settings.other.chapter_name_format.desc"))
+		.setClass("cna-settings-item")
+		.addText((text) =>
+			text
+				.setPlaceholder(DEFAULT_CHAPTER_NAME_FORMAT)
+				.setValue(resolveChapterNameFormat(ctx.settings.chapterNameFormat))
+				.onChange(async (value) => {
+					await ctx.setSettings({
+						chapterNameFormat: resolveChapterNameFormat(value),
+					});
+				}),
+		);
 }
 
 function isSupportedLocale(value: string): value is SupportedLocale {
 	return value === "zh_cn" || value === "zh_tw";
+}
+
+function resolveChapterNameFormat(rawValue: string): string {
+	return rawValue.length > 0 ? rawValue : DEFAULT_CHAPTER_NAME_FORMAT;
 }

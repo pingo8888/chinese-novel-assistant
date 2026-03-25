@@ -1,5 +1,7 @@
 import type { SupportedLocale } from "../lang";
 
+export const DEFAULT_CHAPTER_NAME_FORMAT = "第{num}章 ";
+
 export interface SettingDatas {
 	// 全局
 	novelLibraries: string[];
@@ -58,6 +60,7 @@ export interface SettingDatas {
 	// 其他
 	locale: SupportedLocale;
 	openFileInNewTab: boolean;
+	chapterNameFormat: string;
 	enableCharacterCount: boolean;
 	enableCharacterMilestone: boolean;
 	countOnlyNovelLibrary: boolean;
@@ -118,6 +121,7 @@ export function createDefaultSettings(): SettingDatas {
 
 		locale: "zh_cn",
 		openFileInNewTab: true,
+		chapterNameFormat: DEFAULT_CHAPTER_NAME_FORMAT,
 		enableCharacterCount: true,
 		enableCharacterMilestone: true,
 		countOnlyNovelLibrary: true,
@@ -127,3 +131,4 @@ export function createDefaultSettings(): SettingDatas {
 		guidebookTreeAllExpanded: true,
 	};
 }
+
