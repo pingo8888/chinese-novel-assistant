@@ -1,4 +1,4 @@
-import { Notice, type Plugin, type Editor } from "obsidian";
+import { MarkdownView, Notice, type Plugin, type Editor } from "obsidian";
 import { type PluginContext } from "../../core";
 import {
 	ProofreadDictService,
@@ -7,7 +7,7 @@ import {
 	fixPairPunctuationErrors,
 	fixProofreadDictErrors,
 } from "../text-detection";
-import { clamp } from "../../utils";
+import { clamp, resolveEditorViewFromMarkdownView } from "../../utils";
 
 export function registerProofreadCommands(plugin: Plugin, ctx: PluginContext): void {
 	plugin.addCommand({
@@ -55,10 +55,12 @@ function runFixPunctuationCommand(ctx: PluginContext, editor: Editor): void {
 		return;
 	}
 
+	const restoreScroll = captureEditorScrollRestore(ctx, editor);
 	const cursorOffset = editor.posToOffset(editor.getCursor());
 	editor.setValue(fixedText);
 	const nextCursorOffset = clamp(cursorOffset, 0, fixedText.length);
 	editor.setCursor(editor.offsetToPos(nextCursorOffset));
+	restoreScroll();
 	new Notice(`${ctx.t("command.proofread.fix_punctuation_errors.done")} ${fixedCount}`);
 }
 
@@ -85,11 +87,35 @@ async function runFixProofreadDictCommand(ctx: PluginContext, editor: Editor): P
 		return;
 	}
 
+	const restoreScroll = captureEditorScrollRestore(ctx, editor);
 	const cursorOffset = editor.posToOffset(editor.getCursor());
 	editor.setValue(fixResult.text);
 	const nextCursorOffset = clamp(cursorOffset, 0, fixResult.text.length);
 	editor.setCursor(editor.offsetToPos(nextCursorOffset));
+	restoreScroll();
 	new Notice(`${ctx.t("command.proofread.fix_proofread_dict_errors.done")} ${fixResult.replacedCount}`);
 }
 
+function captureEditorScrollRestore(ctx: PluginContext, editor: Editor): () => void {
+	const activeView = ctx.app.workspace.getActiveViewOfType(MarkdownView);
+	if (!activeView || activeView.editor !== editor) {
+		return () => undefined;
+	}
 
+	const editorView = resolveEditorViewFromMarkdownView(activeView);
+	const scrollDom = editorView?.scrollDOM;
+	if (!(scrollDom instanceof HTMLElement)) {
+		return () => undefined;
+	}
+
+	const scrollTop = scrollDom.scrollTop;
+	const scrollLeft = scrollDom.scrollLeft;
+	return () => {
+		scrollDom.scrollTop = scrollTop;
+		scrollDom.scrollLeft = scrollLeft;
+		window.requestAnimationFrame(() => {
+			scrollDom.scrollTop = scrollTop;
+			scrollDom.scrollLeft = scrollLeft;
+		});
+	};
+}
