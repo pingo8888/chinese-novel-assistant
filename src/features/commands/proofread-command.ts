@@ -1,3 +1,4 @@
+import { EditorSelection } from "@codemirror/state";
 import { MarkdownView, Notice, type Plugin, type Editor } from "obsidian";
 import { type PluginContext } from "../../core";
 import {
@@ -55,12 +56,7 @@ function runFixPunctuationCommand(ctx: PluginContext, editor: Editor): void {
 		return;
 	}
 
-	const restoreScroll = captureEditorScrollRestore(ctx, editor);
-	const cursorOffset = editor.posToOffset(editor.getCursor());
-	editor.setValue(fixedText);
-	const nextCursorOffset = clamp(cursorOffset, 0, fixedText.length);
-	editor.setCursor(editor.offsetToPos(nextCursorOffset));
-	restoreScroll();
+	applyFixedTextPreservingViewport(ctx, editor, fixedText);
 	new Notice(`${ctx.t("command.proofread.fix_punctuation_errors.done")} ${fixedCount}`);
 }
 
@@ -87,23 +83,50 @@ async function runFixProofreadDictCommand(ctx: PluginContext, editor: Editor): P
 		return;
 	}
 
-	const restoreScroll = captureEditorScrollRestore(ctx, editor);
-	const cursorOffset = editor.posToOffset(editor.getCursor());
-	editor.setValue(fixResult.text);
-	const nextCursorOffset = clamp(cursorOffset, 0, fixResult.text.length);
-	editor.setCursor(editor.offsetToPos(nextCursorOffset));
-	restoreScroll();
+	applyFixedTextPreservingViewport(ctx, editor, fixResult.text);
 	new Notice(`${ctx.t("command.proofread.fix_proofread_dict_errors.done")} ${fixResult.replacedCount}`);
 }
 
-function captureEditorScrollRestore(ctx: PluginContext, editor: Editor): () => void {
-	const activeView = ctx.app.workspace.getActiveViewOfType(MarkdownView);
-	if (!activeView || activeView.editor !== editor) {
-		return () => undefined;
+function applyFixedTextPreservingViewport(ctx: PluginContext, editor: Editor, nextText: string): void {
+	const cursorOffset = editor.posToOffset(editor.getCursor());
+	const nextCursorOffset = clamp(cursorOffset, 0, nextText.length);
+	const markdownView = resolveMarkdownViewByEditor(ctx, editor);
+	const editorView = markdownView ? resolveEditorViewFromMarkdownView(markdownView) : null;
+	const restoreScroll = captureScrollRestore(editorView?.scrollDOM);
+
+	if (editorView) {
+		editorView.dispatch({
+			changes: {
+				from: 0,
+				to: editorView.state.doc.length,
+				insert: nextText,
+			},
+			selection: EditorSelection.cursor(nextCursorOffset),
+			scrollIntoView: false,
+		});
+		restoreScroll();
+		return;
 	}
 
-	const editorView = resolveEditorViewFromMarkdownView(activeView);
-	const scrollDom = editorView?.scrollDOM;
+	editor.setValue(nextText);
+	editor.setCursor(editor.offsetToPos(nextCursorOffset));
+	restoreScroll();
+}
+
+function resolveMarkdownViewByEditor(ctx: PluginContext, editor: Editor): MarkdownView | null {
+	for (const leaf of ctx.app.workspace.getLeavesOfType("markdown")) {
+		const view = leaf.view;
+		if (!(view instanceof MarkdownView)) {
+			continue;
+		}
+		if (view.editor === editor) {
+			return view;
+		}
+	}
+	return null;
+}
+
+function captureScrollRestore(scrollDom: Element | null | undefined): () => void {
 	if (!(scrollDom instanceof HTMLElement)) {
 		return () => undefined;
 	}
