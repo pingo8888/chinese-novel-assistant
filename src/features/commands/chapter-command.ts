@@ -1,4 +1,4 @@
-import { Notice, TFile, type Plugin } from "obsidian";
+import { TFile, type Plugin } from "obsidian";
 import { DEFAULT_CHAPTER_NAME_FORMAT, type PluginContext } from "../../core";
 import { openMarkdownFileWithoutDuplicate } from "../../utils";
 
@@ -27,7 +27,6 @@ export function registerChapterCommands(plugin: Plugin, ctx: PluginContext): voi
 async function runCreateNextChapterFileCommand(ctx: PluginContext): Promise<void> {
 	const activeFile = resolveActiveMarkdownFile(ctx);
 	if (!activeFile) {
-		new Notice(ctx.t("command.chapter.create.no_active_markdown"));
 		return;
 	}
 
@@ -40,10 +39,8 @@ async function runCreateNextChapterFileCommand(ctx: PluginContext): Promise<void
 		const resolved = resolveAvailableChapterFilePath(ctx, parentPath, chapterNameFormat, nextChapterNumber);
 		const createdFile = await ctx.app.vault.create(resolved.filePath, "");
 		await openMarkdownFileWithoutDuplicate(ctx.app, createdFile.path, ctx.settings.openFileInNewTab);
-		new Notice(`${ctx.t("command.chapter.create.done")} ${createdFile.basename}`);
 	} catch (error) {
 		console.error("[Chinese Novel Assistant] Failed to create next chapter file.", error);
-		new Notice(ctx.t("command.chapter.create.failed"));
 	}
 }
 
