@@ -1,6 +1,6 @@
 {
 	"name": "chinese-novel-assistant",
-	"version": "0.2.5",
+	"version": "0.2.6",
 	"description": "A set of small features designed to make writing Chinese novels more convenient.",
 	"main": "main.js",
 	"type": "module",
