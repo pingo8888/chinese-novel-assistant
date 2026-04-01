@@ -1,4 +1,5 @@
 import { EditorSelection } from "@codemirror/state";
+import { EditorView } from "@codemirror/view";
 import { MarkdownView, Notice, type Plugin, type Editor } from "obsidian";
 import { type PluginContext } from "../../core";
 import {
@@ -9,6 +10,15 @@ import {
 	fixProofreadDictErrors,
 } from "../text-detection";
 import { clamp, resolveEditorViewFromMarkdownView } from "../../utils";
+
+type MaybeEditorView = ReturnType<typeof EditorView.findFromDOM>;
+type ResolvedEditorView = NonNullable<MaybeEditorView>;
+
+interface ViewportSnapshot {
+	topLineNumber: number;
+	topLineOffset: number;
+	scrollLeft: number;
+}
 
 export function registerProofreadCommands(plugin: Plugin, ctx: PluginContext): void {
 	plugin.addCommand({
@@ -90,9 +100,8 @@ async function runFixProofreadDictCommand(ctx: PluginContext, editor: Editor): P
 function applyFixedTextPreservingViewport(ctx: PluginContext, editor: Editor, nextText: string): void {
 	const cursorOffset = editor.posToOffset(editor.getCursor());
 	const nextCursorOffset = clamp(cursorOffset, 0, nextText.length);
-	const markdownView = resolveMarkdownViewByEditor(ctx, editor);
-	const editorView = markdownView ? resolveEditorViewFromMarkdownView(markdownView) : null;
-	const restoreScroll = captureScrollRestore(editorView?.scrollDOM);
+	const editorView = resolveEditorViewByEditor(editor) ?? resolveActiveEditorView(ctx);
+	const restoreScroll = captureViewportRestore(editorView);
 
 	if (editorView) {
 		editorView.dispatch({
@@ -113,32 +122,60 @@ function applyFixedTextPreservingViewport(ctx: PluginContext, editor: Editor, ne
 	restoreScroll();
 }
 
-function resolveMarkdownViewByEditor(ctx: PluginContext, editor: Editor): MarkdownView | null {
-	for (const leaf of ctx.app.workspace.getLeavesOfType("markdown")) {
-		const view = leaf.view;
-		if (!(view instanceof MarkdownView)) {
-			continue;
-		}
-		if (view.editor === editor) {
-			return view;
-		}
-	}
-	return null;
+function resolveEditorViewByEditor(editor: Editor): MaybeEditorView {
+	const editorAny = editor as unknown as {
+		cm?: ResolvedEditorView;
+		editor?: { cm?: ResolvedEditorView };
+	};
+	return editorAny.cm ?? editorAny.editor?.cm ?? null;
 }
 
-function captureScrollRestore(scrollDom: Element | null | undefined): () => void {
-	if (!(scrollDom instanceof HTMLElement)) {
+function resolveActiveEditorView(ctx: PluginContext): MaybeEditorView {
+	const activeView = ctx.app.workspace.getActiveViewOfType(MarkdownView);
+	if (!activeView) {
+		return null;
+	}
+	return resolveEditorViewFromMarkdownView(activeView);
+}
+
+function captureViewportRestore(editorView: MaybeEditorView): () => void {
+	if (!editorView || !(editorView.scrollDOM instanceof HTMLElement)) {
 		return () => undefined;
 	}
 
-	const scrollTop = scrollDom.scrollTop;
+	const scrollDom = editorView.scrollDOM;
+	const topLineBlock = editorView.lineBlockAtHeight(scrollDom.scrollTop);
+	const topLineNumber = editorView.state.doc.lineAt(topLineBlock.from).number;
+	const topLineOffset = Math.max(0, scrollDom.scrollTop - topLineBlock.top);
 	const scrollLeft = scrollDom.scrollLeft;
+	const snapshot: ViewportSnapshot = {
+		topLineNumber,
+		topLineOffset,
+		scrollLeft,
+	};
+
 	return () => {
-		scrollDom.scrollTop = scrollTop;
-		scrollDom.scrollLeft = scrollLeft;
+		restoreViewportByLine(editorView, snapshot);
 		window.requestAnimationFrame(() => {
-			scrollDom.scrollTop = scrollTop;
-			scrollDom.scrollLeft = scrollLeft;
+			restoreViewportByLine(editorView, snapshot);
+			window.requestAnimationFrame(() => {
+				restoreViewportByLine(editorView, snapshot);
+			});
 		});
 	};
+}
+
+function restoreViewportByLine(editorView: MaybeEditorView, snapshot: ViewportSnapshot): void {
+	if (!editorView || !(editorView.scrollDOM instanceof HTMLElement)) {
+		return;
+	}
+	const lineCount = editorView.state.doc.lines;
+	if (lineCount <= 0) {
+		return;
+	}
+	const targetLineNumber = clamp(snapshot.topLineNumber, 1, lineCount);
+	const targetLineFrom = editorView.state.doc.line(targetLineNumber).from;
+	const targetLineBlock = editorView.lineBlockAt(targetLineFrom);
+	editorView.scrollDOM.scrollTop = Math.max(0, targetLineBlock.top + snapshot.topLineOffset);
+	editorView.scrollDOM.scrollLeft = snapshot.scrollLeft;
 }
