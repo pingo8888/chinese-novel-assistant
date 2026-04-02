@@ -7,6 +7,7 @@ export const NOVEL_LIBRARY_SUBDIR_NAMES = {
 	guidebook: "设定库",
 	stickyNote: "便签库",
 	annotation: "批注库",
+	timeline: "时间轴库",
 	snippet: "片段库",
 	proofreadDictionary: "纠错词库",
 } as const;

@@ -42,6 +42,9 @@ export const UI = {
 		FUNNEL: "funnel-plus",
 		BOOKMARK: "message-square-text",
 		MAP_PIN: "map-pin",
+		TIME_LINE: "blinds",
+		TIME_LINE_ADD_UP: "list-start",
+		TIME_LINE_ADD_BELOW: "list-end"
 	},
 } as const;
 

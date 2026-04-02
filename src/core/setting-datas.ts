@@ -29,6 +29,7 @@ export interface SettingDatas {
 	// 标注
 	annotationEnabled: boolean;
 	annotationAutoLocateOnFileSwitch: boolean;
+	timelineEnabled: boolean;
 
 	// 纠错
 	proofreadCommonPunctuationEnabled: boolean;
@@ -94,6 +95,7 @@ export function createDefaultSettings(): SettingDatas {
 		stickyNoteTagHintTextEnabled: true,
 		annotationEnabled: false,
 		annotationAutoLocateOnFileSwitch: true,
+		timelineEnabled: false,
 
 		proofreadCommonPunctuationEnabled: false,
 		proofreadEnglishCommaEnabled: true,

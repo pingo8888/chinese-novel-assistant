@@ -3,6 +3,7 @@ export * from "./componets/clearable-input";
 export * from "./componets/context-menu";
 export * from "./componets/folder-suggest";
 export * from "./componets/input-suggest";
+export * from "./componets/rich-text-menu";
 export * from "./componets/tabs";
 export * from "./componets/toggle-button";
 

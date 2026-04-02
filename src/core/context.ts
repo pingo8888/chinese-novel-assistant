@@ -1,5 +1,6 @@
 import { type App, type PluginSettingTab } from "obsidian";
 import { translate, type SupportedLocale, type TranslationKey } from "../lang";
+import { NovelLibraryService } from "./novel-library-service";
 import type { SettingDatas } from "./setting-datas";
 import type { SettingStore, SettingsChangeListener } from "./setting-store";
 
@@ -11,6 +12,7 @@ export interface ContextHost {
 
 export interface PluginContext {
 	readonly app: App;
+	readonly novelLibraryService: NovelLibraryService;
 	readonly settings: SettingDatas;
 	readonly locale: SupportedLocale;
 	addSettingTab(tab: PluginSettingTab): void;
@@ -20,8 +22,10 @@ export interface PluginContext {
 }
 
 export function createPluginContext(host: ContextHost): PluginContext {
+	const novelLibraryService = new NovelLibraryService(host.app);
 	return {
 		app: host.app,
+		novelLibraryService,
 		get settings() {
 			return host.settingStore.data;
 		},

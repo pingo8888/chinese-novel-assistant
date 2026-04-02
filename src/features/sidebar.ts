@@ -10,6 +10,11 @@ import {
 	openAnnotationSidebar,
 	syncAnnotationSidebarWithGuidebook,
 } from "./annotation";
+import {
+	detachTimelineSidebars,
+	openTimelineSidebar,
+	syncTimelineSidebarWithGuidebook,
+} from "./timeline";
 
 export function registerSidebarFeature(plugin: Plugin, ctx: PluginContext): void {
 	plugin.app.workspace.onLayoutReady(() => {
@@ -18,9 +23,11 @@ export function registerSidebarFeature(plugin: Plugin, ctx: PluginContext): void
 
 	let lastStickyNoteEnabled = ctx.settings.stickyNoteEnabled;
 	let lastAnnotationEnabled = ctx.settings.annotationEnabled;
+	let lastTimelineEnabled = ctx.settings.timelineEnabled;
 	const unsubscribeSettingsChange = ctx.onSettingsChange((settings) => {
 		const nextStickyNoteEnabled = settings.stickyNoteEnabled;
 		const nextAnnotationEnabled = settings.annotationEnabled;
+		const nextTimelineEnabled = settings.timelineEnabled;
 
 		if (nextStickyNoteEnabled !== lastStickyNoteEnabled) {
 			lastStickyNoteEnabled = nextStickyNoteEnabled;
@@ -38,6 +45,16 @@ export function registerSidebarFeature(plugin: Plugin, ctx: PluginContext): void
 				void openAnnotationSidebar(plugin, true);
 			} else {
 				detachAnnotationSidebars(plugin);
+				void openGuidebookSidebarWithStickyNote(plugin, ctx);
+			}
+		}
+
+		if (nextTimelineEnabled !== lastTimelineEnabled) {
+			lastTimelineEnabled = nextTimelineEnabled;
+			if (nextTimelineEnabled) {
+				void openTimelineSidebar(plugin, true);
+			} else {
+				detachTimelineSidebars(plugin);
 				void openGuidebookSidebarWithStickyNote(plugin, ctx);
 			}
 		}
@@ -64,6 +81,7 @@ export async function openGuidebookSidebarWithStickyNote(
 
 	await syncStickyNoteSidebarWithGuidebook(plugin, ctx, guidebookLeaf);
 	await syncAnnotationSidebarWithGuidebook(plugin, ctx, guidebookLeaf);
+	await syncTimelineSidebarWithGuidebook(plugin, ctx, guidebookLeaf);
 	plugin.app.workspace.setActiveLeaf(guidebookLeaf, {
 		focus: true,
 	});
@@ -75,4 +93,5 @@ function detachSidebarViews(plugin: Plugin): void {
 	}
 	detachStickyNoteSidebars(plugin);
 	detachAnnotationSidebars(plugin);
+	detachTimelineSidebars(plugin);
 }
