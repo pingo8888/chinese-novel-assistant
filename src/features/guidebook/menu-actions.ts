@@ -725,21 +725,11 @@ async function collectAllCollectionH1Titles(
 }
 
 function resolveCollectionFilesForUniquenessCheck(
-	app: App,
+	_app: App,
 	currentFile: TFile,
-	treeData: GuidebookTreeData | null,
+	_treeData: GuidebookTreeData | null,
 ): TFile[] {
-	const guidebookRootPath = treeData?.guidebookRootPath;
-	if (!guidebookRootPath) {
-		const parentPath = getParentPath(currentFile.path);
-		return app.vault
-			.getMarkdownFiles()
-			.filter((file) => getParentPath(file.path) === parentPath);
-	}
-
-	return app.vault
-		.getMarkdownFiles()
-		.filter((file) => file.path === guidebookRootPath || file.path.startsWith(`${guidebookRootPath}/`));
+	return [currentFile];
 }
 
 async function resolveCollectionScopeTitles(
@@ -748,7 +738,7 @@ async function resolveCollectionScopeTitles(
 	treeData: GuidebookTreeData | null,
 ): Promise<{ h1Titles: readonly string[]; h2Titles: readonly string[] }> {
 	const files = resolveCollectionFilesForUniquenessCheck(app, currentFile, treeData);
-	const scopeKey = resolveCollectionScopeCacheKey(currentFile, treeData);
+	const scopeKey = resolveCollectionScopeCacheKey(currentFile);
 	const signature = buildCollectionScopeSignature(files);
 	const cachedScope = guidebookScopeTitlesCacheByKey.get(scopeKey);
 	if (cachedScope && cachedScope.signature === signature) {
@@ -824,12 +814,8 @@ async function resolveFileTitles(
 	};
 }
 
-function resolveCollectionScopeCacheKey(currentFile: TFile, treeData: GuidebookTreeData | null): string {
-	const guidebookRootPath = treeData?.guidebookRootPath;
-	if (guidebookRootPath) {
-		return `guidebook:${guidebookRootPath}`;
-	}
-	return `parent:${getParentPath(currentFile.path)}`;
+function resolveCollectionScopeCacheKey(currentFile: TFile): string {
+	return `file:${currentFile.path}`;
 }
 
 function buildCollectionScopeSignature(files: TFile[]): string {
