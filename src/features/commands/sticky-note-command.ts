@@ -60,7 +60,7 @@ async function runCreateStickyNoteCommand(
 		const width = STICKY_NOTE_FLOAT_DEFAULT_WIDTH;
 		const contentHeight = STICKY_NOTE_FLOAT_DEFAULT_HEIGHT;
 		const position = resolveCommandCreatedFloatingPosition(width);
-		const file = await repository.createCardFile(stickyRootPath, {
+		const file = await repository.createCardFile(stickyRootPath, ctx.settings, {
 			isFloating: true,
 			floatX: position.x,
 			floatY: position.y,

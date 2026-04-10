@@ -1,14 +1,15 @@
-import { setIcon } from "obsidian";
+import { setIcon, setTooltip } from "obsidian";
 import { UI } from "../../../core";
 import type { TranslationKey } from "../../../lang";
 import type { TimelineCardMenuCommand } from "../menu-actions";
 import { toRgba } from "../../../utils";
-import { TIMELINE_COLOR_TYPES } from "../color-types";
+import { resolveTimelineTypeTitle, type TimelineColorType } from "../color-types";
 
 interface ShowTimelineCardMenuArgs {
 	anchorEl: HTMLElement;
 	t: (key: TranslationKey) => string;
 	activeColorHex?: string;
+	colorTypes: readonly TimelineColorType[];
 	onCommand: (command: TimelineCardMenuCommand) => void;
 }
 
@@ -33,17 +34,23 @@ export function showTimelineCardMenu(args: ShowTimelineCardMenuArgs): void {
 	const rootEl = document.body.createDiv({ cls: "cna-timeline-card-menu" });
 
 	const paletteEl = rootEl.createDiv({ cls: "cna-timeline-card-menu__palette" });
-	for (const colorType of TIMELINE_COLOR_TYPES) {
+	for (const colorType of args.colorTypes) {
 		const colorHex = colorType.colorHex;
+		const typeTitle = resolveTimelineTypeTitle(colorType, args.t);
 		const colorButtonEl = paletteEl.createEl("button", {
 			cls: "cna-timeline-card-menu__color",
 			attr: {
 				type: "button",
 			},
 		});
+		setTooltip(colorButtonEl, typeTitle, {
+			placement: "top",
+			gap: 8,
+			delay: 0,
+		});
 		colorButtonEl.style.setProperty("--cna-timeline-card-menu-color", colorHex);
 		colorButtonEl.style.setProperty("--cna-timeline-card-menu-color-alpha", toRgba(colorHex, 0.25));
-		if (args.activeColorHex === colorHex) {
+		if (args.activeColorHex?.toUpperCase() === colorHex.toUpperCase()) {
 			colorButtonEl.addClass("is-active");
 		}
 		colorButtonEl.addEventListener("click", () => {

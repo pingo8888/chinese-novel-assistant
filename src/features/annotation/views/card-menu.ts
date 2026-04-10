@@ -1,13 +1,15 @@
-import { setIcon } from "obsidian";
-import { STICKY_NOTE_COLORS, UI } from "../../../core";
+import { setIcon, setTooltip } from "obsidian";
+import { UI } from "../../../core";
 import type { TranslationKey } from "../../../lang";
 import type { AnnotationCardMenuCommand } from "../menu-actions";
 import { toRgba } from "../../../utils";
+import { resolveAnnotationTypeTitle, type AnnotationColorType } from "../color-types";
 
 interface ShowAnnotationCardMenuArgs {
 	anchorEl: HTMLElement;
 	t: (key: TranslationKey) => string;
 	activeColorHex?: string;
+	colorTypes: readonly AnnotationColorType[];
 	onCommand: (command: AnnotationCardMenuCommand) => void;
 }
 
@@ -32,16 +34,23 @@ export function showAnnotationCardMenu(args: ShowAnnotationCardMenuArgs): void {
 	const rootEl = document.body.createDiv({ cls: "cna-annotation-card-menu" });
 
 	const paletteEl = rootEl.createDiv({ cls: "cna-annotation-card-menu__palette" });
-	for (const colorHex of STICKY_NOTE_COLORS) {
+	for (const colorType of args.colorTypes) {
+		const colorHex = colorType.colorHex;
+		const typeTitle = resolveAnnotationTypeTitle(colorType, args.t);
 		const colorButtonEl = paletteEl.createEl("button", {
 			cls: "cna-annotation-card-menu__color",
 			attr: {
 				type: "button",
 			},
 		});
+		setTooltip(colorButtonEl, typeTitle, {
+			placement: "top",
+			gap: 8,
+			delay: 0,
+		});
 		colorButtonEl.style.setProperty("--cna-annotation-card-menu-color", colorHex);
 		colorButtonEl.style.setProperty("--cna-annotation-card-menu-color-alpha", toRgba(colorHex, 0.25));
-		if (args.activeColorHex === colorHex) {
+		if (args.activeColorHex?.toUpperCase() === colorHex.toUpperCase()) {
 			colorButtonEl.addClass("is-active");
 		}
 		colorButtonEl.addEventListener("click", () => {

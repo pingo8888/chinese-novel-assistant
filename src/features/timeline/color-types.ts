@@ -1,18 +1,32 @@
+import type { SettingDatas } from "../../core";
+import {
+	type ResolvedCustomTypeOption,
+	resolveTimelineDefaultColor,
+	resolveTimelineTypeOptions,
+	resolveTypeOptionTitle,
+} from "../../core";
 import type { TranslationKey } from "../../lang";
+import { parseColorHex } from "../../utils";
 
-export interface TimelineColorType {
-	colorHex: string;
-	labelKey: TranslationKey;
+export type TimelineColorType = ResolvedCustomTypeOption;
+
+export const TIMELINE_DEFAULT_COLOR = resolveTimelineDefaultColor(undefined);
+
+export function getTimelineColorTypes(settings: Pick<SettingDatas, "timelineCustomTypes">): TimelineColorType[] {
+	return resolveTimelineTypeOptions(settings.timelineCustomTypes);
 }
 
-export const TIMELINE_COLOR_TYPES: readonly TimelineColorType[] = [
-	{ colorHex: "#4A86E9", labelKey: "feature.timeline.type.summary" },
-	{ colorHex: "#7B61FF", labelKey: "feature.timeline.type.foreshadow" },
-	{ colorHex: "#47B881", labelKey: "feature.timeline.type.memo" },
-	{ colorHex: "#F6C445", labelKey: "feature.timeline.type.side_story" },
-	{ colorHex: "#F59E0B", labelKey: "feature.timeline.type.bookmark" },
-	{ colorHex: "#F05D6C", labelKey: "feature.timeline.type.comment" },
-	{ colorHex: "#9CA3AF", labelKey: "feature.timeline.type.pending" },
-];
+export function resolveTimelineTypeTitle(
+	option: Pick<TimelineColorType, "label" | "labelKey">,
+	translate: (key: TranslationKey) => string,
+): string {
+	return resolveTypeOptionTitle(option, translate);
+}
 
-export const TIMELINE_DEFAULT_COLOR = TIMELINE_COLOR_TYPES[TIMELINE_COLOR_TYPES.length - 1]?.colorHex ?? "#9CA3AF";
+export function resolveTimelineDefaultTypeColor(settings: Pick<SettingDatas, "timelineCustomTypes">): string {
+	return resolveTimelineDefaultColor(settings.timelineCustomTypes);
+}
+
+export function normalizeTimelineColorHex(value: string | null | undefined, fallback = TIMELINE_DEFAULT_COLOR): string {
+	return parseColorHex(value)?.toUpperCase() ?? fallback;
+}

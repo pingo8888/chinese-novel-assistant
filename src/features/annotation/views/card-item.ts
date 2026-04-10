@@ -1,11 +1,12 @@
 import { Component, MarkdownRenderer, setIcon, TextAreaComponent, type App } from "obsidian";
-import { UI } from "../../../core";
+import { UI, type SettingDatas } from "../../../core";
 import type { TranslationKey } from "../../../lang";
 import { extractPlainTextFromMarkdown, toRgba } from "../../../utils";
 import { applyAnnotationCardMenuCommand } from "../menu-actions";
 import { applyStickyNoteRichTextCommand } from "../../sticky-note/menu-actions";
 import { showAnnotationCardMenu } from "./card-menu";
 import { showStickyNoteContentMenu } from "../../sticky-note/views/content-menu";
+import { getAnnotationColorTypes } from "../color-types";
 import type { AnnotationCard } from "./types";
 
 interface AnnotationCardItemDeps {
@@ -13,6 +14,7 @@ interface AnnotationCardItemDeps {
 	containerEl: HTMLElement;
 	card: AnnotationCard;
 	t: (key: TranslationKey) => string;
+	getSettings: () => SettingDatas;
 	isActive: boolean;
 	onCardTouched: () => void;
 	onCardDelete: () => void;
@@ -213,6 +215,7 @@ export function renderAnnotationCardItem(deps: AnnotationCardItemDeps): () => vo
 			anchorEl: menuButtonEl,
 			t: (key) => deps.t(key),
 			activeColorHex: card.colorHex,
+			colorTypes: getAnnotationColorTypes(deps.getSettings()),
 			onCommand: (command) => {
 				const result = applyAnnotationCardMenuCommand(command, card);
 				if (result === "deleted") {

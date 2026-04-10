@@ -3,11 +3,16 @@ import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate
 import { Editor, MarkdownFileInfo, MarkdownView, Menu, MenuItem, Notice, Plugin, TFile } from "obsidian";
 import { UI, type PluginContext, bindVaultChangeWatcher } from "../../core";
 import { normalizeVaultPath } from "../../core/novel-library-service";
-import { parseColorHex, resolveEditorViewFromMarkdownView, resolveMarkdownViewByEditorView, toRgba } from "../../utils";
+import { parseColorHex, resolveEditorViewFromMarkdownView, resolveMarkdownViewByEditorView, toRgba, truncateMenuTitle } from "../../utils";
 import { type AnnotationAnchorSnapshot, type AnnotationSelectionAnchor, AnnotationRepository } from "./repository";
 import { emitAnnotationCreated, subscribeAnnotationLocateFlash, type AnnotationLocateFlashPayload } from "./flash-bus";
 import { scheduleAttachColorSwatchesToLatestMenu } from "../../ui";
-import { ANNOTATION_COLOR_TYPES, DEFAULT_ANNOTATION_COLOR, normalizeAnnotationColorHex } from "./color-types";
+import {
+	getAnnotationColorTypes,
+	normalizeAnnotationColorHex,
+	resolveAnnotationDefaultTypeColor,
+	resolveAnnotationTypeTitle,
+} from "./color-types";
 
 const ANNOTATION_RANGE_FORCE_REFRESH = Annotation.define<boolean>();
 const ANNOTATION_RANGE_MARK_CLASS = "cna-annotation-range-mark";
@@ -117,8 +122,8 @@ class AnnotationFeature {
 		if (!selection) {
 			return;
 		}
-		const annotationTypeItems = ANNOTATION_COLOR_TYPES.map((colorType) => ({
-			title: this.ctx.t(colorType.labelKey),
+		const annotationTypeItems = getAnnotationColorTypes(this.ctx.settings).map((colorType) => ({
+			title: truncateMenuTitle(resolveAnnotationTypeTitle(colorType, (key) => this.ctx.t(key))),
 			colorHex: colorType.colorHex,
 		}));
 		const stopColorSwatchObserver = observeAnnotationTypeColorSwatches(annotationTypeItems);
@@ -144,7 +149,11 @@ class AnnotationFeature {
 				return;
 			}
 			item.onClick(() => {
-				void this.createAnnotationBySelection(filePath, selection, DEFAULT_ANNOTATION_COLOR);
+				void this.createAnnotationBySelection(
+					filePath,
+					selection,
+					resolveAnnotationDefaultTypeColor(this.ctx.settings),
+				);
 			});
 		});
 	};
@@ -589,6 +598,7 @@ function buildAnnotationRangeDecorations(view: EditorView, deps: AnnotationRange
 	}
 	const maxOffset = view.state.doc.length;
 	const builder = new RangeSetBuilder<Decoration>();
+	const defaultColor = resolveAnnotationDefaultTypeColor(deps.getSettings());
 	for (const range of ranges) {
 		const from = clampOffset(Math.min(range.from, range.to), maxOffset);
 		const to = clampOffset(Math.max(range.from, range.to), maxOffset);
@@ -598,7 +608,10 @@ function buildAnnotationRangeDecorations(view: EditorView, deps: AnnotationRange
 		const className = deps.isRangeFlashing(sourcePath, range.id)
 			? ANNOTATION_RANGE_MARK_CLASS + " " + ANNOTATION_RANGE_FLASH_CLASS
 			: ANNOTATION_RANGE_MARK_CLASS;
-		const colorHex = normalizeAnnotationColorHex(parseColorHex(range.colorHex) ?? DEFAULT_ANNOTATION_COLOR);
+		const colorHex = normalizeAnnotationColorHex(
+			parseColorHex(range.colorHex) ?? defaultColor,
+			defaultColor,
+		);
 		builder.add(from, to, Decoration.mark({
 			class: className,
 			attributes: buildAnnotationRangeColorAttributes(colorHex),

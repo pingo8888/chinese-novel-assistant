@@ -96,17 +96,6 @@ export function renderOtherSettings(containerEl: HTMLElement, deps: SettingsTabR
 				}),
 		);
 
-	createSettingsSectionHeading(panelEl, ctx.t("settings.other.section.timeline"));
-
-	new Setting(panelEl)
-		.setName(ctx.t("settings.timeline.enable.name"))
-		.setDesc(ctx.t("settings.timeline.enable.desc"))
-		.setClass("cna-settings-item")
-		.addToggle((toggle) =>
-			toggle.setValue(ctx.settings.timelineEnabled).onChange(async (value) => {
-				await ctx.setSettings({ timelineEnabled: value });
-			}),
-		);
 }
 
 function isSupportedLocale(value: string): value is SupportedLocale {

@@ -1,4 +1,10 @@
 import type { SupportedLocale } from "../lang";
+import {
+	type CustomTypeSettingItem,
+	DEFAULT_ANNOTATION_CUSTOM_TYPES,
+	DEFAULT_STICKY_NOTE_CUSTOM_COLORS,
+	DEFAULT_TIMELINE_CUSTOM_TYPES,
+} from "./custom-type-config";
 
 export const DEFAULT_CHAPTER_NAME_FORMAT = "第{num}章 ";
 
@@ -25,11 +31,14 @@ export interface SettingDatas {
 	stickyNoteEnabled: boolean;
 	stickyNoteDefaultRows: number;
 	stickyNoteTagHintTextEnabled: boolean;
+	stickyNoteCustomColors: string[];
 
 	// 标注
 	annotationEnabled: boolean;
 	annotationAutoLocateOnFileSwitch: boolean;
+	annotationCustomTypes: CustomTypeSettingItem[];
 	timelineEnabled: boolean;
+	timelineCustomTypes: CustomTypeSettingItem[];
 
 	// 纠错
 	proofreadCommonPunctuationEnabled: boolean;
@@ -93,9 +102,12 @@ export function createDefaultSettings(): SettingDatas {
 		stickyNoteEnabled: true,
 		stickyNoteDefaultRows: 5,
 		stickyNoteTagHintTextEnabled: true,
+		stickyNoteCustomColors: [...DEFAULT_STICKY_NOTE_CUSTOM_COLORS],
 		annotationEnabled: false,
 		annotationAutoLocateOnFileSwitch: true,
+		annotationCustomTypes: DEFAULT_ANNOTATION_CUSTOM_TYPES.map((item) => ({ ...item })),
 		timelineEnabled: false,
+		timelineCustomTypes: DEFAULT_TIMELINE_CUSTOM_TYPES.map((item) => ({ ...item })),
 
 		proofreadCommonPunctuationEnabled: false,
 		proofreadEnglishCommaEnabled: true,

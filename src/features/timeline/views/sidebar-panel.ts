@@ -1,8 +1,8 @@
 import { MarkdownView, Notice, TFile, TFolder, setIcon, type EventRef, type TAbstractFile } from "obsidian";
 import { UI, type PluginContext, type NovelLibraryService } from "../../../core";
 import { ClearableInputComponent, showContextMenuAtMouseEvent } from "../../../ui";
-import { areStringArraysEqual } from "../../../utils";
-import { TIMELINE_COLOR_TYPES } from "../color-types";
+import { areStringArraysEqual, truncateMenuTitle } from "../../../utils";
+import { getTimelineColorTypes, resolveTimelineTypeTitle } from "../color-types";
 import { TimelineRepository } from "../repository";
 import { createTimelineCardList } from "./card-list";
 
@@ -182,11 +182,12 @@ export function renderTimelineSidebarPanel(containerEl: HTMLElement, ctx: Plugin
 	};
 
 	const openFilterMenu = (event: MouseEvent): void => {
+		const timelineColorTypes = getTimelineColorTypes(ctx.settings);
 		showContextMenuAtMouseEvent(
 			event,
 			[
-				...TIMELINE_COLOR_TYPES.map((colorType) => ({
-					title: ctx.t(colorType.labelKey),
+				...timelineColorTypes.map((colorType) => ({
+					title: truncateMenuTitle(resolveTimelineTypeTitle(colorType, (key) => ctx.t(key))),
 					colorHex: colorType.colorHex,
 					checked: colorFilters.has(colorType.colorHex),
 					section: TIMELINE_FILTER_MENU_SECTION,

@@ -3,6 +3,7 @@ export { renderGlobalSettings } from "./global-tab";
 export { renderGuidebookSettings } from "./guidebook-tab";
 export { renderAnnotationSettings } from "./annotation-tab";
 export { renderStickyNoteSettings } from "./sticky-note-tab";
+export { renderTimelineSettings } from "./timeline-tab";
 export { renderOtherSettings } from "./other-tab";
 export { renderProofreadSettings } from "./proofread-tab";
 export { renderSnippetSettings } from "./snippet-tab";

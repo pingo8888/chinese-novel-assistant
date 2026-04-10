@@ -1435,6 +1435,61 @@ button.cna-sticky-note-card__image-remove:hover {
 	-webkit-text-fill-color: var(--text-faint);
 }
 
+.cna-settings-item .cna-settings-color-picker-native {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	opacity: 0;
+	cursor: pointer;
+	z-index: 2;
+}
+
+.cna-settings-item .cna-settings-color-picker-wrap {
+	position: relative;
+	width: 20px;
+	height: 20px;
+	flex: 0 0 auto;
+}
+
+.cna-settings-item .cna-settings-color-swatch {
+	position: relative;
+	width: 20px;
+	height: 20px;
+	padding: 0;
+	border-radius: 4px;
+	border: 1px solid color-mix(in srgb, var(--background-modifier-border) 62%, #b8ab87 38%);
+	appearance: none;
+	box-shadow: none;
+	background: transparent !important;
+	background-image: none !important;
+	pointer-events: none;
+}
+
+.cna-settings-item .cna-settings-color-swatch::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: var(--cna-settings-color-swatch-alpha, var(--cna-settings-color-swatch, var(--background-modifier-border)));
+	pointer-events: none;
+}
+
+.cna-settings-item .cna-settings-color-swatch:focus-visible {
+	outline: none;
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-normal) 26%, transparent);
+}
+
+.cna-settings-item .cna-settings-color-picker-wrap.is-disabled .cna-settings-color-swatch,
+.cna-settings-item.is-disabled .cna-settings-color-swatch {
+	opacity: 0.4;
+	filter: grayscale(1);
+}
+
+.cna-settings-item .cna-settings-color-picker-wrap.is-disabled .cna-settings-color-picker-native {
+	pointer-events: none;
+	cursor: not-allowed;
+}
+
 .cna-settings-item--novel-library .setting-item-name {
 	word-break: break-all;
 }

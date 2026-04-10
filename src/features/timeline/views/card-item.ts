@@ -1,10 +1,11 @@
 import { Component, MarkdownRenderer, setIcon, TextAreaComponent, type App } from "obsidian";
-import { UI } from "../../../core";
+import { UI, type SettingDatas } from "../../../core";
 import type { TranslationKey } from "../../../lang";
 import { applyRichTextCommand, showRichTextContentMenu } from "../../../ui";
 import { extractPlainTextFromMarkdown, toRgba } from "../../../utils";
 import { applyTimelineCardMenuCommand } from "../menu-actions";
 import { showTimelineCardMenu } from "./card-menu";
+import { getTimelineColorTypes } from "../color-types";
 import type { TimelineCard } from "./types";
 
 interface TimelineCardItemDeps {
@@ -12,6 +13,7 @@ interface TimelineCardItemDeps {
 	containerEl: HTMLElement;
 	card: TimelineCard;
 	t: (key: TranslationKey) => string;
+	getSettings: () => SettingDatas;
 	onCardTouched: () => void;
 	onCardDelete: () => void;
 	onInsertBefore: () => void;
@@ -335,6 +337,7 @@ export function renderTimelineCardItem(deps: TimelineCardItemDeps): TimelineCard
 			anchorEl: menuButtonEl,
 			t: (key) => deps.t(key),
 			activeColorHex: card.colorHex,
+			colorTypes: getTimelineColorTypes(deps.getSettings()),
 			onCommand: (command) => {
 				const result = applyTimelineCardMenuCommand(command, card);
 				if (result === "deleted") {

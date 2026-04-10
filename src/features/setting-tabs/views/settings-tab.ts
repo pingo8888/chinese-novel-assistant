@@ -7,6 +7,7 @@ import {
 	renderGuidebookSettings,
 	renderAnnotationSettings,
 	renderStickyNoteSettings,
+	renderTimelineSettings,
 	renderOtherSettings,
 	renderProofreadSettings,
 	renderSnippetSettings,
@@ -99,6 +100,11 @@ export class CNASettingTab extends PluginSettingTab {
 				id: "annotation",
 				label: this.ctx.t("settings.tab.annotation"),
 				render: (panelEl) => renderAnnotationSettings(panelEl, renderContext),
+			},
+			{
+				id: "timeline",
+				label: this.ctx.t("settings.tab.timeline"),
+				render: (panelEl) => renderTimelineSettings(panelEl, renderContext),
 			},
 			{
 				id: "proofread",

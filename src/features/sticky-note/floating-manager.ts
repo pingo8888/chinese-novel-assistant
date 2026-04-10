@@ -240,6 +240,7 @@ class StickyNoteFloatingFeature {
 			sortMode: "modified_desc",
 			viewOptions: this.resolveFloatingViewOptions(),
 			t: (key) => this.ctx.t(key),
+			getSettings: () => this.ctx.settings,
 			onCardTouched: () => {
 				if (!card.isFloating) {
 					this.removeFloatingWindow(card.sourcePath);

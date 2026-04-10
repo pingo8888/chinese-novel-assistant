@@ -103,3 +103,17 @@ export function areStringArraysEqual(left: string[], right: string[]): boolean {
 export function containsCjk(value: string): boolean {
 	return /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/.test(value);
 }
+
+// 菜单标题截断，超过最大字符数时追加省略号。
+export function truncateMenuTitle(value: string, maxChars = 8): string {
+	const normalized = value.trim();
+	if (!normalized) {
+		return normalized;
+	}
+	const chars = Array.from(normalized);
+	if (chars.length <= maxChars) {
+		return normalized;
+	}
+	const safeMax = maxChars > 0 ? maxChars : 0;
+	return `${chars.slice(0, safeMax).join("")}...`;
+}

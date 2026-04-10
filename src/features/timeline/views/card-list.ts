@@ -204,6 +204,7 @@ export function createTimelineCardList(deps: TimelineCardListDeps): TimelineCard
 				containerEl: listEl,
 				card,
 				t: deps.t,
+				getSettings: deps.getSettings,
 				onCardTouched: () => {
 					void persistCard(card);
 					render();
@@ -383,7 +384,7 @@ export function createTimelineCardList(deps: TimelineCardListDeps): TimelineCard
 		},
 		setColorFilters(colorHexes) {
 			const normalized = colorHexes
-				.map((item) => item.trim())
+				.map((item) => item.trim().toUpperCase())
 				.filter((item) => item.length > 0);
 			if (normalized.length === state.colorFilters.size && normalized.every((item) => state.colorFilters.has(item))) {
 				return;
@@ -452,7 +453,7 @@ function getVisibleCards(state: TimelineCardListState): TimelineCard[] {
 	const hasColorFilter = state.colorFilters.size > 0;
 	const matched = state.cards.filter((card) => {
 		if (hasColorFilter) {
-			const normalizedColor = card.colorHex?.trim();
+			const normalizedColor = card.colorHex?.trim().toUpperCase();
 			if (!normalizedColor || !state.colorFilters.has(normalizedColor)) {
 				return false;
 			}

@@ -1,5 +1,5 @@
 import { Component, MarkdownRenderer, Notice, setIcon, TextAreaComponent, type App, type TFile } from "obsidian";
-import { UI } from "../../../core";
+import { UI, type SettingDatas, resolveStickyNoteCustomColors } from "../../../core";
 import type { TranslationKey } from "../../../lang";
 import type { StickyNoteCard, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
 import {
@@ -22,6 +22,7 @@ interface StickyNoteCardItemDeps {
 	sortMode: StickyNoteSortMode;
 	viewOptions: StickyNoteViewOptions;
 	t: (key: TranslationKey) => string;
+	getSettings: () => SettingDatas;
 	onCardTouched: () => void;
 	onImageExpandedChange?: (isExpanded: boolean) => void;
 	onCardDelete: () => void;
@@ -479,6 +480,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 			anchorEl: menuButtonEl,
 			t: (key) => deps.t(key),
 			activeColorHex: card.colorHex,
+			colorHexes: resolveStickyNoteCustomColors(deps.getSettings().stickyNoteCustomColors),
 			isPinned: card.isPinned,
 			allowPinToggle: !card.isFloating,
 			allowDelete: true,

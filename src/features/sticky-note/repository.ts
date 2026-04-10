@@ -1,5 +1,5 @@
 import { TFile, type App } from "obsidian";
-import { type SettingDatas, NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, STICKY_NOTE_COLORS } from "../../core";
+import { type SettingDatas, NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, resolveStickyNoteCustomColors } from "../../core";
 
 import type { StickyNoteCard, StickyNoteImage } from "./views/types";
 import { asBoolean, asNumber, buildRandomToken, extractPlainTextFromMarkdown, isRecord, pad2, parseColorHex } from "../../utils";
@@ -32,6 +32,7 @@ interface CreateStickyNoteFileOptions {
 export class StickyNoteRepository {
 	private readonly app: App;
 	private readonly novelLibraryService: NovelLibraryService;
+	private remapCardColorsTask: Promise<void> = Promise.resolve();
 
 	constructor(app: App) {
 		this.app = app;
@@ -60,7 +61,11 @@ export class StickyNoteRepository {
 		return this.readCardFromFile(entry);
 	}
 
-	async createCardFile(stickyRootPath: string, options?: CreateStickyNoteFileOptions): Promise<TFile> {
+	async createCardFile(
+		stickyRootPath: string,
+		settings: Pick<SettingDatas, "stickyNoteCustomColors">,
+		options?: CreateStickyNoteFileOptions,
+	): Promise<TFile> {
 		const normalizedRootPath = this.novelLibraryService.normalizeVaultPath(stickyRootPath);
 		if (!normalizedRootPath) {
 			throw new Error("Invalid sticky note root path.");
@@ -76,7 +81,7 @@ export class StickyNoteRepository {
 			if (this.app.vault.getAbstractFileByPath(filePath)) {
 				continue;
 			}
-			return this.app.vault.create(filePath, buildStickyNoteMetadata(options));
+			return this.app.vault.create(filePath, buildStickyNoteMetadata(settings, options));
 		}
 		throw new Error("Failed to create unique sticky note file name.");
 	}
@@ -101,6 +106,63 @@ export class StickyNoteRepository {
 			return;
 		}
 		await this.app.fileManager.trashFile(entry);
+	}
+
+	async remapCardColorsByPalette(
+		settings: SettingDatas,
+		previousPaletteRaw: unknown,
+		nextPaletteRaw: unknown,
+		rootPaths?: string[],
+	): Promise<number> {
+		let updatedCount = 0;
+		const previousTask = this.remapCardColorsTask.catch(() => undefined);
+		const currentTask = previousTask.then(async () => {
+			updatedCount = await this.remapCardColorsByPaletteInternal(settings, previousPaletteRaw, nextPaletteRaw, rootPaths);
+		});
+		this.remapCardColorsTask = currentTask;
+		await currentTask;
+		return updatedCount;
+	}
+
+	private async remapCardColorsByPaletteInternal(
+		settings: SettingDatas,
+		previousPaletteRaw: unknown,
+		nextPaletteRaw: unknown,
+		rootPaths?: string[],
+	): Promise<number> {
+		const previousPalette = resolveStickyNoteCustomColors(previousPaletteRaw);
+		const nextPalette = resolveStickyNoteCustomColors(nextPaletteRaw);
+		let hasPaletteDiff = false;
+		for (let index = 0; index < previousPalette.length; index += 1) {
+			if (previousPalette[index] !== nextPalette[index]) {
+				hasPaletteDiff = true;
+				break;
+			}
+		}
+		if (!hasPaletteDiff) {
+			return 0;
+		}
+		const cards = await this.listCards(settings, rootPaths);
+		let updatedCount = 0;
+		for (const card of cards) {
+			const currentColorHex = parseColorHex(card.colorHex)?.toUpperCase();
+			if (!currentColorHex) {
+				continue;
+			}
+			const mappedColorHex = mapStickyNotePaletteColor(currentColorHex, previousPalette, nextPalette);
+			if (!mappedColorHex || mappedColorHex === currentColorHex) {
+				continue;
+			}
+			card.colorHex = mappedColorHex;
+			card.updatedAt = Date.now();
+			try {
+				await this.saveCard(card);
+				updatedCount += 1;
+			} catch (error) {
+				console.error("[Chinese Novel Assistant] Failed to remap sticky note color.", error);
+			}
+		}
+		return updatedCount;
 	}
 
 	private resolveStickyRoots(settings: SettingDatas, preferredRootPaths?: string[]): string[] {
@@ -145,7 +207,7 @@ export class StickyNoteRepository {
 				images,
 				isImageExpanded: asBoolean(parsed.metadata["isimageexpanded"], false),
 				isPinned: asBoolean(parsed.metadata["ispinned"], false),
-				colorHex: parseColorHex(parsed.metadata["color"]),
+				colorHex: parseColorHex(parsed.metadata["color"])?.toUpperCase(),
 				isFloating: asBoolean(parsed.metadata["isfloating"], false),
 				floatX: asNumber(parsed.metadata["floatx"], 0),
 				floatY: asNumber(parsed.metadata["floaty"], 0),
@@ -181,11 +243,35 @@ export class StickyNoteRepository {
 	}
 
 }
+
+function mapStickyNotePaletteColor(
+	currentColorHex: string,
+	previousPalette: readonly string[],
+	nextPalette: readonly string[],
+): string | undefined {
+	for (let index = 0; index < previousPalette.length; index += 1) {
+		const previousColor = previousPalette[index];
+		const nextColor = nextPalette[index];
+		if (!previousColor || !nextColor) {
+			continue;
+		}
+		if (currentColorHex !== previousColor) {
+			continue;
+		}
+		return nextColor;
+	}
+	return undefined;
+}
+
 // 便签元数据构建
-function buildStickyNoteMetadata(options?: CreateStickyNoteFileOptions): string {
+function buildStickyNoteMetadata(
+	settings: Pick<SettingDatas, "stickyNoteCustomColors">,
+	options?: CreateStickyNoteFileOptions,
+): string {
 	// 随机便签颜色
-	const colorIndex = Math.floor(Math.random() * STICKY_NOTE_COLORS.length);
-	const color = STICKY_NOTE_COLORS[colorIndex] ?? STICKY_NOTE_DEFAULT_COLOR;
+	const stickyNoteColors = resolveStickyNoteCustomColors(settings.stickyNoteCustomColors);
+	const colorIndex = Math.floor(Math.random() * stickyNoteColors.length);
+	const color = stickyNoteColors[colorIndex] ?? STICKY_NOTE_DEFAULT_COLOR;
 	const metadata: StickyNoteMetadata = {
 		warning: STICKY_NOTE_WARNING_TEXT,
 		ispinned: false,
@@ -248,7 +334,7 @@ function serializeStickyNoteFile(card: StickyNoteCard, novelLibraryService: Nove
 		...preserved,
 		warning: STICKY_NOTE_WARNING_TEXT,
 		ispinned: card.isPinned,
-		color: card.colorHex ?? "",
+		color: parseColorHex(card.colorHex)?.toUpperCase() ?? "",
 		tags: serializeTags(card.tagsText),
 		images: normalizedImagePaths.join(","),
 		isimageexpanded: card.isImageExpanded,

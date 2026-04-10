@@ -1,18 +1,20 @@
 import { TFile, type App } from "obsidian";
 import {
 	type SettingDatas,
+	type CustomTypeSettingItem,
+	hasTypeColorChanged,
 	NovelLibraryService,
 	NOVEL_LIBRARY_SUBDIR_NAMES,
+	resolveMappedTypeColor,
 } from "../../core";
 import {
 	asNumber,
 	buildRandomToken,
 	extractPlainTextFromMarkdown,
 	isRecord,
-	parseColorHex,
 } from "../../utils";
 import type { TimelineCard, TimelineEntry } from "./views/types";
-import { TIMELINE_DEFAULT_COLOR } from "./color-types";
+import { normalizeTimelineColorHex, resolveTimelineDefaultTypeColor } from "./color-types";
 
 const TIMELINE_FILE_SUFFIX = ".timeline.md";
 const TIMELINE_DATA_BLOCK_WARNING_TEXT = "数据由时间轴功能管理，请勿删除或手动修改";
@@ -34,6 +36,7 @@ class TimelineJsonParseError extends Error {
 export class TimelineRepository {
 	private readonly app: App;
 	private readonly novelLibraryService: NovelLibraryService;
+	private remapTypeColorsTask: Promise<void> = Promise.resolve();
 
 	constructor(app: App, novelLibraryService?: NovelLibraryService) {
 		this.app = app;
@@ -41,11 +44,7 @@ export class TimelineRepository {
 	}
 
 	resolveTimelineRootPaths(settings: SettingDatas): string[] {
-		const roots = settings.novelLibraries
-			.map((libraryPath) => this.resolveTimelineRootPathByLibraryRoot(libraryPath))
-			.map((path) => this.novelLibraryService.normalizeVaultPath(path))
-			.filter((path) => path.length > 0);
-		return Array.from(new Set(roots));
+		return this.resolveTimelineRootPathsByLibraries(settings.novelLibraries);
 	}
 
 	resolveScopedTimelineRootPaths(settings: SettingDatas, preferredFilePath?: string | null): string[] {
@@ -127,7 +126,7 @@ export class TimelineRepository {
 			timeText: "",
 			title: "",
 			content: "",
-			colorHex: TIMELINE_DEFAULT_COLOR,
+			colorHex: resolveTimelineDefaultTypeColor(settings),
 			order: 0,
 			createdAt: now,
 			updatedAt: now,
@@ -151,7 +150,7 @@ export class TimelineRepository {
 			timeText: normalizeTimelineText(card.timeText),
 			title: normalizeTimelineText(card.title),
 			content: card.content.replace(/\r\n?/g, "\n"),
-			colorHex: parseColorHex(card.colorHex),
+			colorHex: normalizeTimelineColorHex(card.colorHex),
 			order: Math.max(0, Math.round(card.order)),
 			createdAt: Math.max(0, Math.round(card.createdAt)),
 			updatedAt: Math.max(0, Math.round(card.updatedAt)),
@@ -207,6 +206,45 @@ export class TimelineRepository {
 		await this.writeEntriesByPath(normalizedPath, nextEntries);
 	}
 
+	async remapTypeColors(
+		settings: Pick<SettingDatas, "novelLibraries">,
+		previousTypes: readonly CustomTypeSettingItem[],
+		nextTypes: readonly CustomTypeSettingItem[],
+	): Promise<void> {
+		const previousTask = this.remapTypeColorsTask.catch(() => undefined);
+		const currentTask = previousTask.then(async () => {
+			if (!hasTypeColorChanged(previousTypes, nextTypes)) {
+				return;
+			}
+			const timelineRoots = this.resolveTimelineRootPathsByLibraries(settings.novelLibraries);
+			if (timelineRoots.length === 0) {
+				return;
+			}
+			const timelineFiles = this.app.vault
+				.getMarkdownFiles()
+				.filter((file) => file.path.toLowerCase().endsWith(TIMELINE_FILE_SUFFIX))
+				.filter((file) => timelineRoots.some((rootPath) => this.novelLibraryService.isSameOrChildPath(file.path, rootPath)));
+			for (const file of timelineFiles) {
+				const entries = await this.readEntriesByPath(file.path);
+				let changed = false;
+				for (const entry of entries) {
+					const nextColor = resolveMappedTypeColor(entry.colorHex, previousTypes, nextTypes);
+					if (!nextColor || nextColor === entry.colorHex) {
+						continue;
+					}
+					entry.colorHex = nextColor;
+					changed = true;
+				}
+				if (!changed) {
+					continue;
+				}
+				await this.writeEntriesByPath(file.path, entries);
+			}
+		});
+		this.remapTypeColorsTask = currentTask;
+		await currentTask;
+	}
+
 	private resolveTimelineRoots(settings: SettingDatas, preferredRootPaths?: string[]): string[] {
 		if (preferredRootPaths !== undefined) {
 			return Array.from(
@@ -218,6 +256,14 @@ export class TimelineRepository {
 			);
 		}
 		return this.resolveTimelineRootPaths(settings);
+	}
+
+	private resolveTimelineRootPathsByLibraries(libraries: string[]): string[] {
+		const roots = libraries
+			.map((libraryPath) => this.resolveTimelineRootPathByLibraryRoot(libraryPath))
+			.map((path) => this.novelLibraryService.normalizeVaultPath(path))
+			.filter((path) => path.length > 0);
+		return Array.from(new Set(roots));
 	}
 
 	private resolveTimelineRootPathByLibraryRoot(libraryRoot: string): string {
@@ -370,7 +416,7 @@ function parseTimelineEntry(raw: unknown, index: number): TimelineEntry | null {
 	const timeText = normalizeTimelineText(typeof raw["timeText"] === "string" ? raw["timeText"] : "");
 	const title = normalizeTimelineText(typeof raw["title"] === "string" ? raw["title"] : "");
 	const content = typeof raw["content"] === "string" ? raw["content"].replace(/\r\n?/g, "\n") : "";
-	const colorHex = parseColorHex(raw["colorHex"]);
+	const colorHex = normalizeTimelineColorHex(typeof raw["colorHex"] === "string" ? raw["colorHex"] : undefined);
 	const order = Math.max(0, Math.round(asNumber(raw["order"], (index + 1) * 1024)));
 	const createdAt = Math.max(0, Math.round(asNumber(raw["createdAt"], 0)));
 	const updatedAt = Math.max(0, Math.round(asNumber(raw["updatedAt"], createdAt)));
@@ -400,7 +446,7 @@ function serializeTimelineEntries(entries: TimelineEntry[]): string {
 		timeText: normalizeTimelineText(entry.timeText),
 		title: normalizeTimelineText(entry.title),
 		content: entry.content.replace(/\r\n?/g, "\n"),
-		colorHex: parseColorHex(entry.colorHex),
+		colorHex: normalizeTimelineColorHex(entry.colorHex),
 		order: Math.max(0, Math.round(entry.order)),
 		createdAt: Math.max(0, Math.round(entry.createdAt)),
 		updatedAt: Math.max(0, Math.round(entry.updatedAt)),

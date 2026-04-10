@@ -1,11 +1,11 @@
 import { MarkdownView, Notice, TFile, TFolder, setIcon, type EventRef, type TAbstractFile } from "obsidian";
 import { UI, type PluginContext, NovelLibraryService } from "../../../core";
 import { ClearableInputComponent, showContextMenuAtMouseEvent } from "../../../ui";
-import { areStringArraysEqual, openMarkdownFileWithoutDuplicate, resolveEditorViewFromMarkdownView } from "../../../utils";
+import { areStringArraysEqual, openMarkdownFileWithoutDuplicate, resolveEditorViewFromMarkdownView, truncateMenuTitle } from "../../../utils";
 import { AnnotationRepository } from "../repository";
 import { createAnnotationCardList } from "./card-list";
 import { emitAnnotationLocateFlash, subscribeAnnotationCreated } from "../flash-bus";
-import { ANNOTATION_COLOR_TYPES } from "../color-types";
+import { getAnnotationColorTypes, resolveAnnotationTypeTitle } from "../color-types";
 import { normalizeVaultPath } from "../../../core/novel-library-service";
 import type { AnnotationCard } from "./types";
 
@@ -344,9 +344,10 @@ export function renderAnnotationSidebarPanel(containerEl: HTMLElement, ctx: Plug
 	};
 
 	const openFilterMenu = (event: MouseEvent): void => {
+		const annotationColorTypes = getAnnotationColorTypes(ctx.settings);
 		showContextMenuAtMouseEvent(event, [
-			...ANNOTATION_COLOR_TYPES.map((colorType) => ({
-				title: ctx.t(colorType.labelKey),
+			...annotationColorTypes.map((colorType) => ({
+				title: truncateMenuTitle(resolveAnnotationTypeTitle(colorType, (key) => ctx.t(key))),
 				colorHex: colorType.colorHex,
 				checked: colorFilters.has(colorType.colorHex),
 				section: ANNOTATION_FILTER_MENU_SECTION,

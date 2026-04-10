@@ -1,5 +1,5 @@
 import { setIcon } from "obsidian";
-import { STICKY_NOTE_COLORS, UI } from "../../../core";
+import { UI } from "../../../core";
 import { toRgba } from "../../../utils";
 import type { TranslationKey } from "../../../lang";
 import type { StickyNoteCardMenuCommand } from "../menu-actions";
@@ -8,6 +8,7 @@ interface ShowStickyNoteCardMenuArgs {
 	anchorEl: HTMLElement;
 	t: (key: TranslationKey) => string;
 	activeColorHex?: string;
+	colorHexes: readonly string[];
 	isPinned: boolean;
 	allowPinToggle?: boolean;
 	allowDelete?: boolean;
@@ -37,7 +38,7 @@ export function showStickyNoteCardMenu(args: ShowStickyNoteCardMenuArgs): void {
 	const rootEl = document.body.createDiv({ cls: "cna-sticky-note-card-menu" });
 
 	const paletteEl = rootEl.createDiv({ cls: "cna-sticky-note-card-menu__palette" });
-	for (const colorHex of STICKY_NOTE_COLORS) {
+	for (const colorHex of args.colorHexes) {
 		const colorButtonEl = paletteEl.createEl("button", {
 			cls: "cna-sticky-note-card-menu__color",
 			attr: {
@@ -46,7 +47,7 @@ export function showStickyNoteCardMenu(args: ShowStickyNoteCardMenuArgs): void {
 		});
 		colorButtonEl.style.setProperty("--cna-sticky-note-card-menu-color", colorHex);
 		colorButtonEl.style.setProperty("--cna-sticky-note-card-menu-color-alpha", toRgba(colorHex, 0.25));
-		if (args.activeColorHex === colorHex) {
+		if (args.activeColorHex?.toUpperCase() === colorHex.toUpperCase()) {
 			colorButtonEl.addClass("is-active");
 		}
 		colorButtonEl.addEventListener("click", () => {

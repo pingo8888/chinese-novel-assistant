@@ -1,4 +1,5 @@
 export * from "./constants";
+export * from "./custom-type-config";
 export { createPluginContext, type ContextHost, type PluginContext } from "./context";
 export * from "./markdown-parse-service";
 export * from "./novel-library-service";

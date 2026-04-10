@@ -201,6 +201,7 @@ export function createStickyNoteCardList(deps: StickyNoteCardListDeps): StickyNo
 				sortMode: state.sortMode,
 				viewOptions: state.viewOptions,
 				t: deps.t,
+				getSettings: deps.getSettings,
 				onCardTouched: () => {
 					void persistCard(card);
 					render();

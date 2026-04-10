@@ -1,19 +1,21 @@
 import { MarkdownView, TFile, type App } from "obsidian";
 import {
 	type SettingDatas,
+	type CustomTypeSettingItem,
+	hasTypeColorChanged,
 	NovelLibraryService,
 	NOVEL_LIBRARY_SUBDIR_NAMES,
+	resolveMappedTypeColor,
 } from "../../core";
 import {
 	asNumber,
 	buildRandomToken,
 	extractPlainTextFromMarkdown,
 	isRecord,
-	parseColorHex,
 	resolveEditorViewFromMarkdownView,
 } from "../../utils";
 import type { AnnotationCard, AnnotationEntry } from "./views/types";
-import { normalizeAnnotationColorHex } from "./color-types";
+import { normalizeAnnotationColorHex, resolveAnnotationDefaultTypeColor } from "./color-types";
 
 const ANNO_FILE_SUFFIX = ".anno.md";
 const DEFAULT_ANNOTATION_TITLE = "未命名批注";
@@ -45,6 +47,7 @@ export interface AnnotationAnchorSnapshot {
 export class AnnotationRepository {
 	private readonly app: App;
 	private readonly novelLibraryService: NovelLibraryService;
+	private remapTypeColorsTask: Promise<void> = Promise.resolve();
 
 	constructor(app: App) {
 		this.app = app;
@@ -52,16 +55,7 @@ export class AnnotationRepository {
 	}
 
 	resolveAnnotationRootPaths(settings: SettingDatas): string[] {
-		const roots = settings.novelLibraries
-			.map((libraryPath) =>
-				this.novelLibraryService.resolveNovelLibrarySubdirPath(
-					libraryPath,
-					NOVEL_LIBRARY_SUBDIR_NAMES.annotation,
-				),
-			)
-			.map((path) => this.novelLibraryService.normalizeVaultPath(path))
-			.filter((path) => path.length > 0);
-		return Array.from(new Set(roots));
+		return this.resolveAnnotationRootPathsByLibraries(settings.novelLibraries);
 	}
 
 	resolveScopedAnnotationRootPaths(settings: SettingDatas, preferredFilePath?: string | null): string[] {
@@ -178,7 +172,7 @@ export class AnnotationRepository {
 		}
 		const selectionStart = Math.max(0, Math.round(Math.min(selection.fromOffset, selection.toOffset)));
 		const selectionEnd = Math.max(selectionStart + 1, Math.round(Math.max(selection.fromOffset, selection.toOffset)));
-		const nextColorHex = normalizeAnnotationColorHex(colorHex);
+		const nextColorHex = normalizeAnnotationColorHex(colorHex, resolveAnnotationDefaultTypeColor(settings));
 		await this.ensureParentFolder(annotationPath);
 		const existingEntries = await this.readEntriesByPath(annotationPath);
 		const connectedEntries = existingEntries.filter((entry) =>
@@ -247,7 +241,7 @@ export class AnnotationRepository {
 			anchorEndOffset: Math.max(Math.max(0, Math.round(card.anchorOffset)) + 1, Math.round(card.anchorEndOffset)),
 			line: Math.max(0, Math.round(card.line)),
 			ch: Math.max(0, Math.round(card.ch)),
-			colorHex: parseColorHex(card.colorHex),
+			colorHex: normalizeAnnotationColorHex(card.colorHex),
 			createdAt: Math.max(0, Math.round(card.createdAt)),
 			updatedAt: Math.max(0, Math.round(card.updatedAt)),
 		};
@@ -291,10 +285,49 @@ export class AnnotationRepository {
 				anchorEndOffset: entry.anchorEndOffset,
 				line: entry.line,
 				ch: entry.ch,
-				colorHex: normalizeAnnotationColorHex(entry.colorHex),
+				colorHex: normalizeAnnotationColorHex(entry.colorHex, resolveAnnotationDefaultTypeColor(settings)),
 			});
 		}
 		return anchors;
+	}
+
+	async remapTypeColors(
+		settings: Pick<SettingDatas, "novelLibraries">,
+		previousTypes: readonly CustomTypeSettingItem[],
+		nextTypes: readonly CustomTypeSettingItem[],
+	): Promise<void> {
+		const previousTask = this.remapTypeColorsTask.catch(() => undefined);
+		const currentTask = previousTask.then(async () => {
+			if (!hasTypeColorChanged(previousTypes, nextTypes)) {
+				return;
+			}
+			const annotationRoots = this.resolveAnnotationRootPathsByLibraries(settings.novelLibraries);
+			if (annotationRoots.length === 0) {
+				return;
+			}
+			const annotationFiles = this.app.vault
+				.getMarkdownFiles()
+				.filter((file) => file.path.toLowerCase().endsWith(ANNO_FILE_SUFFIX))
+				.filter((file) => annotationRoots.some((rootPath) => this.novelLibraryService.isSameOrChildPath(file.path, rootPath)));
+			for (const file of annotationFiles) {
+				const entries = await this.readEntriesByPath(file.path);
+				let changed = false;
+				for (const entry of entries) {
+					const nextColor = resolveMappedTypeColor(entry.colorHex, previousTypes, nextTypes);
+					if (!nextColor || nextColor === entry.colorHex) {
+						continue;
+					}
+					entry.colorHex = nextColor;
+					changed = true;
+				}
+				if (!changed) {
+					continue;
+				}
+				await this.writeEntriesByPath(file.path, entries);
+			}
+		});
+		this.remapTypeColorsTask = currentTask;
+		await currentTask;
 	}
 
 	async patchAnchorsForSourcePath(
@@ -411,7 +444,20 @@ export class AnnotationRepository {
 				),
 			);
 		}
-		return this.resolveAnnotationRootPaths(settings);
+		return this.resolveAnnotationRootPathsByLibraries(settings.novelLibraries);
+	}
+
+	private resolveAnnotationRootPathsByLibraries(libraries: string[]): string[] {
+		const roots = libraries
+			.map((libraryPath) =>
+				this.novelLibraryService.resolveNovelLibrarySubdirPath(
+					libraryPath,
+					NOVEL_LIBRARY_SUBDIR_NAMES.annotation,
+				),
+			)
+			.map((path) => this.novelLibraryService.normalizeVaultPath(path))
+			.filter((path) => path.length > 0);
+		return Array.from(new Set(roots));
 	}
 
 	private async mergeEntriesForTargetPath(path: string, nextEntries: AnnotationEntry[]): Promise<AnnotationEntry[]> {
@@ -518,6 +564,18 @@ export class AnnotationRepository {
 	}
 }
 
+const annotationRepositoryByApp = new WeakMap<App, AnnotationRepository>();
+
+export function getAnnotationRepository(app: App): AnnotationRepository {
+	const cached = annotationRepositoryByApp.get(app);
+	if (cached) {
+		return cached;
+	}
+	const repository = new AnnotationRepository(app);
+	annotationRepositoryByApp.set(app, repository);
+	return repository;
+}
+
 function parseAnnotationEntries(
 	source: string,
 	novelLibraryService: NovelLibraryService,
@@ -596,7 +654,9 @@ function parseAnnotationEntry(raw: unknown, novelLibraryService: NovelLibrarySer
 	const anchorEndOffset = Math.max(anchorOffset + 1, Math.round(asNumber(raw["anchorEndOffset"], anchorOffset + 1)));
 	const line = Math.max(0, Math.round(asNumber(raw["line"], 0)));
 	const ch = Math.max(0, Math.round(asNumber(raw["ch"], 0)));
-	const colorHex = parseColorHex(raw["colorHex"]);
+	const colorHex = normalizeAnnotationColorHex(
+		typeof raw["colorHex"] === "string" ? raw["colorHex"] : undefined,
+	);
 	const createdAt = Math.max(0, Math.round(asNumber(raw["createdAt"], 0)));
 	const updatedAt = Math.max(0, Math.round(asNumber(raw["updatedAt"], createdAt)));
 	return {
@@ -624,7 +684,7 @@ function serializeAnnotationEntries(entries: AnnotationEntry[]): string {
 		anchorEndOffset: Math.max(Math.max(0, Math.round(entry.anchorOffset)) + 1, Math.round(entry.anchorEndOffset)),
 		line: Math.max(0, Math.round(entry.line)),
 		ch: Math.max(0, Math.round(entry.ch)),
-		colorHex: parseColorHex(entry.colorHex),
+		colorHex: normalizeAnnotationColorHex(entry.colorHex),
 		createdAt: Math.max(0, Math.round(entry.createdAt)),
 		updatedAt: Math.max(0, Math.round(entry.updatedAt)),
 	}));
@@ -683,7 +743,4 @@ function compareEntriesByRangeStart(left: AnnotationEntry, right: AnnotationEntr
 	}
 	return left.id.localeCompare(right.id);
 }
-
-
-
 
