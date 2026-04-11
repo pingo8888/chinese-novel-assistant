@@ -82,7 +82,6 @@ async function runCreateAnnotationCommand(
 			annotationPath: normalizeVaultPath(createdCard.annoPath),
 			annotationId: createdCard.id,
 		});
-		new Notice(ctx.t("command.annotation.create.done"));
 	} catch (error) {
 		console.error("[Chinese Novel Assistant] Failed to create annotation via command.", error);
 		new Notice(ctx.t("command.annotation.create.failed"));
