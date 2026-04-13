@@ -144,7 +144,11 @@ export class GuidebookKeywordHighlightController {
 		}
 		const previewMap = this.guidebookKeywordPreviewByLibraryRoot.get(libraryRoot);
 		if (previewMap) {
-			return previewMap.get(keyword) ?? null;
+			const exactPreview = previewMap.get(keyword);
+			if (exactPreview) {
+				return exactPreview;
+			}
+			return this.resolveMergedKeywordPreviewItem(keyword, previewMap);
 		}
 		void (async () => {
 			const changed = await this.refreshKeywordsForLibrary(libraryRoot);
@@ -165,6 +169,69 @@ export class GuidebookKeywordHighlightController {
 		}
 		const keywords = this.getGuidebookKeywordsByEditorView(editorView);
 		return keywords.includes(keyword);
+	}
+
+	private resolveMergedKeywordPreviewItem(
+		rawKeyword: string,
+		previewMap: ReadonlyMap<string, GuidebookKeywordPreviewItem>,
+	): GuidebookKeywordPreviewItem | null {
+		const mergedKeyword = rawKeyword.trim();
+		if (mergedKeyword.length === 0) {
+			return null;
+		}
+
+		let resolvedPreviewItem: GuidebookKeywordPreviewItem | null = null;
+		const previewIdentitySet = new Set<string>();
+		let matchedKeywordCount = 0;
+		const matchedRanges: TextDetectionRange[] = [];
+
+		for (const [candidateKeyword, candidatePreviewItem] of previewMap) {
+			if (!candidateKeyword || candidateKeyword.length === 0 || candidateKeyword === mergedKeyword) {
+				continue;
+			}
+			if (!mergedKeyword.includes(candidateKeyword)) {
+				continue;
+			}
+			matchedKeywordCount += 1;
+			const identity = `${candidatePreviewItem.sourcePath}\u0000${candidatePreviewItem.categoryTitle}\u0000${candidatePreviewItem.title}`;
+			if (!previewIdentitySet.has(identity)) {
+				previewIdentitySet.add(identity);
+				resolvedPreviewItem = candidatePreviewItem;
+				if (previewIdentitySet.size > 1) {
+					return null;
+				}
+			}
+
+			let searchCursor = 0;
+			while (searchCursor < mergedKeyword.length) {
+				const matchIndex = mergedKeyword.indexOf(candidateKeyword, searchCursor);
+				if (matchIndex < 0) {
+					break;
+				}
+				matchedRanges.push({
+					from: matchIndex,
+					to: matchIndex + candidateKeyword.length,
+				});
+				searchCursor = matchIndex + candidateKeyword.length;
+			}
+		}
+
+		if (matchedKeywordCount < 2 || !resolvedPreviewItem) {
+			return null;
+		}
+
+		const covered = new Array<boolean>(mergedKeyword.length).fill(false);
+		for (const range of matchedRanges) {
+			const from = Math.max(0, Math.min(mergedKeyword.length, range.from));
+			const to = Math.max(0, Math.min(mergedKeyword.length, range.to));
+			for (let index = from; index < to; index += 1) {
+				covered[index] = true;
+			}
+		}
+		if (covered.some((value) => !value)) {
+			return null;
+		}
+		return resolvedPreviewItem;
 	}
 
 	private getGuidebookKeywordsByEditorView(editorView: EditorView): readonly string[] {
