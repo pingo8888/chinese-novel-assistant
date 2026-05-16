@@ -1,0 +1,70 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - "[0-9]+.[0-9]+.[0-9]+"
+    workflow_dispatch:
+        inputs:
+            version:
+                description: "Release version/tag, for example 0.2.8"
+                required: true
+                type: string
+
+permissions:
+    contents: write
+    id-token: write
+    attestations: write
+    artifact-metadata: write
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  ref: ${{ inputs.version || github.ref_name }}
+
+            - name: Use Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Validate release version
+              env:
+                  RELEASE_TAG: ${{ inputs.version || github.ref_name }}
+              run: |
+                  node -e "const fs = require('fs'); const manifest = JSON.parse(fs.readFileSync('manifest.json', 'utf8')); if (process.env.RELEASE_TAG !== manifest.version) { console.error(`Tag ${process.env.RELEASE_TAG} does not match manifest version ${manifest.version}`); process.exit(1); }"
+
+            - name: Lint
+              run: npm run lint
+
+            - name: Build
+              run: npm run build
+
+            - name: Generate artifact attestations
+              uses: actions/attest@v4
+              with:
+                  subject-path: |
+                      main.js
+                      styles.css
+                      manifest.json
+
+            - name: Create release if needed
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  RELEASE_TAG: ${{ inputs.version || github.ref_name }}
+              run: |
+                  gh release view "$RELEASE_TAG" >/dev/null 2>&1 || gh release create "$RELEASE_TAG" --title "$RELEASE_TAG" --notes ""
+
+            - name: Upload release assets
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  RELEASE_TAG: ${{ inputs.version || github.ref_name }}
+              run: |
+                  gh release upload "$RELEASE_TAG" main.js manifest.json styles.css --clobber
