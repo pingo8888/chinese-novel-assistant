@@ -8,7 +8,6 @@ import type { TextDetectionRange, TextDetectionRule } from "../engine";
 
 const GUIDEBOOK_KEYWORD_HIT_CLASS = "cna-guidebook-keyword-hit";
 const GUIDEBOOK_KEYWORD_BACKGROUND_VAR = "--cna-guidebook-keyword-background-color";
-const GUIDEBOOK_KEYWORD_UNDERLINE_LINE_VAR = "--cna-guidebook-keyword-underline-line";
 const GUIDEBOOK_KEYWORD_UNDERLINE_STYLE_VAR = "--cna-guidebook-keyword-underline-style";
 const GUIDEBOOK_KEYWORD_UNDERLINE_WIDTH_VAR = "--cna-guidebook-keyword-underline-width";
 const GUIDEBOOK_KEYWORD_UNDERLINE_COLOR_VAR = "--cna-guidebook-keyword-underline-color";
@@ -509,10 +508,9 @@ export class GuidebookKeywordHighlightController {
 			GUIDEBOOK_KEYWORD_BACKGROUND_VAR,
 			this.normalizeCssColor(settings.guidebookKeywordHighlightBackgroundColor, "transparent"),
 		);
-		rootEl.style.setProperty(GUIDEBOOK_KEYWORD_UNDERLINE_LINE_VAR, underlineEnabled ? "underline" : "none");
 		rootEl.style.setProperty(
 			GUIDEBOOK_KEYWORD_UNDERLINE_STYLE_VAR,
-			underlineEnabled ? settings.guidebookKeywordUnderlineStyle : "solid",
+			underlineEnabled ? this.normalizeBorderStyle(settings.guidebookKeywordUnderlineStyle) : "none",
 		);
 		rootEl.style.setProperty(
 			GUIDEBOOK_KEYWORD_UNDERLINE_WIDTH_VAR,
@@ -533,7 +531,6 @@ export class GuidebookKeywordHighlightController {
 	private clearStyles(): void {
 		const rootEl = this.getRootEl();
 		rootEl.style.removeProperty(GUIDEBOOK_KEYWORD_BACKGROUND_VAR);
-		rootEl.style.removeProperty(GUIDEBOOK_KEYWORD_UNDERLINE_LINE_VAR);
 		rootEl.style.removeProperty(GUIDEBOOK_KEYWORD_UNDERLINE_STYLE_VAR);
 		rootEl.style.removeProperty(GUIDEBOOK_KEYWORD_UNDERLINE_WIDTH_VAR);
 		rootEl.style.removeProperty(GUIDEBOOK_KEYWORD_UNDERLINE_COLOR_VAR);
@@ -545,6 +542,10 @@ export class GuidebookKeywordHighlightController {
 	private normalizeCssColor(value: string, fallback: string): string {
 		const normalized = value.trim();
 		return normalized.length > 0 ? normalized : fallback;
+	}
+
+	private normalizeBorderStyle(style: SettingDatas["guidebookKeywordUnderlineStyle"]): string {
+		return style === "wavy" ? "dotted" : style;
 	}
 
 	private async resolveGuidebookFileKeywordIndex(

@@ -16,6 +16,7 @@ import {
 const FLOAT_LAYER_CLASS = "cna-sticky-note-floating-layer";
 const FLOAT_WINDOW_CLASS = "cna-sticky-note-floating-window";
 const FLOAT_RESIZE_HANDLE_CLASS = "cna-sticky-note-floating-window__resize-handle";
+const FLOAT_MODAL_OPEN_CLASS = "cna-sticky-note-modal-open";
 const FLOAT_SAVE_DEBOUNCE_MS = 160;
 const FLOAT_REFRESH_DEBOUNCE_MS = 80;
 const STICKY_TAB_FLASH_CLASS = "cna-sticky-note-tab-flash";
@@ -62,6 +63,7 @@ class StickyNoteFloatingFeature {
 	private refreshVersion = 0;
 	private zIndexSeed = 200;
 	private isUnloaded = false;
+	private modalObserver: MutationObserver | null = null;
 	private lastViewportWidth = 0;
 	private lastViewportHeight = 0;
 	private stickyNoteRootPaths: string[] = [];
@@ -76,6 +78,7 @@ class StickyNoteFloatingFeature {
 
 	onload(): void {
 		this.ensureLayer();
+		this.watchModalState();
 		this.lastViewportWidth = Math.max(1, window.innerWidth);
 		this.lastViewportHeight = Math.max(1, window.innerHeight);
 		this.lastScopeReferencePath = this.plugin.app.workspace.getActiveFile()?.path ?? null;
@@ -156,8 +159,26 @@ class StickyNoteFloatingFeature {
 		}
 		this.saveTimerByPath.clear();
 		this.clearAllFloatingWindows();
+		this.modalObserver?.disconnect();
+		this.modalObserver = null;
+		document.body.removeClass(FLOAT_MODAL_OPEN_CLASS);
 		this.layerEl?.remove();
 		this.layerEl = null;
+	}
+
+	private watchModalState(): void {
+		this.syncModalStateClass();
+		this.modalObserver = new MutationObserver(() => {
+			this.syncModalStateClass();
+		});
+		this.modalObserver.observe(document.body, {
+			childList: true,
+			subtree: true,
+		});
+	}
+
+	private syncModalStateClass(): void {
+		document.body.toggleClass(FLOAT_MODAL_OPEN_CLASS, document.body.querySelector(".modal-container .modal") !== null);
 	}
 
 	private ensureLayer(): HTMLElement {

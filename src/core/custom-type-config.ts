@@ -63,7 +63,7 @@ export const DEFAULT_TIMELINE_CUSTOM_TYPES: readonly CustomTypeSettingItem[] = T
 }));
 
 export function resolveStickyNoteCustomColors(rawValue: unknown): string[] {
-	const raw = Array.isArray(rawValue) ? rawValue : [];
+	const raw: unknown[] = Array.isArray(rawValue) ? rawValue : [];
 	return DEFAULT_STICKY_NOTE_CUSTOM_COLORS.map((defaultColor, index) => {
 		const candidate = normalizeColorHex(raw[index]);
 		return candidate ?? defaultColor;
@@ -167,7 +167,7 @@ export function updateCustomTypeSettings(
 }
 
 function resolveCustomTypes(rawValue: unknown, defaults: readonly CustomTypeSettingItem[]): CustomTypeSettingItem[] {
-	const raw = Array.isArray(rawValue) ? rawValue : [];
+	const raw: unknown[] = Array.isArray(rawValue) ? rawValue : [];
 	const rawByKey = new Map<CustomTypeKey, unknown>();
 	for (const item of raw) {
 		if (!isRecord(item)) {
