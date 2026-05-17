@@ -1,5 +1,5 @@
 import { TFile, type App } from "obsidian";
-import { type SettingDatas, NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, resolveStickyNoteCustomColors } from "../../core";
+import { type SettingDatas, NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, listMarkdownFilesInFolders, resolveStickyNoteCustomColors } from "../../core";
 
 import type { StickyNoteCard, StickyNoteImage } from "./views/types";
 import { asBoolean, asNumber, buildRandomToken, extractPlainTextFromMarkdown, isRecord, pad2, parseColorHex } from "../../utils";
@@ -44,9 +44,7 @@ export class StickyNoteRepository {
 		if (stickyRoots.length === 0) {
 			return [];
 		}
-		const markdownFiles = this.app.vault
-			.getMarkdownFiles()
-			.filter((file) => stickyRoots.some((root) => this.novelLibraryService.isSameOrChildPath(file.path, root)));
+		const markdownFiles = listMarkdownFilesInFolders(this.app, stickyRoots);
 		const cards = await Promise.all(
 			markdownFiles.map((file) => this.readCardFromFile(file)),
 		);

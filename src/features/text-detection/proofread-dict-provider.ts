@@ -1,5 +1,5 @@
 import { App, Plugin } from "obsidian";
-import { MarkdownParseService, NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, type SettingDatas, bindVaultChangeWatcher } from "../../core";
+import { MarkdownParseService, NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, type SettingDatas, bindVaultChangeWatcher, listMarkdownFilesInFolders } from "../../core";
 
 interface ProofreadDictLineEntry {
 	wrong: string;
@@ -172,13 +172,8 @@ export class ProofreadDictService {
 		}
 
 		const replacements = new Map<string, string>();
-		const markdownFiles = this.app.vault.getMarkdownFiles();
+		const markdownFiles = listMarkdownFilesInFolders(this.app, dictionaryRoots);
 		for (const file of markdownFiles) {
-			const normalizedFilePath = this.novelLibraryService.normalizeVaultPath(file.path);
-			if (!this.isPathUnderRoots(normalizedFilePath, dictionaryRoots)) {
-				continue;
-			}
-
 			try {
 				const parsed = await this.markdownParseService.parseMarkdownFile<ProofreadDictParseResult>({
 					settings: { novelLibraries: settings.novelLibraries },

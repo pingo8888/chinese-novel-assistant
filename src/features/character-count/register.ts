@@ -1,7 +1,7 @@
 import { Annotation, Compartment, Prec } from "@codemirror/state";
 import { EditorView, gutter, GutterMarker, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { MarkdownView, Plugin, TFile } from "obsidian";
-import { type PluginContext, type SettingDatas, NovelLibraryService, bindVaultChangeWatcher } from "../../core";
+import { type PluginContext, type SettingDatas, NovelLibraryService, bindVaultChangeWatcher, listMarkdownFilesInFolders } from "../../core";
 import {
 	countMarkdownCharacters,
 	hasExcalidrawFrontmatter,
@@ -275,7 +275,7 @@ class CharacterCountFeature {
 		const fileCharCounts = new Map<string, number>();
 		let totalCharCount = 0;
 
-		const markdownFiles = this.plugin.app.vault.getMarkdownFiles();
+		const markdownFiles = listMarkdownFilesInFolders(this.plugin.app, scope.libraryRoots);
 		for (const file of markdownFiles) {
 			const normalizedPath = this.novelLibraryService.normalizeVaultPath(file.path);
 			const associatedLibraryRoot = this.findLibraryRoot(normalizedPath, scope.libraryRoots);

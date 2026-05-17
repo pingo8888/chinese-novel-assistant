@@ -31,7 +31,7 @@ async function runCreateNextChapterFileCommand(ctx: PluginContext): Promise<void
 	}
 
 	const parentPath = resolveParentPath(activeFile.path);
-	const siblingMarkdownFiles = resolveSiblingMarkdownFiles(ctx, parentPath);
+	const siblingMarkdownFiles = resolveSiblingMarkdownFiles(activeFile);
 	const nextChapterNumber = resolveNextChapterNumber(siblingMarkdownFiles);
 	const chapterNameFormat = resolveChapterNameFormat(ctx.settings.chapterNameFormat);
 
@@ -52,8 +52,13 @@ function resolveActiveMarkdownFile(ctx: PluginContext): TFile | null {
 	return activeFile.extension.toLowerCase() === "md" ? activeFile : null;
 }
 
-function resolveSiblingMarkdownFiles(ctx: PluginContext, parentPath: string): TFile[] {
-	return ctx.app.vault.getMarkdownFiles().filter((file) => resolveParentPath(file.path) === parentPath);
+function resolveSiblingMarkdownFiles(activeFile: TFile): TFile[] {
+	const parent = activeFile.parent;
+	if (!parent) {
+		return [];
+	}
+	return parent.children.filter((child): child is TFile =>
+		child instanceof TFile && child.extension.toLowerCase() === "md");
 }
 
 function resolveNextChapterNumber(files: readonly TFile[]): number {

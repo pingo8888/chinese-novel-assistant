@@ -5,4 +5,5 @@ export * from "./markdown-parse-service";
 export * from "./novel-library-service";
 export * from "./setting-datas";
 export { SettingStore, type SettingsChangeListener } from "./setting-store";
+export * from "./vault-file-list";
 export * from "./vault-watcher";

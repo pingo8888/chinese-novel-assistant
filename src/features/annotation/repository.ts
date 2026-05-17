@@ -5,6 +5,7 @@ import {
 	hasTypeColorChanged,
 	NovelLibraryService,
 	NOVEL_LIBRARY_SUBDIR_NAMES,
+	listMarkdownFilesInFolders,
 	resolveMappedTypeColor,
 } from "../../core";
 import {
@@ -137,10 +138,8 @@ export class AnnotationRepository {
 		if (annotationRoots.length === 0) {
 			return [];
 		}
-		const markdownFiles = this.app.vault
-			.getMarkdownFiles()
+		const markdownFiles = listMarkdownFilesInFolders(this.app, annotationRoots)
 			.filter((file) => file.path.toLowerCase().endsWith(ANNO_FILE_SUFFIX))
-			.filter((file) => annotationRoots.some((rootPath) => this.novelLibraryService.isSameOrChildPath(file.path, rootPath)));
 		const cardsNested = await Promise.all(markdownFiles.map((file) => this.readCardsFromAnnotationFile(file)));
 		const cards: AnnotationCard[] = [];
 		for (const group of cardsNested) {
@@ -305,10 +304,8 @@ export class AnnotationRepository {
 			if (annotationRoots.length === 0) {
 				return;
 			}
-			const annotationFiles = this.app.vault
-				.getMarkdownFiles()
+			const annotationFiles = listMarkdownFilesInFolders(this.app, annotationRoots)
 				.filter((file) => file.path.toLowerCase().endsWith(ANNO_FILE_SUFFIX))
-				.filter((file) => annotationRoots.some((rootPath) => this.novelLibraryService.isSameOrChildPath(file.path, rootPath)));
 			for (const file of annotationFiles) {
 				const entries = await this.readEntriesByPath(file.path);
 				let changed = false;

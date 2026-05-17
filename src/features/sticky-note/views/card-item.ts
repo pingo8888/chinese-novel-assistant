@@ -1,5 +1,5 @@
 import { Component, MarkdownRenderer, Notice, setIcon, TextAreaComponent, type App, type TFile } from "obsidian";
-import { UI, type SettingDatas, resolveStickyNoteCustomColors } from "../../../core";
+import { UI, type SettingDatas, NovelLibraryService, resolveStickyNoteCustomColors } from "../../../core";
 import type { TranslationKey } from "../../../lang";
 import type { StickyNoteCard, StickyNoteSortMode, StickyNoteViewOptions } from "./types";
 import {
@@ -309,7 +309,7 @@ export function renderStickyNoteCardItem(deps: StickyNoteCardItemDeps): () => vo
 	};
 
 	const addImageFromVault = async (): Promise<void> => {
-		const imageFile = await promptVaultImageFile(deps.app, (key) => deps.t(key));
+		const imageFile = await promptVaultImageFile(deps.app, (key) => deps.t(key), resolveImagePickerRoots(deps));
 		if (!imageFile) {
 			return;
 		}
@@ -601,6 +601,14 @@ function dedupeTagTokens(tags: string[]): string[] {
 		result.push(normalized);
 	}
 	return result;
+}
+
+function resolveImagePickerRoots(deps: Pick<StickyNoteCardItemDeps, "app" | "card" | "getSettings">): string[] {
+	const novelLibraryService = new NovelLibraryService(deps.app);
+	const settings = deps.getSettings();
+	const libraryRoots = novelLibraryService.normalizeLibraryRoots(settings.novelLibraries);
+	const containingLibraryRoot = novelLibraryService.resolveContainingLibraryRoot(deps.card.sourcePath, libraryRoots);
+	return containingLibraryRoot ? [containingLibraryRoot] : libraryRoots;
 }
 
 async function resolveVaultImagePreview(app: App, file: TFile): Promise<{ src: string; revokeOnDestroy: boolean }> {

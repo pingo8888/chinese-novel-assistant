@@ -1,5 +1,5 @@
 import type { App, TFile } from "obsidian";
-import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, type SettingDatas } from "../../core";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, listMarkdownFilesInFolder, type SettingDatas } from "../../core";
 import { GuidebookMarkdownParser } from "./markdown-parser";
 
 export interface GuidebookTreeH2Node {
@@ -86,10 +86,7 @@ export async function buildGuidebookTreeData(
 		};
 	}
 
-	const guidebookMarkdownFiles = app.vault
-		.getMarkdownFiles()
-		.filter((file) => libraryService.isSameOrChildPath(file.path, guidebookRootPath))
-		.sort(compareByFileCreationTime);
+	const guidebookMarkdownFiles = listMarkdownFilesInFolder(app, guidebookRootPath).sort(compareByFileCreationTime);
 	const guidebookFileSignature = guidebookMarkdownFiles
 		.map((file) => `${file.path}\u0000${file.stat.mtime}\u0000${file.stat.size}\u0000${file.stat.ctime}`)
 		.join("\u0001");

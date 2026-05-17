@@ -2,7 +2,7 @@ import type { EditorView } from "@codemirror/view";
 import { MarkdownView, TFile, type Plugin } from "obsidian";
 import { GuidebookMarkdownParser } from "../../guidebook";
 import { collectGuidebookAliases } from "../../guidebook/alias-utils";
-import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, type SettingDatas } from "../../../core";
+import { NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, type SettingDatas, listMarkdownFilesInFolder } from "../../../core";
 import { resolveMarkdownViewByEditorView } from "../../../utils";
 import type { TextDetectionRange, TextDetectionRule } from "../engine";
 
@@ -384,9 +384,7 @@ export class GuidebookKeywordHighlightController {
 			};
 		}
 
-		const guidebookMarkdownFiles = this.plugin.app.vault
-			.getMarkdownFiles()
-			.filter((file) => this.novelLibraryService.isSameOrChildPath(file.path, guidebookRootPath))
+		const guidebookMarkdownFiles = listMarkdownFilesInFolder(this.plugin.app, guidebookRootPath)
 			.sort((left, right) => left.stat.ctime - right.stat.ctime || left.path.localeCompare(right.path));
 
 		const keywordSet = new Set<string>();

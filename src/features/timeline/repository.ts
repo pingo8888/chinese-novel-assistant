@@ -5,6 +5,7 @@ import {
 	hasTypeColorChanged,
 	NovelLibraryService,
 	NOVEL_LIBRARY_SUBDIR_NAMES,
+	listMarkdownFilesInFolders,
 	resolveMappedTypeColor,
 } from "../../core";
 import {
@@ -87,10 +88,8 @@ export class TimelineRepository {
 		if (timelineRoots.length === 0) {
 			return [];
 		}
-		const markdownFiles = this.app.vault
-			.getMarkdownFiles()
+		const markdownFiles = listMarkdownFilesInFolders(this.app, timelineRoots)
 			.filter((file) => file.path.toLowerCase().endsWith(TIMELINE_FILE_SUFFIX))
-			.filter((file) => timelineRoots.some((rootPath) => this.novelLibraryService.isSameOrChildPath(file.path, rootPath)));
 		const cardsNested = await Promise.all(markdownFiles.map((file) => this.readCardsFromTimelineFile(file)));
 		const cards: TimelineCard[] = [];
 		for (const group of cardsNested) {
@@ -220,10 +219,8 @@ export class TimelineRepository {
 			if (timelineRoots.length === 0) {
 				return;
 			}
-			const timelineFiles = this.app.vault
-				.getMarkdownFiles()
+			const timelineFiles = listMarkdownFilesInFolders(this.app, timelineRoots)
 				.filter((file) => file.path.toLowerCase().endsWith(TIMELINE_FILE_SUFFIX))
-				.filter((file) => timelineRoots.some((rootPath) => this.novelLibraryService.isSameOrChildPath(file.path, rootPath)));
 			for (const file of timelineFiles) {
 				const entries = await this.readEntriesByPath(file.path);
 				let changed = false;

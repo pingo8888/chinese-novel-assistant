@@ -1,5 +1,6 @@
 import { App, type FuzzyMatch, FuzzySuggestModal, Notice, TFile } from "obsidian";
 import type { TranslationKey } from "../../lang";
+import { listVaultFilesInFolders } from "../../core";
 
 const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp", "bmp", "svg", "avif", "heic", "heif", "tiff"]);
 
@@ -74,9 +75,8 @@ export function isImageVaultFile(file: TFile): boolean {
 	return IMAGE_EXTENSIONS.has(file.extension.toLowerCase());
 }
 
-export function promptVaultImageFile(app: App, t: (key: TranslationKey) => string): Promise<TFile | null> {
-	const imageFiles = app.vault
-		.getFiles()
+export function promptVaultImageFile(app: App, t: (key: TranslationKey) => string, rootPaths: readonly string[]): Promise<TFile | null> {
+	const imageFiles = listVaultFilesInFolders(app, rootPaths)
 		.filter(isImageVaultFile)
 		.sort((left, right) => left.path.localeCompare(right.path, "zh-Hans-CN"));
 

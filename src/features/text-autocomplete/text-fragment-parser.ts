@@ -1,5 +1,5 @@
 import { type App, type Plugin } from "obsidian";
-import { type SettingDatas, NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, bindVaultChangeWatcher } from "../../core";
+import { type SettingDatas, NovelLibraryService, NOVEL_LIBRARY_SUBDIR_NAMES, bindVaultChangeWatcher, listMarkdownFilesInFolder } from "../../core";
 
 export interface SnippetFragment {
 	keyword: string;
@@ -114,13 +114,8 @@ export class SnippetFragmentService {
 		}
 
 		const fragments: SnippetFragment[] = [];
-		const markdownFiles = this.app.vault.getMarkdownFiles();
+		const markdownFiles = listMarkdownFilesInFolder(this.app, snippetRoot);
 		for (const file of markdownFiles) {
-			const normalizedPath = this.novelLibraryService.normalizeVaultPath(file.path);
-			if (!this.isSameOrChildPath(normalizedPath, snippetRoot)) {
-				continue;
-			}
-
 			try {
 				const content = await this.app.vault.cachedRead(file);
 				fragments.push(...this.parseFragmentsFromMarkdown(content));
