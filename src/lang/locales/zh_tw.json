@@ -117,7 +117,6 @@
 	"settings.guidebook.keyword.underline_style.option.dashed": "虛線",
 	"settings.guidebook.keyword.underline_style.option.dotted": "點線",
 	"settings.guidebook.keyword.underline_style.option.double": "雙線",
-	"settings.guidebook.keyword.underline_style.option.wavy": "波浪線",
 	"settings.guidebook.keyword.underline_width.name": "下劃線粗細",
 	"settings.guidebook.keyword.underline_width.desc": "高亮關鍵字的下劃線粗細（0-10像素）",
 	"settings.guidebook.keyword.underline_color.name": "下劃線顏色",

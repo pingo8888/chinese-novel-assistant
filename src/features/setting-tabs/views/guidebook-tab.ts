@@ -45,7 +45,6 @@ export function renderGuidebookSettings(containerEl: HTMLElement, deps: Settings
 				.addOption("dashed", ctx.t("settings.guidebook.keyword.underline_style.option.dashed"))
 				.addOption("dotted", ctx.t("settings.guidebook.keyword.underline_style.option.dotted"))
 				.addOption("double", ctx.t("settings.guidebook.keyword.underline_style.option.double"))
-				.addOption("wavy", ctx.t("settings.guidebook.keyword.underline_style.option.wavy"))
 				.setValue(ctx.settings.guidebookKeywordUnderlineStyle)
 				.onChange(async (value) => {
 					if (!isKeywordUnderlineStyle(value)) {
@@ -190,8 +189,8 @@ function isKeywordHighlightMode(value: string): value is "first" | "all" {
 	return value === "first" || value === "all";
 }
 
-function isKeywordUnderlineStyle(value: string): value is "none" | "solid" | "dashed" | "dotted" | "double" | "wavy" {
-	return value === "none" || value === "solid" || value === "dashed" || value === "dotted" || value === "double" || value === "wavy";
+function isKeywordUnderlineStyle(value: string): value is "none" | "solid" | "dashed" | "dotted" | "double" {
+	return value === "none" || value === "solid" || value === "dashed" || value === "dotted" || value === "double";
 }
 
 function isKeywordFontWeight(value: string): value is "normal" | "bold" {

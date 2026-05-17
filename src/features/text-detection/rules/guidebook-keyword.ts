@@ -508,11 +508,11 @@ export class GuidebookKeywordHighlightController {
 		);
 		rootEl.style.setProperty(
 			GUIDEBOOK_KEYWORD_UNDERLINE_STYLE_VAR,
-			underlineEnabled ? this.normalizeBorderStyle(settings.guidebookKeywordUnderlineStyle) : "none",
+			underlineEnabled ? settings.guidebookKeywordUnderlineStyle : "none",
 		);
 		rootEl.style.setProperty(
 			GUIDEBOOK_KEYWORD_UNDERLINE_WIDTH_VAR,
-			`${Math.max(0, Math.min(10, Math.round(settings.guidebookKeywordUnderlineWidth)))}px`,
+			`${this.normalizeBorderWidth(settings.guidebookKeywordUnderlineStyle, settings.guidebookKeywordUnderlineWidth)}px`,
 		);
 		rootEl.style.setProperty(
 			GUIDEBOOK_KEYWORD_UNDERLINE_COLOR_VAR,
@@ -542,8 +542,9 @@ export class GuidebookKeywordHighlightController {
 		return normalized.length > 0 ? normalized : fallback;
 	}
 
-	private normalizeBorderStyle(style: SettingDatas["guidebookKeywordUnderlineStyle"]): string {
-		return style === "wavy" ? "dotted" : style;
+	private normalizeBorderWidth(style: SettingDatas["guidebookKeywordUnderlineStyle"], width: number): number {
+		const normalizedWidth = Math.max(0, Math.min(10, Math.round(width)));
+		return style === "double" ? Math.max(3, normalizedWidth) : normalizedWidth;
 	}
 
 	private async resolveGuidebookFileKeywordIndex(

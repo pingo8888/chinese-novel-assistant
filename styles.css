@@ -1644,7 +1644,7 @@ button.cna-sticky-note-card__image-remove:hover {
 }
 
 .markdown-source-view.mod-cm6 .cm-content .cna-text-detection-hit {
-	border-bottom: 1.5px dotted var(--text-error);
+	border-bottom: 3px double var(--text-error);
 }
 
 .markdown-source-view.mod-cm6 .cm-content .cna-guidebook-keyword-hit {

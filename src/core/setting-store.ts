@@ -23,6 +23,9 @@ export class SettingStore {
 	async load(): Promise<SettingDatas> {
 		const raw = (await this.plugin.loadData()) as Partial<SettingDatas> | null;
 		this.settings = Object.assign(this.clone(DEFAULT_SETTINGS), raw ?? {});
+		if ((this.settings.guidebookKeywordUnderlineStyle as string) === "wavy") {
+			this.settings.guidebookKeywordUnderlineStyle = "double";
+		}
 		this.lastCommitted = this.clone(this.settings);
 		return this.settings;
 	}

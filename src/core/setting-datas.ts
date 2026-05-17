@@ -15,7 +15,7 @@ export interface SettingDatas {
 	// 设定
 	guidebookKeywordHighlightMode: "first" | "all";
 	guidebookKeywordHighlightBackgroundColor: string;
-	guidebookKeywordUnderlineStyle: "none" | "solid" | "dashed" | "dotted" | "double" | "wavy";
+	guidebookKeywordUnderlineStyle: "none" | "solid" | "dashed" | "dotted" | "double";
 	guidebookKeywordUnderlineWidth: number;
 	guidebookKeywordUnderlineColor: string;
 	guidebookKeywordFontWeight: "normal" | "bold";
