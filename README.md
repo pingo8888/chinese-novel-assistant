@@ -109,18 +109,11 @@
 
 # 使用方法
 
-## 安装插件：方法一
-1. 开启obsidian的第三方插件功能。
-2. 在obsidian插件目录下，新建chinese novel assistant目录。
-3. 将release中发布的main.js、styles.css和manifest.json拷贝到新建的目录下。
-4. 重启obsdian，随后在已安装插件中打开chinese novel assistant插件。
+## 安装插件：
+1. 在官方插件库搜索 chinese novel assistant
+2. 下载插件并等待安装完成
+3. 启用插件并进行设置
 
-## 安装插件：方法二
-1. 开启obsidian的第三方插件功能。
-2. 在官方的社区插件市场中，搜索并下载**BRAT插件**并开启
-3. 在BART插件的配置页面中，点击"Add beta plugin"按钮
-4. 在弹出的窗口内，设置插件路径为**本github网页**，版本为**Latest Version**
-5. 设置好后，点击"Add plugin"按钮，等待插件安装并启用。
 
 ## 配置插件
 1. 在插件设置界面，添加小说库。
@@ -336,18 +329,10 @@ An Obsidian plugin designed for Chinese fiction authors, with a set of practical
 
 ### Usage
 
-#### Install plugin: Method 1
-1. Enable third-party/community plugins in Obsidian.
-2. Create a folder named `chinese-novel-assistant` under your Obsidian plugins directory.
-3. Copy `main.js`, `styles.css`, and `manifest.json` from the release assets into that folder.
-4. Restart Obsidian, then enable Chinese Novel Assistant in installed plugins.
-
-#### Install plugin: Method 2
-1. Enable third-party/community plugins in Obsidian.
-2. In the official community plugin market, install and enable **BRAT**.
-3. In BRAT settings, click **Add beta plugin**.
-4. In the popup, set the plugin URL to **this GitHub repository page**, and version to **Latest Version**.
-5. Click **Add plugin** and wait for installation/enable to finish.
+#### Install plugin
+1. Search for "chinese novel assistant" in the official community plugin market.
+2. Download the plugin and wait for installation to complete.
+3. Enable the plugin and configure its settings.
 
 #### Configure plugin
 1. Add one or more novel libraries in plugin settings.
