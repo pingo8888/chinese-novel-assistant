@@ -36,6 +36,7 @@ export default tseslint.config(
 		"release",
 		"esbuild.config.mjs",
 		"eslint.config.js",
+		"stylelint.config.mjs",
 		"version-bump.mjs",
 		"versions.json",
 		"main.js",
