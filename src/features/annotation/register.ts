@@ -12,15 +12,12 @@ export function registerAnnotationSidebarView(plugin: Plugin, ctx: PluginContext
 export async function syncAnnotationSidebarWithGuidebook(
 	plugin: Plugin,
 	ctx: PluginContext,
-	guidebookLeaf: WorkspaceLeaf,
+	_guidebookLeaf: WorkspaceLeaf,
 ): Promise<void> {
 	if (ctx.settings.annotationEnabled) {
 		const annotationLeaves = plugin.app.workspace.getLeavesOfType("annotation-sidebar");
-		const hasAnnotationSibling = annotationLeaves.some((leaf) => leaf.parent === guidebookLeaf.parent);
-		if (!hasAnnotationSibling) {
-			for (const leaf of annotationLeaves) {
-				leaf.detach();
-			}
+		if (annotationLeaves.length > 0) {
+			return;
 		}
 
 		await plugin.app.workspace.ensureSideLeaf(

@@ -24,15 +24,12 @@ export function registerStickyNoteSidebarView(
 export async function syncStickyNoteSidebarWithGuidebook(
 	plugin: Plugin,
 	ctx: PluginContext,
-	guidebookLeaf: WorkspaceLeaf,
+	_guidebookLeaf: WorkspaceLeaf,
 ): Promise<void> {
 	if (ctx.settings.stickyNoteEnabled) {
 		const stickyLeaves = plugin.app.workspace.getLeavesOfType("sticky-note-sidebar");
-		const hasStickySibling = stickyLeaves.some((leaf) => leaf.parent === guidebookLeaf.parent);
-		if (!hasStickySibling) {
-			for (const leaf of stickyLeaves) {
-				leaf.detach();
-			}
+		if (stickyLeaves.length > 0) {
+			return;
 		}
 
 		await plugin.app.workspace.ensureSideLeaf(

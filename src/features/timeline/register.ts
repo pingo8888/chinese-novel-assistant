@@ -12,15 +12,12 @@ export function registerTimelineSidebarView(plugin: Plugin, ctx: PluginContext):
 export async function syncTimelineSidebarWithGuidebook(
 	plugin: Plugin,
 	ctx: PluginContext,
-	guidebookLeaf: WorkspaceLeaf,
+	_guidebookLeaf: WorkspaceLeaf,
 ): Promise<void> {
 	if (ctx.settings.timelineEnabled) {
 		const timelineLeaves = plugin.app.workspace.getLeavesOfType("timeline-sidebar");
-		const hasTimelineSibling = timelineLeaves.some((leaf) => leaf.parent === guidebookLeaf.parent);
-		if (!hasTimelineSibling) {
-			for (const leaf of timelineLeaves) {
-				leaf.detach();
-			}
+		if (timelineLeaves.length > 0) {
+			return;
 		}
 
 		await plugin.app.workspace.ensureSideLeaf(
