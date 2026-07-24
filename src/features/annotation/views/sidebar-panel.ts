@@ -333,7 +333,7 @@ export function renderAnnotationSidebarPanel(containerEl: HTMLElement, ctx: Plug
 			return;
 		}
 		const editorView = resolveEditorViewFromMarkdownView(activeMarkdownView);
-		if (!editorView || !(editorView.scrollDOM instanceof HTMLElement) || !(editorView.dom instanceof HTMLElement)) {
+		if (!editorView || !editorView.scrollDOM.instanceOf(HTMLElement) || !editorView.dom.instanceOf(HTMLElement)) {
 			return;
 		}
 		activeEditorScrollDom = editorView.scrollDOM;

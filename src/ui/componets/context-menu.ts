@@ -217,8 +217,7 @@ function attachColorSwatchesToMenu(menuEl: HTMLElement, options: MenuColorSwatch
 }
 
 function createColorChip(colorHex: string): HTMLSpanElement {
-	const colorChipEl = document.createElement("span");
-	colorChipEl.className = "cna-context-menu-color-chip";
+	const colorChipEl = createSpan({ cls: "cna-context-menu-color-chip" });
 	colorChipEl.style.setProperty("--cna-context-menu-color", colorHex);
 	colorChipEl.style.setProperty("--cna-context-menu-color-alpha", toRgba(colorHex, 0.25));
 	return colorChipEl;

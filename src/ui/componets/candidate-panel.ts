@@ -59,8 +59,7 @@ export class CandidatePanelComponent<TItem> {
 
 	constructor(options: CandidatePanelOptions<TItem> = {}) {
 		this.options = options;
-		this.rootEl = document.createElement("div");
-		this.rootEl.addClass("cna-candidate-panel");
+		this.rootEl = createDiv({ cls: "cna-candidate-panel" });
 		if (options.className) {
 			this.rootEl.addClass(options.className);
 		}

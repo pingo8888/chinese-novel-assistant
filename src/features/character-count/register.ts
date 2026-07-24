@@ -175,7 +175,7 @@ class CharacterCountFeature {
 		if (!node) {
 			return false;
 		}
-		const element = node instanceof HTMLElement ? node : node.parentElement;
+		const element = node.instanceOf(HTMLElement) ? node : node.parentElement;
 		if (!element) {
 			return false;
 		}
@@ -557,9 +557,10 @@ class CharacterMilestoneMarker extends GutterMarker {
 	}
 
 	toDOM(): HTMLElement {
-		const el = document.createElement("span");
-		el.className = "cna-character-milestone-marker";
-		el.textContent = this.text;
+		const el = createSpan({
+			cls: "cna-character-milestone-marker",
+			text: this.text,
+		});
 		return el;
 	}
 }

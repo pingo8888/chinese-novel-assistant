@@ -132,7 +132,7 @@ export class GuidebookPreviewController {
 			if (hoverAnchorEl.contains(relatedTarget)) {
 				return;
 			}
-			if (relatedTarget instanceof Element) {
+			if (relatedTarget.instanceOf(Element)) {
 				const relatedHoverAnchorEl = this.resolveHoverAnchorElement(relatedTarget);
 				if (relatedHoverAnchorEl === hoverAnchorEl) {
 					return;

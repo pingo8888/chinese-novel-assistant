@@ -28,8 +28,7 @@ class HeadingIconWidget extends WidgetType {
 	}
 
 	toDOM(): HTMLElement {
-		const el = document.createElement("span");
-		el.className = TYPESET_HEADING_ICON_EL_CLASS;
+		const el = createSpan({ cls: TYPESET_HEADING_ICON_EL_CLASS });
 		el.dataset.headingLevel = String(this.level);
 		setIcon(el, HEADING_ICON_BY_LEVEL[this.level]);
 		return el;

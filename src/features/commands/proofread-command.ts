@@ -139,7 +139,7 @@ function resolveActiveEditorView(ctx: PluginContext): MaybeEditorView {
 }
 
 function captureViewportRestore(editorView: MaybeEditorView): () => void {
-	if (!editorView || !(editorView.scrollDOM instanceof HTMLElement)) {
+	if (!editorView || !editorView.scrollDOM.instanceOf(HTMLElement)) {
 		return () => undefined;
 	}
 
@@ -166,7 +166,7 @@ function captureViewportRestore(editorView: MaybeEditorView): () => void {
 }
 
 function restoreViewportByLine(editorView: MaybeEditorView, snapshot: ViewportSnapshot): void {
-	if (!editorView || !(editorView.scrollDOM instanceof HTMLElement)) {
+	if (!editorView || !editorView.scrollDOM.instanceOf(HTMLElement)) {
 		return;
 	}
 	const lineCount = editorView.state.doc.lines;

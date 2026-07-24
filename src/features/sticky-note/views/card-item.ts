@@ -813,7 +813,7 @@ function resolveColumnIndexByPixelX(
 	if (targetX <= 0 || lineText.length === 0) {
 		return 0;
 	}
-	const canvas = document.createElement("canvas");
+	const canvas = createEl("canvas");
 	const context = canvas.getContext("2d");
 	if (!context) {
 		return Math.min(lineText.length, Math.round(targetX / 8));
