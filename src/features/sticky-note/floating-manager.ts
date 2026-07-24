@@ -500,8 +500,8 @@ class StickyNoteFloatingFeature {
 				continue;
 			}
 			surfaceEl.style.minHeight = `${contentHeight}px`;
-			surfaceEl.setCssProps({
-				"max-height": `${contentHeight}px`,
+			surfaceEl.setCssStyles({
+				maxHeight: `${contentHeight}px`,
 			});
 		}
 	}

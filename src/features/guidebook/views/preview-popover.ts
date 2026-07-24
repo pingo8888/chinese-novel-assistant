@@ -138,8 +138,8 @@ export class GuidebookPreviewPopover {
 		this.contentEl.toggleClass("is-empty", normalizedContent.length === 0);
 		this.emptyEl.toggleClass("is-visible", normalizedContent.length === 0);
 		this.rootEl.style.width = `${width}px`;
-		this.rootEl.setCssProps({
-			"max-height": "",
+		this.rootEl.setCssStyles({
+			maxHeight: "",
 		});
 		this.currentDisplayOptions = { maxLines };
 
@@ -237,8 +237,8 @@ export class GuidebookPreviewPopover {
 		}
 		const lineHeightPx = this.resolveContentLineHeightPx();
 		const maxByLines = Math.max(24, Math.round(options.maxLines * lineHeightPx));
-		this.contentEl.setCssProps({
-			"max-height": `${maxByLines}px`,
+		this.contentEl.setCssStyles({
+			maxHeight: `${maxByLines}px`,
 		});
 	}
 
